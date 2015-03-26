@@ -161,10 +161,14 @@ def PSDs(zhub,Vhub,turbc,f):
     Lambda1 = calcLambda1(zhub);        # longitudinal scale parameter
     L1 = 8.1*Lambda1;                   # longitudinal integral scale   
     L2 = 2.7*Lambda1;                   # lateral integral scale  
-    L3 = 0.66*Lambda1;                  # vertical integral scale  
+    L3 = 0.66*Lambda1;                  # vertical integral scale
+
+    print 'Lambda1 = {}'.format(Lambda1)
+    print 'sigma1 = {}'.format(sigma1)
+    print 'L1 = {}'.format(L1)
 
     Su = KaimalSpectrum(f,L1/Vhub,sigma1);  # longitudinal spectrum
     Sv = KaimalSpectrum(f,L2/Vhub,sigma2);  # lateral spectrum
     Sw = KaimalSpectrum(f,L3/Vhub,sigma3);  # vertical spectrum
 
-    return [Su,Sv,Sw]
+    return (Su,Sv,Sw)
