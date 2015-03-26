@@ -4,14 +4,20 @@
 import pyts.io.main as io
 import matplotlib.pyplot as plt
 import numpy as np
-import jr.TS_Verification_Library as jr
+
+import sys
+sys.path.append('..')
+import JR_Library.io as jrio
+import JR_Library.IEC as IEC
+import JR_Library.ExtractWindParameters as ewp
+import JR_Library.misc as misc
 
 # name of file to load
 dname   = '2-periodic/TS/'
-fname   = 'IEC_scale_10pts';
+fname   = 'IEC_noscale_5pts';
 
 # save image in directory?
-saveimg = 1
+saveimg = 0
 
 # construct total file path
 inpname = dname + fname + '.inp';
@@ -19,39 +25,46 @@ outname = dname + fname + '.wnd';
 
 # read file
 tsout = io.readModel(outname);
-tsin  = jr.readInput(inpname);
+tsin  = jrio.readInput(inpname);
 
 # useful values
 y = tsout.grid.y;               # y-grid vector
-# z = tsout.grid.z[::-1];         # reverse to match TS output
-z = tsout.grid.z;         # reverse to match TS output  
+# z = tsout.grid.z[::-1];         # bts
+z = tsout.grid.z;         # wnd
 [Y, Z] = np.meshgrid(y, z);     # grid arrays
 n_t = tsout.uhub.size;          # (grid.n_t is not correct)
-n_f = np.ceil((n_t-1)/2+1);     # unique components counting DC
+n_f = misc.uniqueComponents(n_t);     # unique components counting DC
 rsep = min(tsout.grid.dy,\
            tsout.grid.dz);      # coherence sep distance
 
-# ============== Data ==============
+# ============== TurbSim ==============
 
 # calculate velocity and turb intesn profiles
-U  = jr.velocityProfile(tsout);
+U  = ewp.TurbSimVelProfile(outname);
 Ti = tsout.Ti;
 		
 # calculate spatial coherence
-[f,Coh] = jr.calculateTurbSimSC(outname,rsep);
+f, Coh = ewp.calculateTurbSimSC(outname,rsep);
 
 # calculate hub-height spectra
-[Su,Sv,Sw] = jr.hubHeightPSDs(tsout);
+Suk, Svk, Swk = ewp.TurbSimHHPSDs(outname);
 
 # phase differences
-[dthetau,dthetav,dthetaw] = \
-    jr.hubHeightPhaseDiffs(tsout);
+dthetau, dthetav, dthetaw = \
+    ewp.TurbSimHHPDDs(outname);
 
 # ============== Theory ==============
-U_IEC  = jr.IEC_VelProfile(z,tsout);
-TI_IEC = jr.IEC_TiProfile(z,tsin,tsout);
-Coh_IEC = jr.IEC_SpatialCoherence(rsep,f,tsout);
-[Su_IEC,Sv_IEC,Sw_IEC] = jr.IEC_PSDs(f,tsin,tsout);
+zhub = tsout.grid.zhub
+Vhub = tsout.UHUB
+turbc = tsin.turbc
+df = 1./(n_t*tsout.dt)
+U_IEC  = IEC.VelProfile(z,zhub,Vhub);
+TI_IEC = IEC.TiProfile(z,zhub,Vhub,turbc);
+Coh_IEC = IEC.SpatialCoherence(zhub,Vhub,rsep,f);
+Su_IEC, Sv_IEC, Sw_IEC = IEC.PSDs(zhub,Vhub,turbc,f);
+Suk_IEC = Su_IEC*df
+Svk_IEC = Sv_IEC*df
+Swk_IEC = Sw_IEC*df
 
 # ============== Plot ==============
 axwidth = 0.23;
@@ -86,22 +99,22 @@ plt.ylabel('Spatial Coherence (-)')
 
 # u-spectrum
 ax2 = plt.axes([xedge[1], yedge[-1], axwidth, axheight]);
-ax2.loglog(f,Su)
-ax2.loglog(f,Su_IEC,'r')
+ax2.loglog(f[1:],Suk[1:-1])
+ax2.loglog(f,Suk_IEC,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
 
 # v-spectrum
 ax5 =  plt.axes([xedge[1], yedge[1], axwidth, axheight]);
-ax5.loglog(f,Sv)
-ax5.loglog(f,Sv_IEC,'r')
+ax5.loglog(f[1:],Svk[1:-1])
+ax5.loglog(f,Svk_IEC,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
 
 # w-spectrum
 ax8 =  plt.axes([xedge[1], yedge[0], axwidth, axheight]);
-ax8.loglog(f,Sw)
-ax8.loglog(f,Sw_IEC,'r')
+ax8.loglog(f[1:],Swk[1:-1])
+ax8.loglog(f,Svk_IEC,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
 
