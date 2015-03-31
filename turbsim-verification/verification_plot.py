@@ -13,8 +13,8 @@ import JR_Library.ExtractWindParameters as ewp
 import JR_Library.misc as misc
 
 # name of file to load
-dname   = '2-periodic/TS/'
-fname   = 'IEC_noscale_5pts';
+dname   = '4-myflag/TS/'
+fname   = 'IEC_TC_NS_5pts';
 
 # save image in directory?
 saveimg = 0
