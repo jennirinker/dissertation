@@ -110,6 +110,7 @@ ax5.loglog(f[1:],Svk[1:-1])
 ax5.loglog(f,Svk_IEC,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.title(fname)
 
 # w-spectrum
 ax8 =  plt.axes([xedge[1], yedge[0], axwidth, axheight]);
