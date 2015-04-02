@@ -13,11 +13,11 @@ import JR_Library.ExtractWindParameters as ewp
 import JR_Library.misc as misc
 
 # name of file to load
-dname   = '2-periodic/TS/'
+dname   = '1-unmodified/TS/'
 fname   = '5pts_NoSc';
 
 # save image in directory?
-saveimg = 0
+saveimg = 1
 
 # construct total file path
 inpname = dname + fname + '.inp';
