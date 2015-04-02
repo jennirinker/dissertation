@@ -13,11 +13,11 @@ import JR_Library.ExtractWindParameters as ewp
 import JR_Library.misc as misc
 
 # name of file to load
-dname   = '4-myflag/TS/'
-fname   = 'IEC_TC_NS_5pts';
+dname   = '1-unmodified/TS/'
+fname   = '5pts_NoSc';
 
 # save image in directory?
-saveimg = 0
+saveimg = 1
 
 # construct total file path
 inpname = dname + fname + '.inp';
@@ -70,7 +70,7 @@ Swk_IEC = Sw_IEC*df
 axwidth = 0.23;
 axheight = 0.23;
 xedge = [0.08, 0.41, 0.74];
-yedge = [0.09, 0.41, 0.73];
+yedge = [0.09, 0.405, 0.72];
 
 fig = plt.figure(1,figsize=(9.05,7.14));
 fig.clf();
@@ -103,6 +103,7 @@ ax2.loglog(f[1:],Suk[1:-1])
 ax2.loglog(f,Suk_IEC,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.title(fname)
 
 # v-spectrum
 ax5 =  plt.axes([xedge[1], yedge[1], axwidth, axheight]);
@@ -110,7 +111,6 @@ ax5.loglog(f[1:],Svk[1:-1])
 ax5.loglog(f,Svk_IEC,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
-plt.title(fname)
 
 # w-spectrum
 ax8 =  plt.axes([xedge[1], yedge[0], axwidth, axheight]);
@@ -141,4 +141,5 @@ fig.show()
 
 if saveimg:
     plt.savefig(dname + fname + '.png')
+    print fname + ' saved as image'
 
