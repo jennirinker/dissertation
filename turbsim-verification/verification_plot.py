@@ -31,6 +31,7 @@ tsin  = jrio.readInput(inpname);
 y = tsout.grid.y;               # y-grid vector
 # z = tsout.grid.z[::-1];         # bts
 z = tsout.grid.z;         # wnd
+print z
 [Y, Z] = np.meshgrid(y, z);     # grid arrays
 n_t = tsout.uhub.size;          # (grid.n_t is not correct)
 n_f = misc.uniqueComponents(n_t);     # unique components counting DC
