@@ -1,6 +1,7 @@
 
 FC = gfortran
-export FFLAGS = -fdefault-real-8 -ffree-line-length-none -fPIC -O2 -mtune=native
+# export FFLAGS = -fdefault-real-8 -ffree-line-length-none -fPIC -O2 -mtune=native
+export FFLAGS = -O2 -mtune=native -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION -fdefault-real-8
 
 TURBSIM_LIB = trunk
 
