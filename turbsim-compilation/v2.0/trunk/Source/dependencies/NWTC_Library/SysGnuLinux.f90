@@ -1,83 +1,58 @@
-!**********************************************************************************************************************************
-! LICENSING
-! Copyright (C) 2013  National Renewable Energy Laboratory
-!
-!    This file is part of the NWTC Subroutine Library.
-!
-! Licensed under the Apache License, Version 2.0 (the "License");
-! you may not use this file except in compliance with the License.
-! You may obtain a copy of the License at
-!
-!     http://www.apache.org/licenses/LICENSE-2.0
-!
-! Unless required by applicable law or agreed to in writing, software
-! distributed under the License is distributed on an "AS IS" BASIS,
-! WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-! See the License for the specific language governing permissions and
-! limitations under the License.
-!
-!**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 10:04:28 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 237 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysGnuLinux.f90 $
-!**********************************************************************************************************************************
 MODULE SysSubs
 
 
-   ! This module contains routines with system-specific logic and references, including all references to the console unit, CU.
+   ! This module contains routines with system-specific logic and references.
    ! It also contains standard (but not system-specific) routines it uses.
 
-   ! SysGnuLinux.f90 is specifically for the GNU Fortran (gfortran) compiler on Linux. This should also work for gfortran on MAC.
+   ! SysGnu.f90 is specifically for the GNU Fortran (gfortran) compiler on Linux. This should also work for gfortran on MAC.
 
 
    ! It contains the following routines:
 
-   !     FUNCTION    FileSize( Unit )                                         ! Returns the size (in bytes) of an open file.
+   !     FUNCTION    COMMAND_ARGUMENT_COUNT()
+   !     SUBROUTINE  FileSize ( FileName, Size )
+   !     SUBROUTINE  FindLine ( Str , MaxLen , StrEnd )
    !     SUBROUTINE  FlushOut ( Unit )
+   !     SUBROUTINE  Get_Arg ( Arg_Num , Arg , Error )                                       ! Please use GET_COMMAND_ARGUMENT() instead.
+   !     SUBROUTINE  Get_Arg_Num ( Arg_Num )                                                 ! Please use COMMAND_ARGUMENT_COUNT() instead.
+   !     SUBROUTINE  GET_COMMAND ( Command, Length, Status )
+   !     SUBROUTINE  GET_COMMAND_ARGUMENT ( Number, Value, Length, Status )
    !     SUBROUTINE  GET_CWD( DirName, Status )
-   !     FUNCTION    Is_NaN( DblNum )                                         ! Please use IEEE_IS_NAN() instead
-   !     FUNCTION    NWTC_Gamma( x )                                          ! Returns the gamma value of its argument.   
+   !     FUNCTION    Get_Env( EnvVar )                                                       ! Please use GET_ENVIRONMENT_VARIABLE() instead.
+   !     FUNCTION    GET_ENVIRONMENT_VARIABLE( Name, Value, Length, Status, Trim_Name )
+   !     FUNCTION    Is_NaN( DblNum )                                                        ! Please use IEEE_IS_NAN() instead
+   !     SUBROUTINE  OpenBinFile ( Un, OutFile, RecLen, Error )
+   !     SUBROUTINE  OpenBinInpFile( Un, InFile, Error )
+   !     SUBROUTINE  OpenCon
    ! per MLB, this can be removed, but only if CU is OUTPUT_UNIT:
-   !     SUBROUTINE  OpenCon                                                  ! Actually, it can't be removed until we get Intel's FLUSH working. (mlb)
+   !     SUBROUTINE  OpenCon     ! Actually, it can't be removed until we get Intel's FLUSH working. (mlb)
    !     SUBROUTINE  OpenUnfInpBEFile ( Un, InFile, RecLen, Error )
    !     SUBROUTINE  ProgExit ( StatCode )
-   !     SUBROUTINE  Set_IEEE_Constants( NaN_D, Inf_D, NaN, Inf )   
    !     SUBROUTINE  UsrAlarm
+   !     FUNCTION    UserTime()                                                              ! Removed: Replace by F95 intrinsic, CPU_TIME().
    !     SUBROUTINE  WrNR ( Str )
    !     SUBROUTINE  WrOver ( Str )
-   !     SUBROUTINE  WriteScr ( Str, Frm )
-   !     SUBROUTINE LoadDynamicLib( DLL, ErrStat, ErrMsg )
-   !     SUBROUTINE FreeDynamicLib( DLL, ErrStat, ErrMsg )
+   !     SUBROUTINE  WrScr ( Str )
 
 
 
-   USE                             NWTC_Base
+
+   USE                             Precision
 
    IMPLICIT                        NONE
 
-   INTERFACE NWTC_gamma ! Returns the gamma value of its argument
-         ! note: gamma is part of the F08 standard, but may not be implemented everywhere...
-      MODULE PROCEDURE NWTC_gammaR4
-      MODULE PROCEDURE NWTC_gammaR8
-      MODULE PROCEDURE NWTC_gammaR16 
-   END INTERFACE
-   
 
 !=======================================================================
 
 
    INTEGER, PARAMETER            :: ConRecL     = 120                               ! The record length for console output.
-   INTEGER, PARAMETER            :: CU          = 6                                 ! The I/O unit for the console.  Unit 6 causes ADAMS to crash.
-                                                                                    ! CU = 7 works on gfortran compiler version 4.6 and possibly 4.5. Fails on version 4.7 and 4.8 (see bugzilla bug report #445 for details)
-   INTEGER, PARAMETER            :: MaxWrScrLen = 98                                ! The maximum number of characters allowed to be written to a line in WrScr
+   INTEGER, PARAMETER            :: CU          = 7                                 ! The I/O unit for the console.  Unit 6 causes ADAMS to crash.
    INTEGER, PARAMETER            :: NL_Len      = 2                                 ! The number of characters used for a new line.
 
    LOGICAL, PARAMETER            :: KBInputOK   = .TRUE.                            ! A flag to tell the program that keyboard input is allowed in the environment.
 
    CHARACTER(10), PARAMETER      :: Endian      = 'BIG_ENDIAN'                      ! The internal format of numbers.
-   CHARACTER(*),  PARAMETER      :: NewLine     = ACHAR(10)                         ! The delimiter for New Lines [ Windows is CHAR(13)//CHAR(10); MAC is CHAR(13); Unix is CHAR(10) {CHAR(13)=\r is a line feed, CHAR(10)=\n is a new line}]
-   CHARACTER(*),  PARAMETER      :: OS_Desc     = 'GNU Fortran for Linux'           ! Description of the language/OS
-   CHARACTER( 1), PARAMETER      :: PathSep     = '/'                               ! The path separator.
+   CHARACTER( 1), PARAMETER      :: PathSep     = '/'                               ! The path separater.
    CHARACTER( 1), PARAMETER      :: SwChar      = '-'                               ! The switch character for command-line options.
    CHARACTER(11), PARAMETER      :: UnfForm     = 'UNFORMATTED'                     ! The string to specify unformatted I/O files.
 
@@ -85,41 +60,120 @@ MODULE SysSubs
 CONTAINS
 
 !=======================================================================
-   FUNCTION FileSize( Unit )
+   FUNCTION COMMAND_ARGUMENT_COUNT()
 
 
-      ! This function calls the portability routine, FSTAT, to obtain the file size
-      ! in bytes corresponding to a file unit number or returns -1 on error.
+      ! This routine returns the number of argumenta entered on the command line..
+
+      ! Note: This routine will be available intrinsically in Fortran 2000.
 
 
       ! Function declaration.
 
-   INTEGER(B8Ki)                             :: FileSize                      ! The size of the file in bytes to be returned.
+   INTEGER                      :: COMMAND_ARGUMENT_COUNT                       ! This function.  The command line.
+
+
+
+      ! Determine the mumber of arguments.  Load the program name into the result.
+
+   COMMAND_ARGUMENT_COUNT = IArgC()
+
+
+   RETURN
+   END FUNCTION COMMAND_ARGUMENT_COUNT ! ()
+!=======================================================================
+   SUBROUTINE FileSize ( FileName, Size )
+
+
+      ! This routine calls the routine Stat to obtain the file size
+      ! corresponding to a file name or returns -1 on error.
+
+      ! mlb: WARNING!!!
+      ! The standard version of the routine uses the file unit instead of file name.
+      ! We need fix the routines that call this one.
 
 
       ! Argument declarations:
 
-   INTEGER, INTENT(IN)                       :: Unit                          ! The I/O unit number of the pre-opened file.
+   INTEGER, INTENT(OUT)         :: Size
+
+   CHARACTER(*), INTENT(IN)     :: FileName
+
+
+      ! Intrinsic declarations:
+
+   INTEGER(KIND=1)              :: Stat
 
 
       ! Local declarations:
 
-   INTEGER                                   :: StatArray(13)                 ! An array returned by FSTAT that includes the file size.
-   INTEGER                                   :: Status                        ! The status returned by
+   INTEGER                      :: StatArray(12)
+   INTEGER                      :: Status
 
 
 
-   Status = FSTAT( INT( Unit, 4 ), StatArray )
+   Status = Stat( FileName, StatArray )
 
    IF ( Status /= 0 ) THEN
-      FileSize = -1
+     Size = -1
    ELSE
-      FileSize = StatArray(8)
+     Size = StatArray(8)
    END IF
 
 
    RETURN
-   END FUNCTION FileSize ! ( Unit )
+   END SUBROUTINE FileSize ! ( FileName, Size )
+!=======================================================================
+   SUBROUTINE FindLine ( Str , MaxLen , StrEnd )
+
+
+      ! This routine finds one line of text with a maximum length of MaxLen from the Str.
+      ! It tries to break the line at a blank.
+
+      ! This routine isn't system specific, but it is called by WrScr(), which is, so it must be here.
+
+
+   IMPLICIT                        NONE
+
+
+      ! Argument declarations:
+
+   INTEGER, INTENT(IN)          :: MaxLen                                       ! The maximum length of the string.
+   INTEGER, INTENT(OUT)         :: StrEnd                                       ! The location of the end of the string.
+
+   CHARACTER(*), INTENT(IN)     :: Str                                          ! The string to search.
+
+
+      ! Local declarations:
+
+   INTEGER         IC
+
+
+
+   StrEnd = MaxLen
+
+   IF ( LEN_TRIM( Str ) > MaxLen )  THEN
+
+      IC = INDEX( Str(1:MaxLen), ' ', BACK = .TRUE. ) ! Find the last space in the line
+
+      IF ( IC > 1 ) THEN ! We don't want to return just one character that's a space, or do we?
+
+         StrEnd = IC-1    ! StrEnd > 0
+         DO WHILE ( Str(StrEnd:StrEnd) == ' ' )
+            StrEnd = StrEnd - 1
+            IF ( StrEnd <= 0 ) THEN  ! This occurs if everything before IC is a space
+               StrEnd = IC
+               EXIT
+            ENDIF
+         ENDDO
+
+      ENDIF ! IC > 1
+
+   ENDIF ! LEN_TRIM( Str ) > MaxLen
+
+
+   RETURN
+   END SUBROUTINE FindLine ! ( Str , MaxLen , StrEnd )
 !=======================================================================
    SUBROUTINE FlushOut ( Unit )
 
@@ -139,6 +193,158 @@ CONTAINS
 
    RETURN
    END SUBROUTINE FlushOut ! ( Unit )
+!=======================================================================
+   SUBROUTINE Get_Arg ( Arg_Num , Arg , Error )
+
+
+      ! This routine gets Arg_Num'th argument from the command line.
+
+   ! Note: The functionality in this routine was replaced by GET_COMMAND_ARGUMENT(), which is available intrinsically in Fortran 2000.
+
+
+      ! Argument declarations.
+
+   INTEGER, INTENT(IN)          :: Arg_Num                                      ! The argument number to get.
+
+   LOGICAL, INTENT(OUT)         :: Error                                        ! The Error flag returned to the calling program.
+
+   CHARACTER(*), INTENT(OUT)    :: Arg                                          ! The argument string returned to the calling program.
+
+
+      ! Local declarations.
+
+   INTEGER                      :: Status                                       ! The status of the attempt to get an argument.
+
+
+
+   CALL GETARG ( Arg_Num, Arg )  !20110512 jm remove 3rd arg for Linux port
+
+   IF ( LEN_TRIM( Arg ) > 0 )  THEN
+      Error = .FALSE.
+   ELSE
+      Error = .TRUE.
+   END IF
+
+
+   RETURN
+   END SUBROUTINE Get_Arg ! ( Arg_Num , Arg , Error )
+!=======================================================================
+   SUBROUTINE Get_Arg_Num ( Arg_Num )
+
+
+      ! This routine gets the number of command line arguments.
+
+   ! Note: The functionality in this routine was replaced by COMMAND_ARGUMENT_COUNT(), which will be available intrinsically in Fortran 2000.
+
+
+      ! Argument declarations.
+
+   INTEGER, INTENT(OUT)         :: Arg_Num                                      ! The argument to get from the command line.
+
+
+
+   Arg_Num = IARGC()
+
+
+   RETURN
+   END SUBROUTINE Get_Arg_Num ! ( Arg_Num )
+!=======================================================================
+   SUBROUTINE GET_COMMAND ( Command, Length, Status )
+
+
+      ! This routine returns the string associated with the full command line.
+      ! It tries as best it can to mimic the Fortran 2000 intrinsic subroutine by the same name.
+
+
+      ! Argument declarations.
+
+   INTEGER, OPTIONAL, INTENT(OUT)      :: Length                                ! The length of the value of the environment variable.
+   INTEGER, OPTIONAL, INTENT(OUT)      :: Status                                ! The status indication what happened.
+
+   CHARACTER(*), OPTIONAL, INTENT(OUT) :: Command                               ! The command line.
+
+
+      ! Local parameter declarations.
+
+   INTEGER, PARAMETER                  :: MaxLen = 500                          ! The maximum length permitted for an environment variable value.
+
+
+      ! Local declarations.
+
+   INTEGER                             :: CallStat                              ! Status of the call.
+   INTEGER                             :: IArg                                  ! Argument index.
+
+   CHARACTER(MaxLen)                   :: Arg                                   ! The current argument.
+   CHARACTER(MaxLen)                   :: ReturnVal                             ! The value that will be returned.
+
+
+
+      ! Initialize the result with the program name.
+
+   CALL GETARG ( 0, ReturnVal )  !20110512 jm remove 3rd arg for Linux port
+
+
+      ! Loop through all the arguments and build the total command line.
+
+   DO IArg=1,IArgC()
+      CALL GETARG ( IArg, Arg )  !20110512 jm remove 3rd arg for Linux port
+      ReturnVal = TRIM( ReturnVal )//' '//TRIM( Arg )
+   END DO ! IArg
+
+
+      ! When asking the OS about the variable, trim the name unless Trim_Name is false.
+
+   IF ( PRESENT( Command ) )  Command = ReturnVal
+   IF ( PRESENT( Length  ) )  Length  = LEN_TRIM( ReturnVal )
+   IF ( PRESENT( Status  ) )  Status  = 0
+
+
+   RETURN
+   END SUBROUTINE GET_COMMAND ! ( Command, Length, Status )
+!=======================================================================
+   SUBROUTINE GET_COMMAND_ARGUMENT ( Number, Value, Length, Status )
+
+
+      ! This routine returns the string associated with the Numberth command-line argument.
+      ! It tries as best it can to mimic the Fortran 2000 intrinsic function by the same name.
+
+
+      ! Argument declarations.
+
+   INTEGER, OPTIONAL, INTENT(OUT)      :: Length                                ! The length of the value of the environment variable.
+   INTEGER, INTENT(IN)                 :: Number                                ! The number of the argument desired.
+   INTEGER, OPTIONAL, INTENT(OUT)      :: Status                                ! The status indication what happened.
+
+   CHARACTER(*), OPTIONAL, INTENT(OUT) :: Value                                 ! The command line argument.
+
+
+      ! Local parameter declarations.
+
+   INTEGER, PARAMETER                  :: MaxLen = 500                          ! The maximum length permitted for an environment variable value.
+
+
+      ! Local declarations.
+
+   INTEGER                             :: CallStat                              ! The status of the intrinsic call.
+
+   CHARACTER(MaxLen)                   :: ReturnVal                             ! The value that will be returned.
+
+
+
+      ! Get the argument.
+
+   CALL GETARG ( Number, ReturnVal )  !20110512 jm remove 3rd arg for Linux port
+
+
+      ! Load up the return values.
+
+   IF ( PRESENT( Value  ) )  Value  = ReturnVal
+   IF ( PRESENT( Length ) )  Length = LEN_TRIM( ReturnVal )
+   IF ( PRESENT( Status ) )  Status = CallStat
+
+
+   RETURN
+   END SUBROUTINE GET_COMMAND_ARGUMENT ! ( Number, Value, Length, Status )
 !=======================================================================
 !bjj note: this subroutine is not tested for this compiler
    SUBROUTINE Get_CWD ( DirName, Status )
@@ -160,6 +366,102 @@ CONTAINS
 
    RETURN
    END SUBROUTINE Get_CWD
+!=======================================================================
+   FUNCTION Get_Env( EnvVar )
+
+
+      ! This routine returns the string associated with the EnvVar environment variable in the OS.
+      ! It returns the null string of the variable is not found.
+
+   ! Note: The functionality in this routine was replaced by GET_ENVIRONMENT_VARIABLE(), which will be available intrinsically in Fortran 2000.
+
+
+      ! Function declaration.
+
+   CHARACTER(500)               :: Get_Env                                      ! This function.  The value of the environment variable.
+
+
+      ! Argument declarations.
+
+   CHARACTER(*), INTENT(IN)     :: EnvVar                                       ! The environment variable to look up.
+
+
+
+   CALL GetEnv ( EnvVar, Get_Env )
+
+
+   RETURN
+   END FUNCTION Get_Env ! ( EnvVar )
+!=======================================================================
+   FUNCTION GET_ENVIRONMENT_VARIABLE( Name, Value, Length, Status, Trim_Name )
+
+
+      ! This routine returns the string associated with the Name environment variable in the OS.
+      ! It tries as best it can to mimic the Fortran 2000 intrinsic function by the same name.
+
+
+      ! Argument declarations.
+
+   INTEGER, OPTIONAL, INTENT(OUT)      :: Length                                ! The length of the value of the environment variable.
+   INTEGER, OPTIONAL, INTENT(OUT)      :: Status                                ! The status indication what happened.
+
+   LOGICAL, OPTIONAL, INTENT(IN)       :: Trim_Name                             ! Treat trailing blanks in Name as significant if true.
+
+   CHARACTER(*), INTENT(IN)            :: Name                                  ! The environment variable to look up.
+   CHARACTER(*), OPTIONAL, INTENT(OUT) :: Value                                 ! The found value of the environment variable, Name.
+
+
+      ! Local parameter declarations.
+
+   INTEGER, PARAMETER                  :: MaxLen = 500                          ! The maximum length permitted for an environment variable value.
+
+
+      ! Function declaration.
+
+   CHARACTER(MaxLen)                   :: GET_ENVIRONMENT_VARIABLE              ! This function.  The value of the environment variable.
+
+
+      ! Local declarations.
+
+   CHARACTER(MaxLen)                   :: ReturnVal                             ! The value that will be returned.
+
+
+
+      ! When asking the OS about the variable, trim the name unless Trim_Name is false.
+
+   IF ( PRESENT( Trim_Name ) )  THEN
+      IF ( Trim_Name )  THEN
+         CALL GetEnv ( TRIM( Name ), ReturnVal )
+      ELSE
+         CALL GetEnv ( Name, ReturnVal )
+      END IF
+   ELSE
+      CALL GetEnv ( TRIM( Name ), ReturnVal )
+   END IF
+
+   IF ( PRESENT( Value ) )  Value = ReturnVal
+
+   IF ( PRESENT( Length ) )  Length = LEN_TRIM( ReturnVal )
+
+
+      ! If requested, set the status of the OS request.
+
+      ! Because the VF-specific GetEnv() is less capable than the Fortran 2000 intrinsic, we can't distinguish
+      ! between a variable whose value is all blanks and one that is not set.
+
+   IF ( PRESENT( Status ) )  THEN
+      IF ( LEN_TRIM( ReturnVal ) == 0 )  THEN
+         Status = 1
+      ELSE
+         Status = 0
+      END IF
+   END IF
+
+   GET_ENVIRONMENT_VARIABLE = ReturnVal
+
+
+   RETURN
+   END FUNCTION GET_ENVIRONMENT_VARIABLE ! ( Name, Value, Length, Status, Trim_Name )
 !=======================================================================
    FUNCTION Is_NaN( DblNum )
 
@@ -188,53 +490,93 @@ CONTAINS
    RETURN
    END FUNCTION Is_NaN ! ( DblNum )
 !=======================================================================
-   FUNCTION NWTC_GammaR4( x )
-   
-      ! Returns the gamma value of its argument. The result has a value equal  
-      ! to a processor-dependent approximation to the gamma function of x. 
+   SUBROUTINE OpenBinFile ( Un, OutFile, RecLen, Error )
 
-      REAL(SiKi), INTENT(IN)     :: x             ! input 
-      REAL(SiKi)                 :: NWTC_GammaR4  ! result
-      
-      
-      NWTC_GammaR4 = gamma( x )
-   
-   END FUNCTION NWTC_GammaR4
-!=======================================================================
-   FUNCTION NWTC_GammaR8( x )
-   
-      ! Returns the gamma value of its argument. The result has a value equal  
-      ! to a processor-dependent approximation to the gamma function of x. 
 
-      REAL(R8Ki), INTENT(IN)     :: x             ! input 
-      REAL(R8Ki)                 :: NWTC_GammaR8  ! result
-      
-      
-      NWTC_GammaR8 = gamma( x )
-   
-   END FUNCTION NWTC_GammaR8
-!=======================================================================
-   FUNCTION NWTC_GammaR16( x )
-   
-      ! Returns the gamma value of its argument. The result has a value equal  
-      ! to a processor-dependent approximation to the gamma function of x. 
+      ! This routine opens a binary output file.
 
-      REAL(QuKi), INTENT(IN)     :: x             ! input 
-      REAL(QuKi)                 :: NWTC_GammaR16  ! result
-      
-      
-      NWTC_GammaR16 = gamma( x )
-   
-   END FUNCTION NWTC_GammaR16
+
+      ! Argument declarations.
+
+   INTEGER, INTENT(IN)          :: Un                                           ! Logical unit for the output file.
+   INTEGER, INTENT(IN)          :: RecLen                                       ! Length of binary record.
+
+   LOGICAL, INTENT(OUT)         :: Error                                        ! Flag to indicate the open failed.
+
+   CHARACTER(*), INTENT(IN)     :: OutFile                                      ! Name of the output file.
+
+
+      ! Local declarations.
+
+   INTEGER                      :: IOS                                          ! I/O status of OPEN.
+
+
+
+      ! Open output file.  Make sure it worked.
+
+!20110512 jm Change ACCESS from Sequential to F03std 'stream' to avoid reading/writing record block control words
+   OPEN( Un, FILE=TRIM( OutFile ), STATUS='UNKNOWN', FORM='UNFORMATTED' , ACCESS='STREAM', IOSTAT=IOS )
+
+   IF ( IOS /= 0 )  THEN
+      Error = .TRUE.
+   ELSE
+      Error = .FALSE.
+   END IF
+
+
+   RETURN
+   END SUBROUTINE OpenBinFile ! ( Un, OutFile, RecLen, Error )
 !=======================================================================
-   SUBROUTINE OpenCon
+   SUBROUTINE OpenBinInpFile ( Un, InFile, Error )
+
+
+      ! This routine opens a binary input file.
+
+   IMPLICIT                        NONE
+
+
+
+      ! Argument declarations.
+
+   INTEGER, INTENT(IN)          :: Un                                           ! Logical unit for the input file.
+
+   CHARACTER(*), INTENT(IN)     :: InFile                                       ! Name of the input file.
+
+   LOGICAL, INTENT(OUT)         :: Error                                        ! Flag to indicate the open failed.
+
+
+      ! Local declarations.
+
+   INTEGER                      :: IOS                                          ! I/O status of OPEN.
+
+      ! NOTE: Do not explicitly declare the precision of this variable [as in
+      !       LOGICAL(1)] so that the statements using this variable work with
+      !       any compiler:
+
+
+      ! Open input file.  Make sure it worked.
+
+!20110512 jm Change ACCESS from Sequential to F03std 'stream' to avoid reading/writing record block control words
+   OPEN( Un, FILE=TRIM( InFile ), STATUS='OLD', FORM='UNFORMATTED', ACCESS='STREAM', IOSTAT=IOS, ACTION='READ' )
+
+   IF ( IOS /= 0 )  THEN
+      Error = .TRUE.
+   ELSE
+      Error = .FALSE.
+   END IF
+
+
+   RETURN
+   END SUBROUTINE OpenBinInpFile
+!=======================================================================
+ SUBROUTINE OpenCon
 
 
       ! This routine opens the console for standard output.
 
 
-!bjj: removed for use with CygWin; Because CU = 6 now, this statement is not necessary
-!   OPEN ( CU , FILE='/dev/stdout' , STATUS='OLD' )
+
+   OPEN ( CU , FILE='/dev/stdout' , STATUS='OLD' )
 
    CALL FlushOut ( CU )
 
@@ -316,48 +658,8 @@ CONTAINS
 !   END IF
 
 
+   RETURN
    END SUBROUTINE ProgExit ! ( StatCode )
-!=======================================================================
-   SUBROUTINE Set_IEEE_Constants( NaN_D, Inf_D, NaN, Inf )   
-         
-      ! routine that sets the values of NaN_D, Inf_D, NaN, Inf (IEEE 
-      ! values for not-a-number and infinity in sindle and double 
-      ! precision) F03 has standard intrinsic routines to do this,  
-      ! but Gnu has not yet implemented it. This code will fail if  
-      ! the compiler checks for floating-point-error, hence the  
-      ! compiler directive FPE_TRAP_ENABLED.
-   
-      REAL(DbKi), INTENT(inout)           :: Inf_D          ! IEEE value for NaN (not-a-number) in double precision
-      REAL(DbKi), INTENT(inout)           :: NaN_D          ! IEEE value for Inf (infinity) in double precision
-
-      REAL(ReKi), INTENT(inout)           :: Inf            ! IEEE value for NaN (not-a-number)
-      REAL(ReKi), INTENT(inout)           :: NaN            ! IEEE value for Inf (infinity)
-   
-         ! local variables for getting values of NaN and Inf (not necessary when using ieee_arithmetic)
-      REAL(DbKi)                          :: Neg_D          ! a negative real(DbKi) number
-      REAL(ReKi)                          :: Neg            ! a negative real(ReKi) number
-   
-      
-         ! if compiling with floating-point-exception traps, this will not work, so we've added a compiler directive.
-         !  note that anything that refers to NaN or Inf will be incorrect in that case.
-         
-#ifndef FPE_TRAP_ENABLED      
-         ! set variables to negative numbers to calculate NaNs (compilers may complain when taking sqrt of negative constants)
-      Neg_D = -1.0_DbKi
-      Neg   = -1.0_ReKi
-
-      NaN_D = SQRT ( Neg_D )
-      NaN   = SQRT ( Neg )
-
-         ! set variables to zero to calculate Infs (using division by zero)
-      Neg_D = 0.0_DbKi
-      Neg   = 0.0_ReKi
-      
-      Inf_D = 1.0_DbKi / Neg_D
-      Inf   = 1.0_ReKi / Neg
-#endif 
-   
-   END SUBROUTINE Set_IEEE_Constants  
 !=======================================================================
    SUBROUTINE UsrAlarm
 
@@ -366,11 +668,39 @@ CONTAINS
 
 
 
-   CALL WrNR ( CHAR( 7 ) )
+   CALL WrOver ( CHAR( 7 ) )
 
 
    RETURN
    END SUBROUTINE UsrAlarm
+!=======================================================================
+!   FUNCTION UserTime()
+!
+!
+!      ! This function returns the user CPU time.
+!
+!      ! The functionality of this routine was replaced by the F95 intrinsic, CPU_TIME().
+!
+!
+!      ! Passed variables.
+!
+!   REAL(4)                      :: UserTime                                        ! User CPU time.
+!
+!
+!      ! Local variables.
+!
+!   REAL(4)                      :: TimeAry (2)                                     ! TimeAry(1): User CPU time, TimeAry(2): System CPU time.
+!   REAL(4)                      :: TotTime                                         ! User CPU time plus system CPU time.
+!
+!
+!
+!
+!   TotTime  = DTIME( TimeAry )
+!   UserTime = TimeAry(1)
+!
+!
+!   RETURN
+!   END FUNCTION UserTime
 !=======================================================================
    SUBROUTINE WrNR ( Str )
 
@@ -384,8 +714,7 @@ CONTAINS
 
 
 
-!   WRITE (CU,'(1X,A)',ADVANCE='NO')  Str
-   WRITE (CU,'(A)',ADVANCE='NO')  Str
+   WRITE (CU,'(1X,A)',ADVANCE='NO')  Str
 
 
    RETURN
@@ -394,7 +723,7 @@ CONTAINS
    SUBROUTINE WrOver ( Str )
 
 
-      ! This routine writes out a string that overwrites the previous line.
+      ! This routine writes out a string that overwrites the previous line
 
 
       ! Argument declarations.
@@ -402,33 +731,14 @@ CONTAINS
    CHARACTER(*), INTENT(IN)     :: Str                                          ! The string to write to the screen.
 
 
-      ! Local declarations.
-   INTEGER(IntKi)               :: NChars                                       ! Number of characters to write
-   CHARACTER(1), PARAMETER      :: CR = ACHAR( 13 )                             ! The carriage return character.
-   CHARACTER(25)                :: Fmt = '(2A,   (" "))'                        ! The format specifier for the output.
 
-
-
-!   WRITE (Fmt(5:6),'(I2)')  ConRecL - LEN( Str )
-
-   NChars = MaxWrScrLen - LEN( Str )
-
-   IF ( NChars > 0 ) THEN
-
-      WRITE (Fmt(5:7),'(I3)')  NChars
-
-      WRITE (CU,Fmt,ADVANCE='NO')  CR, Str
-
-   ELSE
-      ! bjj: note that this will almost certainly write more than MaxWrScrLen characters on a line
-      WRITE (CU,'(A)',ADVANCE='NO')  CR, Str
-   END IF
+   WRITE (CU,'(A)',ADVANCE='NO')  Str//CHAR(13)
 
 
    RETURN
    END SUBROUTINE WrOver ! ( Str )
 !=======================================================================
-   SUBROUTINE WriteScr ( Str, Frm )
+   SUBROUTINE WrScr ( Str )
 
 
       ! This routine writes out a string to the screen.
@@ -439,160 +749,69 @@ CONTAINS
 
       ! Argument declarations.
 
-   CHARACTER(*), INTENT(IN)     :: Str                                         ! The input string to write to the screen.
-   CHARACTER(*), INTENT(IN)     :: Frm                                         ! Format specifier for the output.
-
-   INTEGER                      :: ErrStat                                     ! Error status of write operation (so code doesn't crash)
+   CHARACTER(*), INTENT(IN)     :: Str                                          ! The string to write to the screen.
 
 
-   IF ( LEN_TRIM(Str)  < 1 ) THEN
-      WRITE ( CU, '()', IOSTAT=ErrStat )
+      ! Local declarations.
+
+   INTEGER                      :: Beg                                          ! The beginning of the next line of text.
+   INTEGER                      :: Indent                                       ! The amunt to be indented.
+   INTEGER                      :: LStr                                         ! The length of the remaining portion of the string.
+   INTEGER                      :: MaxLen                                       ! Maximum number of columns to be written to the screen.
+
+   CHARACTER(10)                :: Frm                                          ! Format specifier for the output.
+
+
+
+      ! Find the amount of indent.  Create format.
+
+   MaxLen = 98
+   Indent = LEN_TRIM( Str ) - LEN_TRIM( ADJUSTL( Str ) )
+   Indent = MIN( Indent, MaxLen-2 )                                              ! at least 2 characters per line
+   MaxLen = MaxLen - Indent
+
+   IF ( Indent > 0 )  THEN
+      Frm    = '(1X,  X,A)'
+      WRITE (Frm(5:6),'(I2)')  Indent
    ELSE
-      WRITE ( CU,Frm, IOSTAT=ErrStat ) TRIM(Str)
+      Frm    = '(1X,A)'
    END IF
 
-   IF ( ErrStat /= 0 ) &
-      print *, ' WriteScr produced an error. Please inform the programmer.'
 
 
-   END SUBROUTINE WriteScr ! ( Str )
+   !  Break long messages into multiple lines.
+
+   Beg  = Indent + 1
+   LStr = LEN_TRIM( Str(Beg:) )
+
+   DO WHILE ( Lstr > MaxLen )
+
+      CALL FindLine ( Str(Beg:) , MaxLen , LStr )
+
+      WRITE (CU,Frm)  TRIM( ADJUSTL( Str(Beg:Beg+LStr-1) ) )
+
+      Beg = Beg + LStr
+
+
+         ! If we have a space at the beginning of the string, let's get rid of it
+
+      DO WHILE ( Beg < LEN_TRIM( Str ) .AND. Str(Beg:Beg) == ' ' )
+         Beg = Beg + 1
+      ENDDO
+
+      LStr = LEN_TRIM( Str(Beg:) )
+
+   ENDDO
+
+   IF ( LStr > 0 ) THEN
+      WRITE (CU,Frm)  TRIM( ADJUSTL( Str(Beg:Beg+LStr-1) ) )
+   ELSE
+      WRITE (CU,'()')
+   END IF
+
+
+   RETURN
+   END SUBROUTINE WrScr ! ( Str )
 !=======================================================================
-
-!==================================================================================================================================
-SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
-
-      ! This SUBROUTINE is used to dynamically load a DLL.
-
-      ! Passed Variables:
-
-   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
-   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-!bjj: these are values I found on the web; I have no idea if they actually work...
-!bjj: hopefully we can find them pre-defined in a header somewhere
-   INTEGER(C_INT), PARAMETER :: RTLD_LAZY=1            ! "Perform lazy binding. Only resolve symbols as the code that references them is executed. If the symbol is never referenced, then it is never resolved. (Lazy binding is only performed for function references; references to variables are always immediately bound when the library is loaded.) "
-   INTEGER(C_INT), PARAMETER :: RTLD_NOW=2             ! "If this value is specified, or the environment variable LD_BIND_NOW is set to a nonempty string, all undefined symbols in the library are resolved before dlopen() returns. If this cannot be done, an error is returned."
-   INTEGER(C_INT), PARAMETER :: RTLD_GLOBAL=256        ! "The symbols defined by this library will be made available for symbol resolution of subsequently loaded libraries"
-   INTEGER(C_INT), PARAMETER :: RTLD_LOCAL=0           ! "This is the converse of RTLD_GLOBAL, and the default if neither flag is specified. Symbols defined in this library are not made available to resolve references in subsequently loaded libraries."
-
-
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' LoadDynamicLib: Not implemented for '//TRIM(OS_Desc)
-   
-   
-#if 0           
-!bjj: note that this is not tested:
-   INTERFACE !linux API routines
-      !bjj see http://linux.die.net/man/3/dlopen
-      ! also: https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man3/dlopen.3.html
-
-      FUNCTION dlOpen(filename,mode) BIND(C,NAME="dlopen")
-      ! void *dlopen(const char *filename, int mode);
-         USE ISO_C_BINDING
-         IMPLICIT NONE
-         TYPE(C_PTR)                   :: dlOpen
-         CHARACTER(C_CHAR), INTENT(IN) :: filename(*)
-         INTEGER(C_INT), VALUE         :: mode
-      END FUNCTION
-
-      FUNCTION dlSym(handle,name) BIND(C,NAME="dlsym")
-      ! void *dlsym(void *handle, const char *name);
-         USE ISO_C_BINDING
-         IMPLICIT NONE
-         TYPE(C_FUNPTR)                :: dlSym ! A function pointer
-         TYPE(C_PTR), VALUE            :: handle
-         CHARACTER(C_CHAR), INTENT(IN) :: name(*)
-      END FUNCTION
-
-   END INTERFACE
-
-
-   ErrStat = ErrID_None
-   ErrMsg = ''
-
-
-      ! Load the DLL and get the file address:
-
-   DLL%FileAddrX = dlOpen( TRIM(DLL%FileName)//C_NULL_CHAR, RTLD_LAZY )  !the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
-
-   IF( .NOT. C_ASSOCIATED(DLL%FileAddrX) ) THEN
-      ErrStat = ErrID_Fatal
-      WRITE(ErrMsg,'(I2)') BITS_IN_ADDR
-      ErrMsg  = 'The dynamic library '//TRIM(DLL%FileName)//' could not be loaded. Check that the file '// &
-                'exists in the specified location and that it is compiled for '//TRIM(ErrMsg)//'-bit systems.'
-      RETURN
-   END IF
-
-
-      ! Get the procedure address:
-
-   DLL%ProcAddr = dlSym( DLL%FileAddrX, TRIM(DLL%ProcName)//C_NULL_CHAR )  !the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
-
-   IF(.NOT. C_ASSOCIATED(DLL%ProcAddr)) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'The procedure '//TRIM(DLL%ProcName)//' in file '//TRIM(DLL%FileName)//' could not be loaded.'
-      RETURN
-   END IF
-
-#endif
-   
-   RETURN
-END SUBROUTINE LoadDynamicLib
-!==================================================================================================================================
-SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
-
-      ! This SUBROUTINE is used to free a dynamically loaded DLL (loaded in LoadDynamicLib).
-
-      ! Passed Variables:
-
-   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be freed.
-   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-      ! Local variable:
-   INTEGER(C_INT)                            :: Success     ! Whether or not the call to dlClose was successful
-   INTEGER(C_INT), PARAMETER                 :: TRUE  = 0
-
-
-   ErrStat = ErrID_Fatal
-   ErrMsg = ' FreeDynamicLib: Not implemented for '//TRIM(OS_Desc)
-   
-   
-#if 0   
-!bjj: note that this is not tested.
-   INTERFACE !linux API routine
-      !bjj see http://linux.die.net/man/3/dlopen
-
-      FUNCTION dlClose(handle) BIND(C,NAME="dlclose")
-      ! int dlclose(void *handle);
-         USE ISO_C_BINDING
-         IMPLICIT NONE
-         INTEGER(C_INT)       :: dlClose
-         TYPE(C_PTR), VALUE   :: handle
-      END FUNCTION
-
-   END INTERFACE
-
-
-
-      ! Close the library:
-
-   Success = dlClose( DLL%FileAddrX ) !The function dlclose() returns 0 on success, and nonzero on error.
-
-   IF ( Success /= TRUE ) THEN !bjj: note that this is not the same as LOGICAL .TRUE.
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'The dynamic library could not be freed.'
-      RETURN
-   ELSE
-      ErrStat = ErrID_None
-      ErrMsg = ''
-   END IF
-#endif
-   
-   RETURN
-END SUBROUTINE FreeDynamicLib
-!==================================================================================================================================
-
 
 END MODULE SysSubs
