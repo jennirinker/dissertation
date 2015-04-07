@@ -65,7 +65,7 @@ contains
 !============================================================================
   subroutine RanLux (RVec)
     ! Default Initialization by Multiplicative Congruential
-    real(ReKi), intent(out) :: RVec(:)
+    real, intent(out) :: RVec(:)
     integer :: ISeeds(NSeeds - 1), I, IVec, JSeed, K, LEnv, LP
 
     real :: tmpTwoM24, tmpTwoM24Seed
