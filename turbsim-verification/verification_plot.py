@@ -7,7 +7,7 @@ import numpy as np
 
 import sys
 sys.path.append('..')
-import JR_Library.io as jrio
+import JR_Library.TS_io as jrio
 import JR_Library.IEC as IEC
 import JR_Library.ExtractWindParameters as ewp
 import JR_Library.misc as misc
@@ -17,7 +17,7 @@ dname   = '1-unmodified/TS/'
 fname   = '5pts_NoSc';
 
 # save image in directory?
-saveimg = 1
+saveimg = 0
 
 # construct total file path
 inpname = dname + fname + '.inp';
@@ -25,13 +25,12 @@ outname = dname + fname + '.wnd';
 
 # read file
 tsout = io.readModel(outname);
-tsin  = jrio.readInput(inpname);
+tsin  = jrio.readInput_v2(inpname);
 
 # useful values
 y = tsout.grid.y;               # y-grid vector
 # z = tsout.grid.z[::-1];         # bts
 z = tsout.grid.z;         # wnd
-print z
 [Y, Z] = np.meshgrid(y, z);     # grid arrays
 n_t = tsout.uhub.size;          # (grid.n_t is not correct)
 n_f = misc.uniqueComponents(n_t);     # unique components counting DC
