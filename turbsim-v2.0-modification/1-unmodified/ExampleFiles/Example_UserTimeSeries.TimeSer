@@ -1,0 +1,15 @@
+--------------TurbSim v2.00.* User Time Series Input File-----------------------
+Comment line describing the time series in this file
+--------------------------------------------------------------------------------
+          3  nComp    - Number of velocity components in the file (1=u component only; 2=u & v components; 3=u,v,w) [if < 3 other components will be generated using values from input file]
+          1  nPoints  - Number of time series points contained in this file (-)
+          1  RefPtID  - Index of the reference point (1-nPoints)
+   Pointyi     Pointzi
+    (m)         (m)     ! Order the points by increasing height
+   0.00000     0.00000
+--------Time Series---------------------------------------------------------
+Time  Point1_u  Point1_v  Point1_w
+(s)   (m/s)     (m/s)     (m/s)
+
+
+
