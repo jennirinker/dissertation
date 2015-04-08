@@ -1277,7 +1277,6 @@ SUBROUTINE CreateGrid( p_grid, p_usr, UHub, AddTower, ErrStat, ErrMsg )
 
       ENDIF
 
-
    ELSE
       p_grid%NumOutSteps = CEILING( ( p_grid%UsableTime + p_grid%GridWidth / UHub )/p_grid%TimeStep )
       p_grid%NumSteps    = MAX( CEILING( p_grid%AnalysisTime / p_grid%TimeStep ), p_grid%NumOutSteps )

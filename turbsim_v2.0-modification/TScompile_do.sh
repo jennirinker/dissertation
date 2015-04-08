@@ -11,6 +11,11 @@
 # Jenni Rinker, Duke University/NWTC
 # 07-Apr-2015
 
+echo "  Deleting old executable..."
+
+# delete old executable
+rm -f ${1}/TurbSim_glin64
+
 echo "  Copying makefile..."
 
 # copy makefile into trunk/compiling/
