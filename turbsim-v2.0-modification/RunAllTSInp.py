@@ -5,7 +5,7 @@
 import os
 
 # directory name
-dname = '2-myflag'
+dname = '1-unmodified'
 
 # get list of input files
 files = os.listdir(dname)
