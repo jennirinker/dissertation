@@ -1648,7 +1648,7 @@ SUBROUTINE SetPhaseAngles( p, OtherSt_RandNum, PhaseAngles, ErrStat, ErrMsg )
    INTEGER(IntKi)                              :: iPoint, iPointUsr                              ! points that have phases defined already 
    
 
-      ! generate random phases for all the points
+      ! generate random phases for all the points with temporal coherence characteristics
       
          ! bjj: todo: don't generate the angles for user-specified time-series points, which have phases already
       CALL RndPhases(p, OtherSt_RandNum, PhaseAngles, p%grid%NPoints, p%grid%NumFreq, p%US, ErrStat, ErrMsg)

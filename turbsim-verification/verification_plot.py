@@ -13,8 +13,12 @@ import JR_Library.ExtractWindParameters as ewp
 import JR_Library.misc as misc
 
 # name of file to load
-dname   = '1-unmodified/TS/'
-fname   = '10pts_NoSc';
+dname   = '3-PDDs/TS/'
+fname   = '5pts_NoSc';
+
+# hard-coded temporal coherence parameters
+rho = 0.2           # concentration parameter
+mu = 0.        # location parameter
 
 # save image in directory?
 saveimg = 0
@@ -65,6 +69,8 @@ Su_IEC, Sv_IEC, Sw_IEC = IEC.PSDs(zhub,Vhub,turbc,f);
 Suk_IEC = Su_IEC*df
 Svk_IEC = Sv_IEC*df
 Swk_IEC = Sw_IEC*df
+thetaPlot = np.linspace(-np.pi,np.pi,100)
+fWC = misc.wrappedCauchyPDF(thetaPlot,rho,mu)
 
 # ============== Plot ==============
 axwidth = 0.23;
@@ -120,22 +126,29 @@ plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
 
 # u-dtheta
+nbins = 20
 ax3 =  plt.axes([xedge[2], yedge[-1], axwidth, axheight]);
-ax3.hist( dthetau / np.pi, 20 );
+ax3.hist(dthetau,bins=nbins,normed=True)
+ax3.plot(thetaPlot, fWC, 'r')
 plt.xlabel('Phase Difference/pi')
 plt.ylabel('uhub Phase Differences')
+plt.xlim([-np.pi,np.pi])
 
 # v-dtheta
 ax6 =  plt.axes([xedge[2], yedge[1], axwidth, axheight]);
-ax6.hist( dthetav / np.pi, 20 );
+ax6.hist(dthetav,bins=nbins,normed=True)
+ax6.plot(thetaPlot, fWC, 'r')
 plt.xlabel('Phase Difference/pi')
 plt.ylabel('vhub Phase Differences')
+plt.xlim([-np.pi,np.pi])
 
 # w-dtheta
 ax9 =  plt.axes([xedge[2], yedge[0], axwidth, axheight]);
-ax9.hist( dthetaw / np.pi, 20 );
+ax9.hist(dthetaw,bins=nbins,normed=True)
+ax9.plot(thetaPlot, fWC, 'r')
 plt.xlabel('Phase Difference/pi')
 plt.ylabel('whub Phase Differences')
+plt.xlim([-np.pi,np.pi])
 
 fig.show()
 

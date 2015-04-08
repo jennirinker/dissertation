@@ -987,11 +987,19 @@ REAL(ReKi)                  , INTENT(  OUT) :: PhaseAngles(NPoints,NumFreq,3)   
 
 REAL(ReKi), ALLOCATABLE                     :: RandNum(:)                       ! contains the uniformly-distributed random numbers for all the points and frequencies
 
+INTEGER(IntKi)                              :: B                                ! Boolean (+/-1) random variable for Wrapped Cauchy  sampling
 INTEGER(IntKi)                              :: Indx                             ! holds the next index in the RandNum array for the SNLWnd3d generator
 INTEGER(IntKi)                              :: IVec                             ! loop counter (=number of wind components = 3)
 INTEGER(IntKi)                              :: IFreq                            ! loop counter (=number of frequencies)
 INTEGER(IntKi)                              :: J                                ! loop counter (=number of points on grid)
 INTEGER(IntKi)                              :: NumPointsFreq                    ! number of points * number of frequency, or 1/3 the size of RandNum
+
+REAL(ReKi)                                  :: C                                ! constant for Wrapped Cauchy  sampling
+REAL(ReKi)                                  :: Mu                               ! location parameter for Wrapped Cauchy distribution
+REAL(ReKi)                                  :: Rho                              ! concentration parameter for Wrapped Cauchy distribution
+REAL(ReKi)                                  :: RN                               ! internal random number for Wrapped Cauchy sampling
+REAL(ReKi)                                  :: Theta                            ! internal random number fo cumulatively summing phases over frequency
+REAL(ReKi)                                  :: V                                ! internal random number for Wrapped Cauchy sampling
 
 INTEGER                                     :: LuxLevelOut, InitSeed
 CHARACTER(20)                               :: NextSeedText
@@ -1055,19 +1063,82 @@ CHARACTER(20)                               :: NextSeedText
       NextSeedText = ' Next seed #'
       
    ENDIF
-         
-! set them to the range 0-2pi and   
-! sort them so we get the same random numbers as previous versions of TurbSim   
-                                       
-   DO IVec = 1,3
-      DO IFreq = 1,NumFreq
-         DO J=1,NPoints
-            Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq  ! This sorts the random numbers as they were done previously
 
-            PhaseAngles(J,IFreq,IVec)  = TwoPi*RandNum(Indx)
-         ENDDO ! J
-      ENDDO !IFreq
-   ENDDO !IVec         
+   SELECT CASE (p%met%TCMod)
+
+      CASE (TempCohMod_NONE)
+
+         ! set them to the range 0-2pi and   
+         ! sort them so we get the same random numbers as previous versions of TurbSim   
+                                       
+         DO IVec = 1,3
+            DO IFreq = 1,NumFreq
+               DO J=1,NPoints
+                  Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq  ! This sorts the random numbers as they were done previously
+
+                  PhaseAngles(J,IFreq,IVec)  = TwoPi*RandNum(Indx)
+               ENDDO ! J
+            ENDDO !IFreq
+         ENDDO !IVec  
+
+      CASE (TempCohMod_NREL)
+
+         ! sample phase differences from a wrapped Cauchy distribution 
+         ! Switched loop order to cumulatively sum over frequency
+
+         Rho = 0.2
+         Mu = 0.0
+                                       
+         DO IVec = 1,3
+            DO J=1,NPoints
+
+               Theta = 0                                 ! dummy variable for cumulatively summing phases
+
+               DO IFreq = 1,NumFreq
+               
+                     ! Get the uniformly distributed random number
+
+                  Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq
+
+                     ! Sample from the wrapped Cauchy distribution
+
+                  RN = RandNum(Indx)                     ! U[0,1)
+                  B  = 2*NINT(RN) - 1                    ! Boolean: +/- 1
+                  RN = 2*RN - (B + 1)/2                  ! U[0,1)
+
+                  V  = COS(2*PI*RN)                      ! Fisher, Equation
+                  C  = 2*Rho / (1 + (Rho**2))            ! Fisher, Equation
+
+                  RN = B*ACOS((V+C) / (1 + C*V)) + Mu    ! Wrapped Cauchy random variable
+
+                     ! Cumulatively sum
+
+                  Theta = Theta + RN
+                  PhaseAngles(J,IFreq,IVec)  = Theta
+                  
+               ENDDO ! IFreq
+            ENDDO !J 
+         ENDDO !IVec    
+
+
+      CASE DEFAULT
+
+         ! set them to the range 0-2pi and   
+         ! sort them so we get the same random numbers as previous versions of TurbSim   
+                                       
+            DO IVec = 1,3
+               DO IFreq = 1,NumFreq
+                 DO J=1,NPoints
+                   Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq  ! This sorts the random numbers as they were done previously
+
+                   PhaseAngles(J,IFreq,IVec)  = TwoPi*RandNum(Indx)
+                 ENDDO ! J
+              ENDDO !IFreq
+           ENDDO !IVec    
+
+   END SELECT
+         
+     
                            
    call cleanup()
    
