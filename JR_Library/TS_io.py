@@ -152,10 +152,10 @@ def readInput_v2(filename):
                     val = line.lstrip(' ').split(' ')[0]\
                           .replace('\"','');
                     tsinput.t_anal = float(val);
-                elif ( idx == line_t_use ):
-                    val = line.lstrip(' ').split(' ')[0]\
-                          .replace('\"','');
-                    tsinput.t_use = float(val);
+##                elif ( idx == line_t_use ):
+##                    val = line.lstrip(' ').split(' ')[0]\
+##                          .replace('\"','');
+##                    tsinput.t_use = float(val);
                 elif ( idx == line_zhub ):
                     val = line.lstrip(' ').split(' ')[0]\
                           .replace('\"','');

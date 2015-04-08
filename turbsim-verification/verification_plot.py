@@ -14,7 +14,7 @@ import JR_Library.misc as misc
 
 # name of file to load
 dname   = '1-unmodified/TS/'
-fname   = '5pts_NoSc';
+fname   = '10pts_NoSc';
 
 # save image in directory?
 saveimg = 0
