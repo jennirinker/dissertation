@@ -19,7 +19,7 @@ rm -f ${1}/TurbSim_glin64
 echo "  Copying makefile..."
 
 # copy makefile into trunk/compiling/
-cp Makefile ${1}/compiling/
+cp makefile ${1}/compiling/
 
 # move into build_structure
 cd ${1}/compiling/
