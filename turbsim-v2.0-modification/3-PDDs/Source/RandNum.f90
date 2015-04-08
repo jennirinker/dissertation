@@ -972,7 +972,7 @@ SUBROUTINE RndPhases(p, OtherSt, PhaseAngles, NPoints, NumFreq, US, ErrStat, Err
 
 IMPLICIT NONE
 
-TYPE(RandNum_ParameterType),  INTENT(IN   ) :: p                                !< parameters for random number generation
+TYPE(TurbSim_ParameterType),  INTENT(IN   ) :: p                                !< parameters for random number generation
 TYPE(RandNum_OtherStateType), INTENT(INOUT) :: OtherSt                          !< other states for random number generation
 INTEGER(IntKi)              , INTENT(IN)    ::  US                              !< unit number of file in which to print a summary of the scaling used. If < 1, will not print summary.
 INTEGER(IntKi)  ,             INTENT(OUT)   :: ErrStat                          !< error level/status
@@ -1007,7 +1007,7 @@ CHARACTER(20)                               :: NextSeedText
       ! seeds were read in ) so that the same seed always generates the same
       ! random phases, regardless of previous randomizations in this code.
 
-   CALL RandNum_Init(p, OtherSt, ErrStat, ErrMsg)
+   CALL RandNum_Init(p%RNG, OtherSt, ErrStat, ErrMsg)
    IF (ErrStat >= AbortErrLev) THEN
       CALL Cleanup()
       RETURN
@@ -1019,7 +1019,7 @@ CHARACTER(20)                               :: NextSeedText
       ! but it will use more memory.
       ! These pRNGs have been initialized in the GetInput() subroutine
 
-   IF ( p%pRNG == pRNG_INTRINSIC ) THEN  ! RNG_type == 'NORMAL'
+   IF ( p%RNG%pRNG == pRNG_INTRINSIC ) THEN  ! RNG_type == 'NORMAL'
 
          !The first two real numbers in the RandSeed array are used as seeds
          !The number of seeds needed are compiler specific, thus we can't assume only 2 seeds anymore
@@ -1033,7 +1033,7 @@ CHARACTER(20)                               :: NextSeedText
 
       NextSeedText = ' Harvested seed #'
       
-   ELSEIF ( p%pRNG == pRNG_RANLUX ) THEN ! RNG_type == 'RANLUX'
+   ELSEIF ( p%RNG%pRNG == pRNG_RANLUX ) THEN ! RNG_type == 'RANLUX'
 
       CALL RanLux ( RandNum )
 
