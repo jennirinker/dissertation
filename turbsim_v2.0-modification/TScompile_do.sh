@@ -33,4 +33,7 @@ make clean
 echo "  Making executable..."
 chmod +x ../bin/TurbSim_glin64
 
+# move up a directory
+mv ../bin/TurbSim_glin64 ../
+
 echo "  Script complete."
