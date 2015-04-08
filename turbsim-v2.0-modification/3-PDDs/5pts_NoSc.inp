@@ -61,7 +61,7 @@ default       SCMod3           - w-component coherence model ("GENERAL","NONE", 
 "default"     CohExp           - Coherence exponent for general model [-] (or "default")
 
 --------Temporal Coherence Parameters----------------------------
-default       TCMod            - temporal coherence model ("NREL" or "default")
+NREL       TCMod            - temporal coherence model ("NREL" or "default")
 
 --------Coherent Turbulence Scaling Parameters-------------------
 ".\EventData"    CTEventPath     - Name of the path where event data files are located

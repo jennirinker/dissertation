@@ -1650,8 +1650,23 @@ SUBROUTINE SetPhaseAngles( p, OtherSt_RandNum, PhaseAngles, ErrStat, ErrMsg )
 
       ! generate random phases for all the points
       
-      ! bjj: todo: don't generate the angles for user-specified time-series points, which have phases already
-   CALL RndPhases(p%RNG, OtherSt_RandNum, PhaseAngles, p%grid%NPoints, p%grid%NumFreq, p%US, ErrStat, ErrMsg)
+   SELECT CASE (p%met%TCMod)
+
+      CASE ( TempCohMod_NONE )
+
+         CALL RndPhases(p%RNG, OtherSt_RandNum, PhaseAngles, p%grid%NPoints, p%grid%NumFreq, p%US, ErrStat, ErrMsg)
+
+      CASE ( TempCohMod_NREL )
+
+         CALL RndPhases(p%RNG, OtherSt_RandNum, PhaseAngles, p%grid%NPoints, p%grid%NumFreq, p%US, ErrStat, ErrMsg)
+
+
+      CASE DEFAULT
+
+            ! bjj: todo: don't generate the angles for user-specified time-series points, which have phases already
+         CALL RndPhases(p%RNG, OtherSt_RandNum, PhaseAngles, p%grid%NPoints, p%grid%NumFreq, p%US, ErrStat, ErrMsg)
+
+   END SELECT
 
    
    IF (p%met%TurbModel_ID == SpecModel_TimeSer) THEN
