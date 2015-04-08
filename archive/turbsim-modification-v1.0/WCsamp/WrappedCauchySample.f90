@@ -60,19 +60,20 @@ contains
       ! get size of sample
       n = size(WCSample)
 
-      ! allocate Boolean array and U
-      allocate( BoolArray(n) )
+      ! allocate U
       allocate( U(n) )
 
       ! Initialize random seed based on clock
       call init_random_seed()
 
-      ! create Boolean array
-      call random_number(BoolArray)
-      BoolArray = 2*nint(BoolArray) - 1
+      ! draw only random number sample
+      call random_number(U)
+
+      ! create boolean array
+      BoolArray = 2*nint(U) - 1
+      U = 2 * U - (BoolArray+1)/2
 
       ! create U, V, and c
-      call random_number(U)
       V = cos(2*pi*U)
       c = 2*rho/(1 + (rho**2))
 

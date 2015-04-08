@@ -977,6 +977,30 @@ CALL DefaultMetBndryCndtns(p)     ! Requires turbModel (some require RICH_NO, wh
       
    
    !===============================================================================================================================
+   ! Read the temporal coherence model section. 
+   !===============================================================================================================================
+
+   CALL ReadCom( UI, InFile, "Temporal Coherence Models Heading Line 1", ErrStat2, ErrMsg2, UnEc )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ReadInputFile')
+
+   CALL ReadCom( UI, InFile, "Temporal Coherence Models Heading Line 2", ErrStat2, ErrMsg2, UnEc )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ReadInputFile')
+        
+      ! ------------ Read in the temporal coherence model TCMod ------------
+   CALL ReadCVarDefault( UI, InFile, Line, "TCMod", "Temporal coherence model", UnEc, UseDefault, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ReadInputFile')
+      IF ( .NOT. UseDefault ) THEN         
+         SELECT CASE ( TRIM(Line) )
+            CASE ("NREL")
+               p%met%TCMod = TempCohMod_NREL
+            CASE DEFAULT
+               p%met%TCMod = TempCohMod_NONE
+         END SELECT
+      END IF
+
+
+
+   !===============================================================================================================================
    ! Read the Coherent Turbulence Scaling Parameters, if necessary.  
    !===============================================================================================================================
 IF ( .NOT. p%met%IsIECModel  ) THEN

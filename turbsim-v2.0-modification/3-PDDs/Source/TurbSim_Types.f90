@@ -35,6 +35,11 @@ use NWTC_Library
    INTEGER(IntKi), PARAMETER :: CohMod_IEC        = 2   ! Spatial coherence specified by IEC standard
    INTEGER(IntKi), PARAMETER :: CohMod_API        = 3   ! Spatial coherence specified by API standard
    
+
+      ! Temporal Coherence Models (TCMod)
+   INTEGER(IntKi), PARAMETER :: TempCohMod_NONE    = 0   ! no temporal coherence
+   INTEGER(IntKi), PARAMETER :: TempCohMod_NREL    = 1   ! NREL temporal coherence model
+
    
       ! IEC turbulence types (IEC_WindType) 
       ! bjj: note that EWM models *MUST* directly follow ETM, and EWM models must be at the end
@@ -222,6 +227,8 @@ use NWTC_Library
       
       INTEGER(IntKi)               :: SCMod      (3)                           ! SCMod_u, SCMod_v, and SCMod_w: switches determining which coherence model to use
       
+      INTEGER(IntKi)               :: TCMod                                    ! TCMod: switches determining which temporal coherence model to use
+
       LOGICAL                      :: IsIECModel                               ! Flag to determine if we're using IEC scaling (coherence, etc)
       
       
