@@ -26,6 +26,7 @@ MODULE TSSubs
    use TS_VelocitySpectra
    USE NWTC_FFTPACK
    USE NWTC_LAPACK
+   USE TS_TemporalCoherence
 
 
    IMPLICIT NONE
@@ -1662,24 +1663,13 @@ SUBROUTINE CalcTempCoh(p, Rho, Mu, ErrStat, ErrMsg)
 
    SELECT CASE ( p%met%TCMod )
 
-      CASE ( TempCohMod_NONE )         ! Desc.
-!         CALL Spec_IECKAI  ( p%UHub, p%IEC%SigmaIEC, p%IEC%IntegralScale, p%grid%Freq, p%grid%NumFreq, SSVS )
-! jmr todo: chance to CALL TempCoh_NONE()
+      CASE ( TempCohMod_NONE )         ! No temporal coherence (stationary output)
       
-         DO J = 1,p%grid%NPoints
-            Rho(J) = 0.0
-            Mu(J)  = 0.0
-         END DO ! J
-
+         CALL TC_None(p%grid, Rho, Mu)
       
-      CASE ( TempCohMod_NREL )         ! Descr.
-!         CALL Spec_IECVKM  ( p%UHub, p%IEC%SigmaIEC(1), p%IEC%IntegralScale, p%grid%Freq, p%grid%NumFreq, SSVS )
+      CASE ( TempCohMod_NREL )         ! Empirical temporal coherence model fit to NREL data
    
-         DO J = 1,p%grid%NPoints
-            Rho(J) = 0.2
-            Mu(J)  = 0.0
-         END DO ! J     
-         
+         CALL TC_NREL(p%grid, Rho, Mu)         
 
       CASE DEFAULT
          CALL SetErrStat( ErrID_Fatal, 'Specified temporal coherence not availible.', ErrStat, ErrMsg, 'CalcTempCoh')
