@@ -192,6 +192,8 @@ CALL CheckError()
 CALL AllocAry(Mu,   p%grid%NPoints, 'Mu (location parameters)', ErrStat, ErrMsg )
 CALL CheckError()
         
+   ! Populate temporal coherence arrays
+
 CALL CalcTempCoh(p, Rho, Mu, ErrStat, ErrMsg)
 CALL CheckError()
 

@@ -16,9 +16,13 @@
 ! See the License for the specific language governing permissions and
 ! limitations under the License.
 !
-! 
-!
 !**********************************************************************************************************************************
+
+!=======================================================================
+!> This module defines a series of subroutines that populate the temporal coherence
+!> arrays Rho and Mu based on the temporal coherence flag specified in the input
+!> file.
+
 MODULE TS_TemporalCoherence
 
    USE  TurbSim_Types
