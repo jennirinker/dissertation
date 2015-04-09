@@ -1,5 +1,5 @@
 
-def dateToM4fname(datetime):
+def dateToM4fname(datetimeS):
     """ Convert array of date information to wildacrd name for M4
         dataset.
 
@@ -10,8 +10,8 @@ def dateToM4fname(datetime):
             fname (string): beginning of filename
     """
     
-    fname = datetime[1] + '_' + datetime[2] + '_' + datetime[0] \
-            + '_' + datetime[3] + '_' + datetime[4]
+    fname = datetimeS[1] + '_' + datetimeS[2] + '_' + datetimeS[0] \
+            + '_' + datetimeS[3] + '_' + datetimeS[4]
     
     return fname
 
