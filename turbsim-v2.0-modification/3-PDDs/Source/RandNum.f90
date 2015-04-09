@@ -918,63 +918,17 @@ RandUnifNum = RN(1)
 
 
 END SUBROUTINE RndUnif
-!=======================================================================
-SUBROUTINE RndWrapCauchy( p, OtherSt, RandNum, Parms )
-! This function uses the wrapped Cauchy equation to generate a deviate 
-! from that distribution.
-! Reference: 
-! Author: Jenni Rinker, Duke University
-
-IMPLICIT                            NONE
-
-TYPE(RandNum_ParameterType),  INTENT(IN   ) :: p                   ! parameters for random number generation
-TYPE(RandNum_OtherStateType), INTENT(INOUT) :: OtherSt             ! other states for random number generation
-
-REAL(ReKi),                   INTENT(IN)    :: Parms(2)            ! 1=rho, 2=mu
-                                            
-REAL(ReKi)                                  :: Rho                 ! Concentration parameter
-REAL(ReKi)                                  :: Mu                  ! Location parameter
-
-REAL(ReKi)                                  :: C                   ! Internal variable in wrapped Cauchy sampling
-REAL(ReKi)                                  :: V                   ! Internal variable in wrapped Cauchy sampling
-REAL(IntKi)                                 :: B                   ! Boolean random variable
-REAL(ReKi)                                  :: RN                  ! Dummy uniform random variable
-REAL(ReKi),                   INTENT(OUT)   :: RandNum             ! Numbers distributed with the pdf above
-                                            
-   ! Get temporal coherence parameters
-
-Rho  = Parms(1)
-Mu   = Parms(2)
-
-   ! Draw uniform random numbers on [0,1)
-
-CALL RndUnif( p, OtherSt, RandNum )
-
-   ! Get Boolean random number and wrap others back to [0,1)
-
-B    = 2 * NINT(RandNum) - 1
-RN   = 2 * RandNum - (B + 1)/2
-
-   ! Internal variables for Wrapped Cauchy sampling procedure
-
-V    = COS(2 * PI * RN)
-C    = 2 * Rho / (1 + (Rho**2))
-
-   ! Wrapped Cauchy sample
-
-RandNum = B * ACOS((V+C)/(1 + C*V)) + Mu
-
-END SUBROUTINE RndWrapCauchy
-
 !======================================================================
-SUBROUTINE RndPhases(p, OtherSt, PhaseAngles, NPoints, NumFreq, US, ErrStat, ErrMsg)
+SUBROUTINE RndPhases(p, OtherSt, Rho, Mu, PhaseAngles, NPoints, NumFreq, US, ErrStat, ErrMsg)
 
 
 IMPLICIT NONE
 
-TYPE(TurbSim_ParameterType),  INTENT(IN   ) :: p                                !< parameters for random number generation
+TYPE(RandNum_ParameterType),  INTENT(IN   ) :: p                                !< parameters for random number generation
+REAL(ReKi),                   INTENT(IN   ) :: Rho           (:)                !< temporal coherence concentration parameter
+REAL(ReKi),                   INTENT(IN   ) :: Mu            (:)                !< temporal coherence location parameter
 TYPE(RandNum_OtherStateType), INTENT(INOUT) :: OtherSt                          !< other states for random number generation
-INTEGER(IntKi)              , INTENT(IN)    ::  US                              !< unit number of file in which to print a summary of the scaling used. If < 1, will not print summary.
+INTEGER(IntKi)              , INTENT(IN)    :: US                               !< unit number of file in which to print a summary of the scaling used. If < 1, will not print summary.
 INTEGER(IntKi)  ,             INTENT(OUT)   :: ErrStat                          !< error level/status
 CHARACTER(*) ,                INTENT(OUT)   :: ErrMsg                           !< error message
                                                                                 
@@ -995,8 +949,6 @@ INTEGER(IntKi)                              :: J                                
 INTEGER(IntKi)                              :: NumPointsFreq                    ! number of points * number of frequency, or 1/3 the size of RandNum
 
 REAL(ReKi)                                  :: C                                ! constant for Wrapped Cauchy  sampling
-REAL(ReKi)                                  :: Mu                               ! location parameter for Wrapped Cauchy distribution
-REAL(ReKi)                                  :: Rho                              ! concentration parameter for Wrapped Cauchy distribution
 REAL(ReKi)                                  :: RN                               ! internal random number for Wrapped Cauchy sampling
 REAL(ReKi)                                  :: Theta                            ! internal random number fo cumulatively summing phases over frequency
 REAL(ReKi)                                  :: V                                ! internal random number for Wrapped Cauchy sampling
@@ -1015,7 +967,7 @@ CHARACTER(20)                               :: NextSeedText
       ! seeds were read in ) so that the same seed always generates the same
       ! random phases, regardless of previous randomizations in this code.
 
-   CALL RandNum_Init(p%RNG, OtherSt, ErrStat, ErrMsg)
+   CALL RandNum_Init(p, OtherSt, ErrStat, ErrMsg)
    IF (ErrStat >= AbortErrLev) THEN
       CALL Cleanup()
       RETURN
@@ -1027,7 +979,7 @@ CHARACTER(20)                               :: NextSeedText
       ! but it will use more memory.
       ! These pRNGs have been initialized in the GetInput() subroutine
 
-   IF ( p%RNG%pRNG == pRNG_INTRINSIC ) THEN  ! RNG_type == 'NORMAL'
+   IF ( p%pRNG == pRNG_INTRINSIC ) THEN  ! RNG_type == 'NORMAL'
 
          !The first two real numbers in the RandSeed array are used as seeds
          !The number of seeds needed are compiler specific, thus we can't assume only 2 seeds anymore
@@ -1041,7 +993,7 @@ CHARACTER(20)                               :: NextSeedText
 
       NextSeedText = ' Harvested seed #'
       
-   ELSEIF ( p%RNG%pRNG == pRNG_RANLUX ) THEN ! RNG_type == 'RANLUX'
+   ELSEIF ( p%pRNG == pRNG_RANLUX ) THEN ! RNG_type == 'RANLUX'
 
       CALL RanLux ( RandNum )
 
@@ -1064,81 +1016,40 @@ CHARACTER(20)                               :: NextSeedText
       
    ENDIF
 
-   SELECT CASE (p%met%TCMod)
 
-      CASE (TempCohMod_NONE)
+      ! Sample phase differences according to temporal coherence arrays
+                     
+   DO IVec = 1,3
+      DO J=1,NPoints
 
-         ! set them to the range 0-2pi and   
-         ! sort them so we get the same random numbers as previous versions of TurbSim   
-                                       
-         DO IVec = 1,3
+         Theta = 0                                 ! dummy variable for cumulatively summing phases
+
             DO IFreq = 1,NumFreq
-               DO J=1,NPoints
-                  Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq  ! This sorts the random numbers as they were done previously
-
-                  PhaseAngles(J,IFreq,IVec)  = TwoPi*RandNum(Indx)
-               ENDDO ! J
-            ENDDO !IFreq
-         ENDDO !IVec  
-
-      CASE (TempCohMod_NREL)
-
-         ! sample phase differences from a wrapped Cauchy distribution 
-         ! Switched loop order to cumulatively sum over frequency
-
-         Rho = 0.2
-         Mu = 0.0
-                                       
-         DO IVec = 1,3
-            DO J=1,NPoints
-
-               Theta = 0                                 ! dummy variable for cumulatively summing phases
-
-               DO IFreq = 1,NumFreq
                
-                     ! Get the uniformly distributed random number
+                  ! Get the uniformly distributed random number
 
-                  Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq
+               Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq
 
-                     ! Sample from the wrapped Cauchy distribution
+                  ! Sample from the wrapped Cauchy distribution
 
-                  RN = RandNum(Indx)                     ! U[0,1)
-                  B  = 2*NINT(RN) - 1                    ! Boolean: +/- 1
-                  RN = 2*RN - (B + 1)/2                  ! U[0,1)
+               RN = RandNum(Indx)                     ! U[0,1)
+               B  = 2*NINT(RN) - 1                    ! Boolean: +/- 1
+               RN = 2*RN - (B + 1)/2                  ! U[0,1)
 
-                  V  = COS(2*PI*RN)                      ! Fisher, Equation
-                  C  = 2*Rho / (1 + (Rho**2))            ! Fisher, Equation
+               V  = COS(2*PI*RN)                      ! Fisher, Equation
+               C  = 2*Rho(J) / (1 + (Rho(J)**2))      ! Fisher, Equation
 
-                  RN = B*ACOS((V+C) / (1 + C*V)) + Mu    ! Wrapped Cauchy random variable
+               RN = B*ACOS((V+C) / (1 + C*V)) + Mu(J)    ! Wrapped Cauchy random variable
 
-                     ! Cumulatively sum
+                  ! Cumulatively sum
 
-                  Theta = Theta + RN
-                  PhaseAngles(J,IFreq,IVec)  = Theta
+               Theta = Theta + RN
+               PhaseAngles(J,IFreq,IVec)  = Theta
                   
-               ENDDO ! IFreq
-            ENDDO !J 
-         ENDDO !IVec    
+            ENDDO ! IFreq
+         ENDDO !J 
+      ENDDO !IVec    
 
-
-      CASE DEFAULT
-
-         ! set them to the range 0-2pi and   
-         ! sort them so we get the same random numbers as previous versions of TurbSim   
-                                       
-            DO IVec = 1,3
-               DO IFreq = 1,NumFreq
-                 DO J=1,NPoints
-                   Indx = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq  ! This sorts the random numbers as they were done previously
-
-                   PhaseAngles(J,IFreq,IVec)  = TwoPi*RandNum(Indx)
-                 ENDDO ! J
-              ENDDO !IFreq
-           ENDDO !IVec    
-
-   END SELECT
-         
-     
                            
    call cleanup()
    

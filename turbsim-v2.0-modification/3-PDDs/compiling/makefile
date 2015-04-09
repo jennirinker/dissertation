@@ -40,7 +40,7 @@ endif
    # Name of compiler to use and flags to use.
 FC      = gfortran
 
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION -fdefault-real-8
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -DDOUBLE_PRECISION -fdefault-real-8 -fcheck=all
 LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 #FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg

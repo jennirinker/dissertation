@@ -1632,12 +1632,70 @@ FUNCTION IndexOnTower( p_grid, y, z )
 
 END FUNCTION IndexOnTower
 !=======================================================================
+!> This routine calculates the point-by-point location and concentration
+!> parameters for temporal coherence
+SUBROUTINE CalcTempCoh(p, Rho, Mu, ErrStat, ErrMsg)
+
+   TYPE(TurbSim_ParameterType),  INTENT(in)     :: p                            !< TurbSim parameters
+   REAL(ReKi),                   INTENT(  OUT)  :: Rho          (:)             !< The array of concentration parameters (NPoints).
+   REAL(ReKi),                   INTENT(  OUT)  :: Mu           (:)             !< The array of location parameters (NPoints).
+
+   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat                      !< Error level
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg                       !< Message describing error
+   
+   
+   ! local variables
+
+   INTEGER(IntKi)                   :: J                                ! loop counter
+   
+   INTEGER(IntKi)                   :: ErrStat2                         ! Error level (local)
+   CHARACTER(MaxMsgLen)             :: ErrMsg2                          ! Message describing error (local)
+   
+
+      ! initialize variables
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+
+
+      ! Select the temporal coherence model
+
+   SELECT CASE ( p%met%TCMod )
+
+      CASE ( TempCohMod_NONE )         ! Desc.
+!         CALL Spec_IECKAI  ( p%UHub, p%IEC%SigmaIEC, p%IEC%IntegralScale, p%grid%Freq, p%grid%NumFreq, SSVS )
+! jmr todo: chance to CALL TempCoh_NONE()
+      
+         DO J = 1,p%grid%NPoints
+            Rho(J) = 0.0
+            Mu(J)  = 0.0
+         END DO ! J
+
+      
+      CASE ( TempCohMod_NREL )         ! Descr.
+!         CALL Spec_IECVKM  ( p%UHub, p%IEC%SigmaIEC(1), p%IEC%IntegralScale, p%grid%Freq, p%grid%NumFreq, SSVS )
+   
+         DO J = 1,p%grid%NPoints
+            Rho(J) = 0.2
+            Mu(J)  = 0.0
+         END DO ! J     
+         
+
+      CASE DEFAULT
+         CALL SetErrStat( ErrID_Fatal, 'Specified temporal coherence not availible.', ErrStat, ErrMsg, 'CalcTempCoh')
+         RETURN
+
+   END SELECT      
+
+END SUBROUTINE CalcTempCoh
+!=======================================================================
 !> This routine calculates the wind components in the Inertial reference
 !!  frame.
-SUBROUTINE SetPhaseAngles( p, OtherSt_RandNum, PhaseAngles, ErrStat, ErrMsg )
-
+SUBROUTINE SetPhaseAngles( p, OtherSt_RandNum, Rho, Mu, PhaseAngles, ErrStat, ErrMsg )
 
    TYPE(TurbSim_ParameterType),  INTENT(IN   ) :: p                                              !< parameters for TurbSim
+   REAL(ReKi),                   INTENT(IN   ) :: Rho           (:)                              !< temporal coherence concentration parameter
+   REAL(ReKi),                   INTENT(IN   ) :: Mu            (:)                              !< temporal coherence location parameter
    TYPE(RandNum_OtherStateType), INTENT(INOUT) :: OtherSt_RandNum                                !< other states for random number generation
    INTEGER(IntKi)  ,             INTENT(  OUT) :: ErrStat                                        !< error level/status
    CHARACTER(*) ,                INTENT(  OUT) :: ErrMsg                                         !< error message
@@ -1650,9 +1708,8 @@ SUBROUTINE SetPhaseAngles( p, OtherSt_RandNum, PhaseAngles, ErrStat, ErrMsg )
 
       ! generate random phases for all the points with temporal coherence characteristics
       
-         ! bjj: todo: don't generate the angles for user-specified time-series points, which have phases already
-      CALL RndPhases(p, OtherSt_RandNum, PhaseAngles, p%grid%NPoints, p%grid%NumFreq, p%US, ErrStat, ErrMsg)
-
+   ! bjj: todo: don't generate the angles for user-specified time-series points, which have phases already
+   CALL RndPhases(p%RNG, OtherSt_RandNum, Rho, Mu, PhaseAngles, p%grid%NPoints, p%grid%NumFreq, p%US, ErrStat, ErrMsg)
    
    IF (p%met%TurbModel_ID == SpecModel_TimeSer) THEN
       

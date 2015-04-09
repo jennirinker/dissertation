@@ -991,10 +991,17 @@ CALL DefaultMetBndryCndtns(p)     ! Requires turbModel (some require RICH_NO, wh
       CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ReadInputFile')
       IF ( .NOT. UseDefault ) THEN         
          SELECT CASE ( TRIM(Line) )
+
+            CASE ("NONE")
+               p%met%TCMod = TempCohMod_NONE
+
             CASE ("NREL")
                p%met%TCMod = TempCohMod_NREL
+
             CASE DEFAULT
                p%met%TCMod = TempCohMod_NONE
+               CALL SetErrStat( ErrID_Fatal, 'Unknown value for TCMod. Valid entries are "DEFAULT","NONE", or "NREL".', ErrStat, ErrMsg, 'ReadInputFile')
+
          END SELECT
       END IF
 

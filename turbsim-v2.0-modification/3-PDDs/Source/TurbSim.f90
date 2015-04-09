@@ -73,6 +73,8 @@ REAL(ReKi), ALLOCATABLE          :: V           (:,:,:)     ! An array containin
 REAL(ReKi), ALLOCATABLE          :: U           (:)         ! The steady u-component wind speeds for the grid (NPoints).
 REAL(ReKi), ALLOCATABLE          :: HWindDir    (:)         ! A profile of horizontal wind angle (NPoints) (measure of wind direction with height)
 REAL(ReKi), ALLOCATABLE          :: VWindDir    (:)         ! A profile of vretical wind angle (NPoints) (measure of wind vertical angle with height)
+REAL(ReKi), ALLOCATABLE          :: Rho         (:)         ! The temporal coherence concentration parameter (NPoints).
+REAL(ReKi), ALLOCATABLE          :: Mu          (:)         ! The temporal coherence location parameter (NPoints).
 
 REAL(ReKi)                       :: CPUtime                 ! Contains the number of seconds since the start of the program
 
@@ -182,6 +184,16 @@ END IF
 CALL WrSum_SpecModel( p, U, HWindDir, VWindDir, ErrStat, ErrMsg )
 CALL CheckError()
 
+   !  Allocate the arrays for temporal coherence
+
+CALL AllocAry(Rho,  p%grid%NPoints, 'Rho (concentration parameters)', ErrStat, ErrMsg )
+CALL CheckError()
+
+CALL AllocAry(Mu,   p%grid%NPoints, 'Mu (location parameters)', ErrStat, ErrMsg )
+CALL CheckError()
+        
+CALL CalcTempCoh(p, Rho, Mu, ErrStat, ErrMsg)
+CALL CheckError()
 
 !..................................................................................................................................
 ! Get the single-point power spectral densities
@@ -215,14 +227,16 @@ IF ( ALLOCATED( p%usr%meanVAng      ) )  DEALLOCATE( p%usr%meanVAng        )
    
 CALL AllocAry( PhaseAngles, p%grid%NPoints, p%grid%NumFreq, 3, 'Random Phases', ErrStat, ErrMsg )
 CALL CheckError()
-        
-CALL SetPhaseAngles( p, OtherSt_RandNum, PhaseAngles, ErrStat, ErrMsg )
+
+CALL SetPhaseAngles( p, OtherSt_RandNum, Rho, Mu, PhaseAngles, ErrStat, ErrMsg )
 CALL CheckError()
 
    ! we don't need these arrays any more, so deallocate to save some space
 IF ( ALLOCATED(OtherSt_RandNum%nextSeed ) ) DEALLOCATE( OtherSt_RandNum%nextSeed )  
 IF ( ALLOCATED(p%usr%PhaseAngles        ) ) DEALLOCATE( p%usr%PhaseAngles        )  
 IF ( ALLOCATED(p%usr%f                  ) ) DEALLOCATE( p%usr%f                  ) ! bjj: do we need to keep these for phase angles or should we destroy earlier?
+IF ( ALLOCATED(Rho                      ) ) DEALLOCATE( Rho                      )
+IF ( ALLOCATED(Mu                       ) ) DEALLOCATE( Mu                       )
 
 !..................................................................................................................................
 ! Get the Fourier Coefficients
