@@ -82,61 +82,253 @@ def interpCupSpeed(struc,height):
     heights_WS = np.array([10,23,80,88,134])
     print np.nonzero(heights_WS < height)
 
-##def metadataFields():
-##    """ Define list of fields to be stored in metadata table
-##
-##        Returns:
-##            fields (list): list of strings defining metadata
-##                columns
-##    """
-##
-##    fields = ['Record_Time','Processed_Time','Height','Wind_Speed_Cup', \
-##              'Wind_Direction','Precipitation','Temperature', \
-##              'Dewpoint_Temp','Surface_Virtual_Temp','Surface_Pressure', \
-##              'Mean_Wind_Speed', \
-##              'Sigma_u','Concentration_u','Location_u', \
-##              'Sigma_v','Concentration_v','Location_v', \
-##              'Sigma_w','Concentration_w','Location_w', \
-##              'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
-##              'Andy_Lu','Andy_Lv','Andy_Lw','Ri_grad_26_88_134m', \
-##              'Ri_grad_3_10_26_88_134m','Ri_grad_3_10_26_88m', \
-##              'Ri_grad_10_26_88_134m','Ri_WS_26_88_134m', \
-##              'Ri_WS_3_10_26_88_134m','Ri_WS_3_10_26_88m', \
-##              'Ri_WS_10_26_88_134m']
-##
-##    return fields
+def metadataFields(dataset):
+    """ Define list of fields to be stored in metadata table
 
-##def field2varname(field,height):
-##    """ Convert fieldname to variable name
-##
-##        Args:
-##            field (string): field name stored in Python dictionary
-##            height (integer): measurement height
-##
-##        Returns:
-##            varname (string): variable name in data
-##    """
-##    htS = str(height)
-##    
-##    if (field == 'Wind_Speed_Cup'):
-##        varname = 'Wind_Speed_Cup_' + htS + 'm'
-##        
-##    elif (field == 'Wind_Direction'):
-##        varname = 'Wind_Direction_Vane_' + htS + 'm_mean'
-##        
-##    elif (field == 'Precipitation'):
-##        varname = 'Raw_PRECIP_INTEN_mean'
-##        
-##    elif (field == 'Temperature'):
-##        varname = 'Air_Temperature_' + htS + 'm'
-##        
-##    elif (field == 'Surface_Pressure'):
-##        varname = 'Raw_Baro_Presr_3m_mean'
-##
-##    else:
-##        print 'ERROR: that fieldname is not listed in this function'
-##        return []
-##
-### TODO: add all fieldnames that are used in any calculations (e.g., sonics, etc.)
-##
-##    return varname
+        Returns:
+            fields (list): list of strings defining metadata
+                columns
+    """
+
+    if (dataset == 'NREL'):
+        fields = ['Record_Time','Processed_Time','Height','Wind_Speed_Cup', \
+              'Wind_Direction','Precipitation', \
+              'Mean_Wind_Speed', \
+              'Sigma_u','Concentration_u','Location_u', \
+              'Sigma_v','Concentration_v','Location_v', \
+              'Sigma_w','Concentration_w','Location_w', \
+              'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w']
+    else:
+        print '***ERROR***: that dataset is not coded yet.'
+        
+    return fields
+
+def getBasedir(dataset):
+    """ Get path to base directory and check if it exists
+    """
+    import os
+
+    if (dataset == 'NREL'):
+        basedir = '/media/jrinker/JRinker SeaGate External/data/nrel-20Hz/'
+        if not os.path.exists(basedir):
+            print '***ERROR***: base directory does not exist.'
+            del basedir
+
+    else:
+        print '***ERROR***: that dataset is not coded yet.'
+
+    return basedir
+
+def makemetadata(dataset):
+    """ Construct metadata table
+    """
+
+    # get base directory, check it exists
+    basedir = getBasedir(dataset)
+
+    # process NREL dataset
+    if (dataset == 'NREL'):
+
+        metadata = makeNRELmetadata(basedir)
+
+    else:
+        print '***ERROR***: that dataset is not coded yet.'
+
+    return metadata
+
+def makeNRELmetadata(basedir):
+    """ Make metadata table for NREL data
+    """
+    import numpy as np
+    import scipy.io as scio
+    import os
+    import calendar, time
+
+    # array of sampling heights
+    heights = np.array([15,30,50,76,100,131])
+
+    # initialize array
+    metadata = np.empty([0,len(metadataFields('NREL'))])
+
+    # recursively loop through all .mat files in 20 Hz directory
+    for root, dirs, files in os.walk(basedir,topdown=False):
+        for fname in files:
+            if fname.endswith('.mat'):
+
+                # load in 20 Hz datafile
+                struc = scio.loadmat(os.path.join(root,fname))                
+                # loop through heights
+                for height in heights:
+
+                    row = extractNRELparameters(struc,height)
+                    row[0,0] = fname2time(fname)
+                    row[0,1] = calendar.timegm(time.gmtime())
+                    row[0,2] = height
+                    metadata = np.vstack([metadata,row])
+                
+                return metadata
+
+    return metadata
+
+def extractNRELparameters(struc,height):
+    """
+    """
+    import numpy as np
+
+    dataset = 'NREL'
+
+    fields = metadataFields(dataset)
+
+    parameters = np.empty([1,len(fields)])
+
+    for i in range(len(fields)):
+        field = fields[i]
+        parameters[0,i] = calculatefield(dataset,struc,height,field)
+            
+    return parameters
+
+def calculatefield(dataset,struc,ht,field):
+    """
+    """
+    import sys
+    sys.path.append('/home/jrinker/git/dissertation/')
+    import JR_Library.ExtractWindParameters as jr
+    import numpy as np
+
+    if (dataset == 'NREL'):
+        dt = 0.05
+
+        try:
+        
+            if ((field == 'Record_Time') or (field == 'Processed_Time') \
+                or (field == 'Height')):
+                value = 0
+                
+            elif (field == 'Wind_Speed_Cup'):
+                lowerHt, upperHt = interpolateHeight(dataset,ht)
+                lowerField = 'Cup_WS_' + str(lowerHt) + 'm'
+                upperField = 'Cup_WS_' + str(upperHt) + 'm'
+                upperWS = np.nanmean(struc[upperField][0,0][0])
+                lowerWS = np.nanmean(struc[lowerField][0,0][0])
+                value = np.interp(ht,[lowerHt,upperHt], \
+                                  [lowerWS,upperWS])
+                
+            elif (field == 'Wind_Direction'):
+                lowerHt, upperHt = interpolateHeight(dataset,ht)
+                lowerField = 'Vane_WD_' + str(lowerHt) + 'm'
+                upperField = 'Vane_WD_' + str(upperHt) + 'm'
+                lowerWD = struc[upperField][0,0][0]
+                upperWD = struc[lowerField][0,0][0]
+                lowerWD_mean = np.angle(np.nanmean(np.exp(1j*lowerWD \
+                            *np.pi/180)))*180/np.pi
+                upperWD_mean = np.angle(np.nanmean(np.exp(1j*upperWD \
+                            *np.pi/180)))*180/np.pi
+                value = np.mod(np.angle(np.nanmean(np.exp(1j* \
+                    np.array([lowerWD_mean, upperWD_mean])* \
+                    np.pi/180)))*180/np.pi,360)
+
+            elif (field == 'Precipitation'):
+                value = np.nanmean(struc['PRECIP_INTEN'][0,0][0])
+
+            elif (field == 'Mean_Wind_Speed'):
+                value = np.nanmean(struc['Sonic_u_' + str(ht) + 'm'][0,0][0])
+
+            elif (field == 'Sigma_u'):
+                value = np.nanstd(struc['Sonic_u_' + str(ht) + 'm'][0,0][0])
+
+            elif (field == 'Concentration_u'):
+                u = struc['Sonic_u_' + str(ht) + 'm'][0,0][0]
+                rho, mu = jr.signalPhaseCoherence(u)
+                value = rho
+
+            elif (field == 'Location_u'):
+                u = struc['Sonic_u_' + str(ht) + 'm'][0,0][0]
+                rho, mu = jr.signalPhaseCoherence(u)
+                value = mu
+
+            elif (field == 'Sigma_v'):
+                value = np.nanstd(struc['Sonic_v_' + str(ht) + 'm'][0,0][0])
+
+            elif (field == 'Concentration_v'):
+                v = struc['Sonic_v_' + str(ht) + 'm'][0,0][0]
+                rho, mu = jr.signalPhaseCoherence(v)
+                value = rho
+
+            elif (field == 'Location_v'):
+                v = struc['Sonic_v_' + str(ht) + 'm'][0,0][0]
+                rho, mu = jr.signalPhaseCoherence(v)
+                value = mu
+
+            elif (field == 'Sigma_w'):
+                value = np.nanstd(struc['Sonic_w_' + str(ht) + 'm'][0,0][0])
+
+            elif (field == 'Concentration_w'):
+                w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+                rho, mu = jr.signalPhaseCoherence(w)
+                value = rho
+
+            elif (field == 'Location_w'):
+                w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+                rho, mu = jr.signalPhaseCoherence(w)
+                value = mu
+
+            elif (field == 'up_wp'):
+                u = struc['Sonic_u_' + str(ht) + 'm'][0,0][0]
+                w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+                value = np.nanmean((u-np.nanmean(u))*(w-np.nanmean(w)))           
+
+            elif (field == 'vp_wp'):
+                v = struc['Sonic_v_' + str(ht) + 'm'][0,0][0]
+                w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+                value = np.nanmean((v-np.nanmean(v))*(w-np.nanmean(w)))
+
+            elif (field == 'wp_Tp'):
+                w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+                T = struc['Sonic_Temp_rotated_' + str(ht) + 'm'][0,0][0]
+                value = np.nanmean((w-np.nanmean(w))*(T-np.nanmean(T)))
+
+            elif (field == 'up_vp'):
+                u = struc['Sonic_u_' + str(ht) + 'm'][0,0][0]
+                v = struc['Sonic_v_' + str(ht) + 'm'][0,0][0]
+                value = np.nanmean((u-np.nanmean(u))*(v-np.nanmean(v))) 
+
+            elif (field == 'tau_u'):
+                u = struc['Sonic_u_' + str(ht) + 'm'][0,0][0]
+                value = jr.calculateKaimal(u,dt)
+
+            elif (field == 'tau_v'):
+                v = struc['Sonic_v_' + str(ht) + 'm'][0,0][0]
+                value = jr.calculateKaimal(v,dt)
+
+            elif (field == 'tau_w'):
+                w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+                value = jr.calculateKaimal(w,dt)
+
+            else:
+                print '***ERROR***: field {} is not coded for \"NREL\".'.format(field)
+
+        except KeyError:
+            print '***WARNING***: KeyError for {}'.format(field)
+            value = float('nan')
+        
+    else:
+        print '***ERROR***: that dataset is not coded yet.'
+
+    return value
+
+
+def interpolateHeight(dataset,height):
+    """
+    """
+    import numpy as np
+
+    if (dataset == 'NREL'):
+        heights_cup = np.array([10,26,80,88,134])
+        upperHt = heights_cup[np.where(height < heights_cup)[0][0]]
+        lowerHt = heights_cup[np.where(height < heights_cup)[0][0] - 1]
+
+    else:
+        print '***ERROR***: that dataset is not coded yet.'
+
+    return (lowerHt,upperHt)
+    
