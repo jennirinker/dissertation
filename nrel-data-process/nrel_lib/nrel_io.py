@@ -67,61 +67,76 @@ def fname2time(fname):
 
     return time_flt
 
-def metadataFields():
-    """ Define list of fields to be stored in metadata table
-
-        Returns:
-            fields (list): list of strings defining metadata
-                columns
-    """
-
-    fields = ['Record_Time','Processed_Time','Height','Wind_Speed_Cup', \
-              'Wind_Direction','Precipitation','Temperature', \
-              'Dewpoint_Temp','Surface_Virtual_Temp','Surface_Pressure', \
-              'Mean_Wind_Speed', \
-              'Sigma_u','Concentration_u','Location_u', \
-              'Sigma_v','Concentration_v','Location_v', \
-              'Sigma_w','Concentration_w','Location_w', \
-              'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
-              'Andy_Lu','Andy_Lv','Andy_Lw','Ri_grad_26_88_134m', \
-              'Ri_grad_3_10_26_88_134m','Ri_grad_3_10_26_88m', \
-              'Ri_grad_10_26_88_134m','Ri_WS_26_88_134m', \
-              'Ri_WS_3_10_26_88_134m','Ri_WS_3_10_26_88m', \
-              'Ri_WS_10_26_88_134m']
-
-    return fields
-
-def field2varname(field,height):
-    """ Convert fieldname to variable name
+def interpCupSpeed(struc,height):
+    """ Interpolate the cup speed to height
 
         Args:
-            field (string): field name stored in Python dictionary
-            height (integer): measurement height
+            struc (dict): NREL 20 Hz data structure loaded into Python
+            height (float): height above ground in meters
 
         Returns:
-            varname (string): variable name in data
+            cupSpeed (float): interpolated cup speed in m/s
     """
-    htS = str(height)
-    
-    if (field == 'Wind_Speed_Cup'):
-        varname = 'Wind_Speed_Cup_' + htS + 'm'
-        
-    elif (field == 'Wind_Direction'):
-        varname = 'Wind_Direction_Vane_' + htS + 'm_mean'
-        
-    elif (field == 'Precipitation'):
-        varname = 'Raw_PRECIP_INTEN_mean'
-        
-    elif (field == 'Temperature'):
-        varname = 'Air_Temperature_' + htS + 'm'
-        
-    elif (field == 'Surface_Pressure'):
-        varname = 'Raw_Baro_Presr_3m_mean'
+    import numpy as np
 
-    else:
-        print 'ERROR: that fieldname is not listed in this function'
-        return []
+    heights_WS = np.array([10,23,80,88,134])
+    print np.nonzero(heights_WS < height)
 
-# TODO: add all fieldnames that are used in any calculations (e.g., sonics, etc.)
+##def metadataFields():
+##    """ Define list of fields to be stored in metadata table
+##
+##        Returns:
+##            fields (list): list of strings defining metadata
+##                columns
+##    """
+##
+##    fields = ['Record_Time','Processed_Time','Height','Wind_Speed_Cup', \
+##              'Wind_Direction','Precipitation','Temperature', \
+##              'Dewpoint_Temp','Surface_Virtual_Temp','Surface_Pressure', \
+##              'Mean_Wind_Speed', \
+##              'Sigma_u','Concentration_u','Location_u', \
+##              'Sigma_v','Concentration_v','Location_v', \
+##              'Sigma_w','Concentration_w','Location_w', \
+##              'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
+##              'Andy_Lu','Andy_Lv','Andy_Lw','Ri_grad_26_88_134m', \
+##              'Ri_grad_3_10_26_88_134m','Ri_grad_3_10_26_88m', \
+##              'Ri_grad_10_26_88_134m','Ri_WS_26_88_134m', \
+##              'Ri_WS_3_10_26_88_134m','Ri_WS_3_10_26_88m', \
+##              'Ri_WS_10_26_88_134m']
+##
+##    return fields
 
-    return varname
+##def field2varname(field,height):
+##    """ Convert fieldname to variable name
+##
+##        Args:
+##            field (string): field name stored in Python dictionary
+##            height (integer): measurement height
+##
+##        Returns:
+##            varname (string): variable name in data
+##    """
+##    htS = str(height)
+##    
+##    if (field == 'Wind_Speed_Cup'):
+##        varname = 'Wind_Speed_Cup_' + htS + 'm'
+##        
+##    elif (field == 'Wind_Direction'):
+##        varname = 'Wind_Direction_Vane_' + htS + 'm_mean'
+##        
+##    elif (field == 'Precipitation'):
+##        varname = 'Raw_PRECIP_INTEN_mean'
+##        
+##    elif (field == 'Temperature'):
+##        varname = 'Air_Temperature_' + htS + 'm'
+##        
+##    elif (field == 'Surface_Pressure'):
+##        varname = 'Raw_Baro_Presr_3m_mean'
+##
+##    else:
+##        print 'ERROR: that fieldname is not listed in this function'
+##        return []
+##
+### TODO: add all fieldnames that are used in any calculations (e.g., sonics, etc.)
+##
+##    return varname
