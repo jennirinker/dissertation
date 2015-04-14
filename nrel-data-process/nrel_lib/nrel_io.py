@@ -1,46 +1,6 @@
 """ Functions for NREL data analysis
 """
-
-def listMatFiles(dname):
-    """ List all .mat files at directory dname
-
-        Args:
-            dname (string): path to directory
-
-        Returns:
-            matList (list): list of .mat filenames
-    """
-    import os
-
-    matList = []
-    for file in os.listdir(dname):
-        if (file.endswith('.mat')):
-            matList.append(file)
-
-    return matList
-
-def makeDataPath(basedir,year,month,day):
-    """ Construct data path to subfolder
-
-        Ars:
-            basedir (string): path to base directory
-            year (integer): year of data acquisition
-            month (integer): month of data acquisition
-            day (integer): day of data acquisition
-
-        Returns:
-            dname (string): path to subfolder
-    """
-    import os
-
-    yearS  = str(year)
-    monthS = str(month).zfill(2)
-    dayS   = str(day).zfill(2)
-
-    dname = os.path.join(basedir,yearS,monthS,dayS)
-
-    return dname
-
+# ==============================================================================
 def fname2time(fname):
     """ Convert filename to float representing time stamp
 
@@ -67,21 +27,8 @@ def fname2time(fname):
 
     return time_flt
 
-def interpCupSpeed(struc,height):
-    """ Interpolate the cup speed to height
 
-        Args:
-            struc (dict): NREL 20 Hz data structure loaded into Python
-            height (float): height above ground in meters
-
-        Returns:
-            cupSpeed (float): interpolated cup speed in m/s
-    """
-    import numpy as np
-
-    heights_WS = np.array([10,23,80,88,134])
-    print np.nonzero(heights_WS < height)
-
+# ==============================================================================
 def metadataFields(dataset):
     """ Define list of fields to be stored in metadata table
 
@@ -103,6 +50,8 @@ def metadataFields(dataset):
         
     return fields
 
+
+# ==============================================================================
 def getBasedir(dataset):
     """ Get path to base directory and check if it exists
     """
@@ -119,6 +68,8 @@ def getBasedir(dataset):
 
     return basedir
 
+
+# ==============================================================================
 def makemetadata(dataset):
     """ Construct metadata table
     """
@@ -128,7 +79,6 @@ def makemetadata(dataset):
 
     # process NREL dataset
     if (dataset == 'NREL'):
-
         metadata = makeNRELmetadata(basedir)
 
     else:
@@ -136,6 +86,8 @@ def makemetadata(dataset):
 
     return metadata
 
+
+# ==============================================================================
 def makeNRELmetadata(basedir):
     """ Make metadata table for NREL data
     """
@@ -152,6 +104,7 @@ def makeNRELmetadata(basedir):
 
     # recursively loop through all .mat files in 20 Hz directory
     for root, dirs, files in os.walk(basedir,topdown=False):
+        print ' Procesing ' + root
         for fname in files:
             if fname.endswith('.mat'):
 
@@ -166,10 +119,10 @@ def makeNRELmetadata(basedir):
                     row[0,2] = height
                     metadata = np.vstack([metadata,row])
                 
-                return metadata
-
     return metadata
 
+
+# ==============================================================================
 def extractNRELparameters(struc,height):
     """
     """
@@ -187,6 +140,8 @@ def extractNRELparameters(struc,height):
             
     return parameters
 
+
+# ==============================================================================
 def calculatefield(dataset,struc,ht,field):
     """
     """
@@ -205,7 +160,9 @@ def calculatefield(dataset,struc,ht,field):
                 value = 0
                 
             elif (field == 'Wind_Speed_Cup'):
-                lowerHt, upperHt = interpolateHeight(dataset,ht)
+                hts_cup = np.array([10,26,80,88,134])
+                upperHt = hts_cup[np.where(ht < hts_cup)[0][0]]
+                lowerHt = hts_cup[np.where(ht < hts_cup)[0][0] - 1]
                 lowerField = 'Cup_WS_' + str(lowerHt) + 'm'
                 upperField = 'Cup_WS_' + str(upperHt) + 'm'
                 upperWS = np.nanmean(struc[upperField][0,0][0])
@@ -214,7 +171,9 @@ def calculatefield(dataset,struc,ht,field):
                                   [lowerWS,upperWS])
                 
             elif (field == 'Wind_Direction'):
-                lowerHt, upperHt = interpolateHeight(dataset,ht)
+                hts_vane = np.array([10,26,88,134])
+                upperHt = hts_vane[np.where(ht < hts_vane)[0][0]]
+                lowerHt = hts_vane[np.where(ht < hts_vane)[0][0] - 1]
                 lowerField = 'Vane_WD_' + str(lowerHt) + 'm'
                 upperField = 'Vane_WD_' + str(upperHt) + 'm'
                 lowerWD = struc[upperField][0,0][0]
@@ -317,18 +276,20 @@ def calculatefield(dataset,struc,ht,field):
     return value
 
 
-def interpolateHeight(dataset,height):
+# ==============================================================================
+def loadMetadata(fname):
     """
     """
     import numpy as np
 
-    if (dataset == 'NREL'):
-        heights_cup = np.array([10,26,80,88,134])
-        upperHt = heights_cup[np.where(height < heights_cup)[0][0]]
-        lowerHt = heights_cup[np.where(height < heights_cup)[0][0] - 1]
+    metadata = np.loadtxt(fname,delimiter=',',skiprows=1)
 
-    else:
-        print '***ERROR***: that dataset is not coded yet.'
+    with open(fname,'r') as f:
+        header = f.readline()
 
-    return (lowerHt,upperHt)
+    fields = header.lstrip('# ').rstrip('\n').split(',')
+
+    return (fields,metadata)
+
     
+
