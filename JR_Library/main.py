@@ -464,7 +464,7 @@ def compositeNSAE(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
     return NSAE
 
 
-def fitcompositeparameters(x,dist_name,x_T=float("inf")):
+def fitcompositeparameters(x,dist_name,x_T=float('inf')):
     """ Optimize single/composite parameters by minimizing NSAE, given
         threshold value (if x_T omitted, fits single distribution)
 
@@ -483,7 +483,7 @@ def fitcompositeparameters(x,dist_name,x_T=float("inf")):
 
     # initialize CDFs
     dist_main = getattr(scipy.stats, dist_name)
-    dist_GP   = getattr(scipy.stats, dist_name)
+    dist_GP   = getattr(scipy.stats, 'genpareto')
 
     # get initial guesses using MLE
     p_main0 = dist_main.fit(x)
@@ -491,7 +491,7 @@ def fitcompositeparameters(x,dist_name,x_T=float("inf")):
     p_comp0 = p_main0 + (p_GP0[0],) + (p_GP0[-1],)
 
     # define error function
-    fun = lambda p_comp: compositeNSAE(x,dist_name,p_comp[:3],x_T, \
+    fun = lambda p_comp: compositeNSAE(x,dist_name,p_comp[:-2],x_T, \
         (p_comp[-2],)+(x_T,)+(p_comp[-1],))
 
     # perform optimization
