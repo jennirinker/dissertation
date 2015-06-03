@@ -28,8 +28,8 @@ def samplePhaseCoherence(theta):
     
     return (rho,mu)
 
-def signalPhaseCoherence(x):
-    """ Return concentration and location parameters for a time history.
+def signalPhaseDifferences(x):
+    """ Return phase differences for a time history.
     
         Args:
             x (numpy array): 1D array of time history
@@ -53,6 +53,28 @@ def signalPhaseCoherence(x):
     Xuniq = X[:n_f]                         # unique Fourier components
     dtheta = np.angle(np.divide( \
         Xuniq[1:],Xuniq[:-1]))              # phase differences
+    
+    return dtheta
+
+def signalPhaseCoherence(x):
+    """ Return concentration and location parameters for a time history.
+    
+        Args:
+            x (numpy array): 1D array of time history
+       
+        Returns:
+            rho (float): concentration parameter
+            mu (float): location parameter
+    """
+    import numpy as np
+    import misc
+    
+    # if (2+)D array is fed in, halt with error
+    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
+        print 'ERROR: signalPhaseCoherence only works on 1D arrays'
+        return []
+    
+    dtheta  = signalPhaseDifferences(x)     # phase differences
     rho, mu = samplePhaseCoherence( \
         dtheta)                             # temporal coherence parameters
     

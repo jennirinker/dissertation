@@ -144,3 +144,18 @@ def wrappedCauchyPDF(theta,rho,mu):
         (1 + (rho**2) - 2*rho*np.cos(theta-mu))
     
     return f
+
+
+def removeSpines(ax):
+    """ Remove the top and right spines on a Python plot
+
+        Args:
+            ax (axis handle): handle to axes to remove spines
+    """
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+
+    return
+    
