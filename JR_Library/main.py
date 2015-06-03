@@ -490,12 +490,17 @@ def fitcompositeparameters(x,dist_name,x_T=float('inf')):
     p_GP0   = dist_GP.fit(x[np.where(x > x_T)], loc=x_T)
     p_comp0 = p_main0 + (p_GP0[0],) + (p_GP0[-1],)
 
+    # get parameter bounds
+    bnds_main = parameterbounds(dist_name)
+    bnds_GP   = parameterbounds('genpareto')
+    bnds      = bnds_main + (bnds_GP[0],) + (bnds_GP[-1],)
+
     # define error function
     fun = lambda p_comp: compositeNSAE(x,dist_name,p_comp[:-2],x_T, \
         (p_comp[-2],)+(x_T,)+(p_comp[-1],))
 
-    # perform optimization
-    res = minimize(fun,p_comp0)
+    # perform bounded optimization
+    res = minimize(fun,p_comp0,bounds=bnds)
 
     # convert numpy array to tuple
     param_opt = tuple(np.ndarray.tolist(res.x))
@@ -505,7 +510,50 @@ def fitcompositeparameters(x,dist_name,x_T=float('inf')):
     p_GP_opt   = (param_opt[-2],) + (x_T,) + (param_opt[-1],)
 
     return (p_main_opt,p_GP_opt)
-    
+
+
+def parameterbounds(dist_name):
+    """ Tuple of bounds on parameters for given distribution name
+
+        Args:
+            dist_name (string): Python name of distribution
+
+        Returns:
+            bnds (tuple): (min,max) pairs for each parameter
+    """
+
+    if (dist_name == 'anglit'):
+        bnds = ((None,None),(0,None))
+    elif (dist_name == 'arcsine'):
+        bnds = ((None,None),(0,None))
+    elif (dist_name == 'beta'):
+        bnds = ((0,None),(0,None),(None,None),(0,None))
+    elif (dist_name == 'chi2'):
+        bnds = ((0,None),(None,None),(0,None))
+    elif (dist_name == 'cosine'):
+        bnds = ((None,None),(0,None))
+    elif (dist_name == 'expon'):
+        bnds = ((None,None),(0,None))
+    elif (dist_name == 'exponweib'):
+        bnds = ((0,None),(0,None),(None,None),(0,None))
+    elif (dist_name == 'genextreme'):
+        bnds = ((None,None),(None,None),(0,None))
+    elif (dist_name == 'gengamma'):
+        bnds = ((0,None),(None,None),(None,None),(0,None))
+    elif (dist_name == 'genpareto'):
+        bnds = ((None,None),(None,None),(0,None))
+    elif (dist_name == 'lognorm'):
+        bnds = ((0,None),(None,None),(0,None))
+    elif (dist_name == 'vonmises'):
+        bnds = ((0,None),(None,None),(0,None))
+    elif (dist_name == 'wrapcauchy'):
+        bnds = ((0,None),(None,None),(0,None))
+    else:
+        print('***THAT DISTRIBUTION IS NOT CODED***')
+        bnds = ()
+
+    return bnds
+
     
 def samplePhaseCoherence(theta):
     """ Return concentration and location parameters for a sample of wrapping

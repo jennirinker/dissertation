@@ -11,6 +11,9 @@ import scipy.io as scio
 import numpy as np
 import matplotlib.pyplot
 
+import scipy.stats
+from scipy.optimize import minimize
+
 # %%============================= load data ===================================
 
 # path to matlab-processed metadata table
@@ -27,12 +30,12 @@ pdfTable = struc['tempStruc'][0,0][3]
 
 # probability distribution candidates
 half_cands = ['lognorm','genextreme',\
-    'chi2','gengamma','exponweib','expon']      # half-infinite support
+    'chi2','gengamma','exponweib','expon']      # U, sigma_u, L
 fine_cands = ['anglit','arcsine','beta','cosine', \
-    'genextreme','vonmises','wrapcauchy']       # finite support
+    'genextreme','gengamma','genpareto','lognorm']       # rho
 x_T = float('inf')                              # fitting single distributions
                     
-iP = 0
+iP = 3
 iH = 0
 
 # extract data
@@ -78,7 +81,7 @@ for iD in range(len(dist_cands)):
         d_parms[iD][2],d_parms[iD][3])
     plt.plot(x,F)
 
-    leg_entry = d_parms[iD][0] + ', ({:.4f})'.format(d_parms[iD][4])
+    leg_entry = d_parms[iD][0] + ' ({:.4f})'.format(d_parms[iD][4])
     legstr = legstr + [leg_entry]
 
 plt.legend(legstr,loc='lower right')
