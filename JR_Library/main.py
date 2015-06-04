@@ -14,7 +14,7 @@ Module is separated into groups of functions:
     - Miscellaneous:
         Other functions
 
-Jenni Rinker, 18-May-2015
+Jenni Rinker, Duke University
 """
 
 # ==============================================================================
@@ -554,7 +554,95 @@ def parameterbounds(dist_name):
 
     return bnds
 
-    
+
+def fitcompositedistribution(dataset,iP,x):
+    """ Optimize NSAE, returning distribution type, distribution parameters,
+        threshold value, and Generalized Pareto distribution
+
+        Args:
+            dataset (string): flag to indicate source of data
+            iP (integer): parameter index (0=U,1=s_u,2=L,3=rho)
+            x (numpy array): data
+
+        Returns:
+        
+    """
+    import numpy as np
+
+    if (dataset == 'NREL'):
+
+        # probability distribution candidates
+        half_cands = ['lognorm','genextreme',\
+        'chi2','gengamma','exponweib','expon']      # U, sigma_u, L
+        fine_cands = ['anglit','beta', \
+            'genextreme','gengamma','lognorm']      # rho
+
+        # quantile threshold values to search
+        Q_Ts = [0.80,0.85,0.90,0.95,1.00]
+
+        # set distribution candidates
+        if (iP < 3):
+            dist_cands = half_cands
+        elif (iP == 3):
+            dist_cands = fine_cands
+
+        # initialize error matrix
+        NSAEs = np.empty((len(dist_cands),len(Q_Ts)))
+
+        # initialize parameter list
+        d_parms = []
+
+        # loop through distribution candidates
+        for iD in range(len(dist_cands)):
+            
+            # isolate distribution
+            dist_name = dist_cands[iD]
+            print('Processing {}'.format(dist_name))
+
+            # initialize parameter list
+            Q_parms = []
+
+            # loop through threshold values
+            for iQ in range(len(Q_Ts)):
+
+                # isolate quantile
+                Q_T  = Q_Ts[iQ]
+                print('  ...quantile {}'.format(Q_T))
+
+                # calculate threshold value
+                x, N = np.sort(x), x.size
+                if (Q_T == 1.0): x_T = float('inf')
+                else:            x_T  = x[N*Q_T]
+
+                # optimize distribution parameters
+                p_main, p_GP = fitcompositeparameters( \
+                    x,dist_name,x_T)
+
+                # calculate corresponding NSAE
+                NSAE = compositeNSAE(x,dist_name,p_main, \
+                                     x_T,p_GP)
+
+                # save parameters and NSAE
+                fit_parms    = (dist_name,p_main,x_T,p_GP,NSAE)
+                NSAEs[iD,iQ] = NSAE
+
+                Q_parms.append(fit_parms)
+
+            d_parms.append(Q_parms)
+
+    else:
+
+        print('***ERROR: that dataset is not coded in fitdistribution***')
+
+    # return values corresponding to minimum NSAE
+    iD_min, iQ_min = np.where(NSAEs == NSAEs.min())
+    fit_parms_min = d_parms[iD_min][iQ_min]
+
+    print(NSAEs)
+    print(iD_min,iQ_min)
+
+    return fit_parms_min
+
 def samplePhaseCoherence(theta):
     """ Return concentration and location parameters for a sample of wrapping
         random variables.

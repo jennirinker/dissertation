@@ -1,40 +1,29 @@
 """ Messing with loading/processing metadata """
 
 import sys
-sys.path.append('..')
+libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+if (libpath not in sys.path): sys.path.append(libpath)
+import JR_Library.main as jr
 
-import JR_Library.data_analysis as da
 import numpy as np
-import matplotlib.pyplot as plt
+import scipy.io as scio
+# %%============================= load data ===================================
 
-# metadata filename
-fname = 'metadata_NREL.txt'
+# path to matlab-processed metadata table
+matpath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
+    '2015-02-28_temporal coherence in data\\code\\tempStruc.mat'
 
-# extract the fields and metadata from the text file if they aren't already
-if ('metadata' not in vars()):
-    
-    # load data
-    fields, metadata = da.loadmetadata(fname)
+# load the structure
+struc = scio.loadmat(matpath)
 
-    # screen data
-    cleandata = da.screenmetadata(fname,'NREL')
-    
-    # remove nans
-    nanrows = np.unique(np.nonzero(np.isnan(cleandata))[0]) # rows with nans
-    cleandata = np.delete(cleandata,nanrows,axis=0)         # delete nan rows
+# extract the information
+pdfTable = struc['tempStruc'][0,0][3]
 
+iH = 0
+iP = 0
 
-# variable columns
-htCol = fields.index('Height')
-rhouCol = fields.index('Concentration_u')
+# extract data
+x = pdfTable[:,5*iH + iP]
+x = np.sort(x)
 
-# let's look at 15 m
-height = 15
-data = cleandata[np.where(cleandata[:,htCol] == height)]
-
-# extract concentration parameters
-rho_u = data[:,rhouCol]
-
-# plot a histogram
-plt.figure()
-plt.clf
+fit_parms = jr.fitcompositedistribution('NREL',iP,x)

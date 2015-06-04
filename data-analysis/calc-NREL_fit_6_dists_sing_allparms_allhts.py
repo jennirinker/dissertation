@@ -1,6 +1,6 @@
 """
 Define list of 6 distributions for wind parameters, fit single distributions of
-those parameters to each parameter at each height, and save in a .mat file.
+those parameters to each parameter at each height, and save in a .txt file.
 """
 import sys
 libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
@@ -45,7 +45,7 @@ for iP in range(4):
     
     # choose list of distribution candidates
     if (iP < 3): dist_cands = half_cands
-    elif (iP ==3): dist_cands = fine_cands    
+    elif (iP == 3): dist_cands = fine_cands    
     
     # loop through heights
     for iH in range(6):
@@ -72,7 +72,7 @@ for iP in range(4):
             NSAE = jr.compositeNSAE(x,dist_name,p_main,x_T,p_GP)
             
             # create parameter list
-            fit_parms = [dist_name,p_main,x_T,p_GP,NSAE]
+            fit_parms = (dist_name,p_main,x_T,p_GP,NSAE)
             
             # make dist list
             d_parms.append(fit_parms)
@@ -90,7 +90,7 @@ choice = input('Do you want to save the distribution information? [1/0]: ')
 if choice:
     import json
     fname = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
-        'processed_data\\NREL_6dist_parms_sing.txt'
+        'processed_data\\NREL_6dist_sing_parms.txt'
     with open(fname,'w') as f:
         json.dump(p_parms, f)
     print('Parameters saved at:\n{}'.format(fname))

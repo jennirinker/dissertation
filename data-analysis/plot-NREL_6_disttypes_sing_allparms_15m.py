@@ -1,7 +1,5 @@
 """
-Plot the errors for different distributions, heights, and parameters in a 
-scatter plot to clearly show which distributions generally fit parameters the
-best.
+Plot the six single distributions for all parameters at 15 m.
 """
 import sys
 libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
@@ -27,7 +25,7 @@ pdfTable = struc['tempStruc'][0,0][3]
 
 # load fit parameters
 fname = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
-        'processed_data\\NREL_6dist_parms.txt'
+        'processed_data\\NREL_6dist_sing_parms.txt'
 with open(fname,'r') as f:
     p_parms = json.load(f)
     
@@ -69,3 +67,6 @@ for iP in range(4):
     
     plt.legend(legstr,loc='lower right')
     plt.title('Parameter {}'.format(parm_str[iP]))
+
+
+
