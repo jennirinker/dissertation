@@ -9,7 +9,6 @@ import JR_Library.main as jr
 
 import scipy.io as scio
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 # %%============================= load data ===================================
@@ -91,7 +90,7 @@ choice = input('Do you want to save the distribution information? [1/0]: ')
 if choice:
     import json
     fname = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
-        'processed_data\\NREL_6dist_parms.txt'
+        'processed_data\\NREL_6dist_parms_sing.txt'
     with open(fname,'w') as f:
         json.dump(p_parms, f)
     print('Parameters saved at:\n{}'.format(fname))
