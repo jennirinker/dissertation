@@ -436,8 +436,6 @@ def inversecompositeCDF(Q,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
     # set distribution values
     x_comp[i_main] = G_main(Q[i_main])
     x_comp[i_GP]   = G_GP((Q[i_GP]-Q_T)/(1-Q_T))
-
-    print(x_comp[i_GP].shape)
     
     return x_comp
 
