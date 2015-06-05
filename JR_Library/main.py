@@ -395,6 +395,52 @@ def compositeCDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
     
     return F_comp
 
+
+def inversecompositeCDF(Q,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
+    """ Inverse cumulative distribution function of single/composite
+        distribution
+
+        Args:
+            Q (numpy array): values at which to evaluate CDF
+            dist_name (string): distribution type
+            p_main (tuple): main distribution parameters
+            x_T (float): optional, threshold value
+            p_GP (tuple): optional, GP distribution parameters
+
+        Returns:
+            x (numpy array): composite CDF values at x
+    """
+    import numpy as np
+    import scipy.stats
+    
+    # initialize array for output
+    x_comp = np.empty(Q.shape)
+    
+    # initialize distributions
+    dist_main = getattr(scipy.stats, dist_name)
+    dist_GP   = getattr(scipy.stats, 'genpareto')
+    
+    # define CDF functions to improve code readability
+    G_main = lambda Q: dist_main.ppf(Q, *p_main[:-2], \
+            loc=p_main[-2], scale=p_main[-1])
+    G_GP   = lambda Q: dist_GP.ppf(Q, *p_GP[:-2], \
+            loc=p_GP[-2], scale=p_GP[-1])
+
+    # calculate threshold quantile
+    Q_T = dist_main.cdf(x_T, *p_main[:-2], \
+            loc=p_main[-2], scale=p_main[-1])
+    
+    # get indices for main and GP distributions
+    i_main, i_GP = np.where(Q <= Q_T), np.where(Q > Q_T)
+    
+    # set distribution values
+    x_comp[i_main] = G_main(Q[i_main])
+    x_comp[i_GP]   = G_GP((Q[i_GP]-Q_T)/(1-Q_T))
+
+    print(x_comp[i_GP].shape)
+    
+    return x_comp
+
     
 def compositePDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
     """ Probability density function of single/composite distribution
