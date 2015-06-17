@@ -1,5 +1,5 @@
 """
-Figure out why python metadata does not match matlab metadata.
+Debug NREL processing routine in Python
 """
 import scipy.io as scio
 import sys
@@ -24,3 +24,4 @@ flds_py = jr.metadataFields('NREL')
 # print percent differences in u:
 print('Percent differences in u, sigma_u, rho, and mu:')
 print(np.squeeze((row_mat[:4]-row_py[0,:4])/row_mat[:4]*100))
+

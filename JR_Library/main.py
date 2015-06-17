@@ -1768,5 +1768,32 @@ def removeSpines(ax):
     ax.xaxis.set_ticks_position('bottom')
 
     return
+
+
+##def numpy2latex(a,toprow=None,firstcol=None):
+##    """ Print numpy array in LaTeX-friendly formatting
+##
+##        Args:
+##            a (numpy array): array of values to print
+##            toprow (list/numpy array): headers for top row
+##            firstcol (list/numpy array): headers for first column
+##
+##        Returns:
+##            output (list): list of strings for each row
+##    """
+##
+##    m,n = a.shape                               # get dimensions
+##
+##    if toprow == None: toprow = ['']*n
+##    if firstcol == None: firstcol = ['']*m
+##
+##    for iRow in range(m):
+##
+##        rowStr = ''
+##
+##        for iCol in range(n):
+
+            
+                
     
 
