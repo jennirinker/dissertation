@@ -64,8 +64,8 @@ def loadNRELmatlab():
     import numpy as np
     
     # path to matlab-processed metadata table
-    matpath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
-        '2015-02-28_temporal coherence in data\\code\\dataStruc.mat'
+    matpath = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
+                  'processed_data\\NREL_metadata_mat.mat'
 
     # load the structure
     struc = scio.loadmat(matpath)
@@ -109,7 +109,7 @@ def loadtimeseries(dataset,timestamp,ht):
 
         # convert tuple to timestamp if necessary
         if (type(timestamp) == tuple):
-            timestamp = calendar.timegm(timestamp + (0,0,0,0)) 
+            timestamp = timetup2flt(timestamp)
 
         # time parameters
         N  = 12000
@@ -120,8 +120,11 @@ def loadtimeseries(dataset,timestamp,ht):
 
         # load time series
         struc = scio.loadmat(fpath)
+        t = np.arange(12000)*dt
         u = struc['Sonic_u_' + str(ht) + 'm'][0,0][0]
-        t = np.arange(12000)*dt        
+        v = struc['Sonic_v_' + str(ht) + 'm'][0,0][0]
+        w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+
 
     else:
         print('***ERROR*** That dataset has not been coded yet.')
@@ -1058,11 +1061,8 @@ def NRELfname2time(fname):
     hour   = int(fname[11:13])
     minute = int(fname[14:16])
 
-    # arrange timestamp info in tuple
-    time_tup = (year,month,day,hour,minute,0,0,0)
-
     # convert tuple to float
-    time_flt = calendar.timegm(time_tup)
+    time_flt = timetup2flt(time_tup)
 
     return time_flt
 
@@ -1082,7 +1082,7 @@ def NRELtime2fpath(time_flt):
     import glob
 
     # convert time to tuple
-    time_tup = time.gmtime(time_flt)[:5]
+    time_tup = timeflt2tup(time_flt)
 
     # convert tuple to string values
     yearS  = str(time_tup[0])
@@ -1769,6 +1769,38 @@ def removeSpines(ax):
 
     return
 
+
+def timeflt2tup(time_flt):
+    """ Convert time in float to tuple
+
+        Args:
+            time_flt (float): timestamp in float format
+
+        Returns:
+            time_tup (tuple): (year,month,day,hour,minute)
+    """
+    import time
+
+    time_tup = time.gmtime(time_flt)[:5]
+
+    return time_tup
+
+def timetup2flt(time_tup):
+    """ Convert time in float to tuple
+
+        Args:
+            time_tup (tuple): (year,month,day,hour,minute)
+            
+        Returns:
+            time_flt (float): timestamp in float format
+            
+    """
+    import calendar
+
+    time_tup += (0,0,0)
+    time_flt = calendar.timegm(time_tup)
+
+    return time_flt
 
 ##def numpy2latex(a,toprow=None,firstcol=None):
 ##    """ Print numpy array in LaTeX-friendly formatting
