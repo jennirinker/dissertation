@@ -8,6 +8,7 @@ if (libpath not in sys.path): sys.path.append(libpath)
 import JR_Library.main as jr
 import numpy as np
 import scipy.io as scio
+import scipy.signal
 
 # %% ============================= load data ==================================
 
@@ -44,7 +45,20 @@ parms_mat = dat_mat[[6,7,8,13,14,15,16,17,18,19,20,21,22,27,28,29]]
 
 # manually extract parameters
 t, u, v, w = jr.loadtimeseries('NREL',time_flt,ht)
-plt.plot(t,u, v, w)
+uhat = scipy.signal.detrend(u)
+
+plt.subplot(2,1,1)
+plt.plot(t,u)
+plt.plot(t,v)
+plt.plot(t,w)
+plt.plot(t,uhat)
+plt.legend(['u','v','w','uhat'])
+plt.subplot(2,1,2)
+plt.plot(t,u*v)
+plt.plot(t,u*w)
+plt.plot(t,v*w)
+plt.legend(['uv','uw','vw'])
+
 
 print('    '.join(parms))
 print('----------------------------------------------------------------------')

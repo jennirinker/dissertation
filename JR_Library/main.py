@@ -121,15 +121,15 @@ def loadtimeseries(dataset,timestamp,ht):
         # load time series
         struc = scio.loadmat(fpath)
         t = np.arange(12000)*dt
-        u = struc['Sonic_u_' + str(ht) + 'm'][0,0][0]
-        v = struc['Sonic_v_' + str(ht) + 'm'][0,0][0]
-        w = struc['Sonic_w_' + str(ht) + 'm'][0,0][0]
+        u = np.squeeze(struc['Sonic_u_' + str(ht) + 'm'][0,0][0])
+        v = np.squeeze(struc['Sonic_v_' + str(ht) + 'm'][0,0][0])
+        w = np.squeeze(struc['Sonic_w_' + str(ht) + 'm'][0,0][0])
 
 
     else:
         print('***ERROR*** That dataset has not been coded yet.')
 
-    return (t,u)
+    return (t,u, v, w)
 
 
 class tsin:
