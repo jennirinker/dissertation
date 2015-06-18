@@ -628,15 +628,14 @@ def calculatefield(dataset,struc,ht,field):
     """
     import sys
     import numpy as np
-    import scipy.signal
 
     if (dataset == 'NREL'):
         dt = 0.05
 
         (t,u,v,w) = loadtimeseries(dataset,struc,ht)
-        up        = scipy.signal.detrend(u)
-        vp        = scipy.signal.detrend(v)
-        wp        = scipy.signal.detrend(w)
+        up        = nandetrend(t,u)
+        vp        = nandetrend(t,v)
+        wp        = nandetrend(t,w)
 
         try:
         
@@ -1409,11 +1408,13 @@ def getBasedir(dataset):
         elif (platform.system() == 'Windows'):
             basedir = 'G:\\data\\nrel-20Hz'
         if not os.path.exists(basedir):
-            print '***ERROR***: base directory does not exist.'
-            del basedir
+            errStr = 'Incorrect or unavailable base ' + \
+                     'directory for dataset \"{}\".'.format(dataset)
+            raise IOError(errStr)
 
     else:
-        print '***ERROR***: that dataset is not coded yet.'
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
 
     return basedir
 
