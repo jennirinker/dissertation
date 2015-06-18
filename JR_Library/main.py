@@ -445,7 +445,8 @@ def metadataFields(dataset):
               'Sigma_u','Concentration_u','Location_u', \
               'Sigma_v','Concentration_v','Location_v', \
               'Sigma_w','Concentration_w','Location_w', \
-              'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w']
+              'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
+              'MO_Length']
     else:
         print '***ERROR***: that dataset is not coded yet.'
         
@@ -495,9 +496,9 @@ def makeNRELmetadata(basedir):
                 for height in heights:
 
                     row = extractNRELparameters(struc,height)
-                    row[0,0] = NRELfname2time(fname)
-                    row[0,1] = calendar.timegm(time.gmtime())
-                    row[0,2] = height
+                    row[0] = NRELfname2time(fname)
+                    row[1] = calendar.timegm(time.gmtime())
+                    row[2] = height
                     metadata = np.vstack([metadata,row])
                 
     return metadata
@@ -539,47 +540,77 @@ def interpolateparameter(dataset,struc,ht,field):
         dt = 0.05
 
         try:
+
+            
         
             if (field == 'Wind_Speed_Cup'):
-                hts_cup = np.array([10,26,80,88,134])
-                upperHt = hts_cup[np.where(ht < hts_cup)[0][0]]
-                lowerHt = hts_cup[np.where(ht < hts_cup)[0][0] - 1]
-                lowerField = 'Cup_WS_' + str(lowerHt) + 'm'
-                upperField = 'Cup_WS_' + str(upperHt) + 'm'
-                upperWS = np.nanmean(struc[upperField][0,0][0])
-                lowerWS = np.nanmean(struc[lowerField][0,0][0])
+
+                # define measurement heights
+                msmnt_hts = np.array([10,26,80,88,134])
+                fld_str   = 'Cup_WS_'
+
+                # force height to be in range
+                ht = min(msmnt_hts[-1],ht)
+                ht = max(msmnt_hts[0],ht)
+
+                # perform interpolation
+                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
+                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
+                lowerField = fld_str + str(lowerHt) + 'm'
+                upperField = fld_str + str(upperHt) + 'm'
+                upperVal   = np.nanmean(struc[upperField][0,0][0])
+                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
                 value = np.interp(ht,[lowerHt,upperHt], \
-                                  [lowerWS,upperWS])
-                
-            elif (field == 'Wind_Direction'):
-                hts_vane = np.array([10,26,88,134])
-                upperHt = hts_vane[np.where(ht < hts_vane)[0][0]]
-                lowerHt = hts_vane[np.where(ht < hts_vane)[0][0] - 1]
-                lowerField = 'Vane_WD_' + str(lowerHt) + 'm'
-                upperField = 'Vane_WD_' + str(upperHt) + 'm'
-                lowerWD = struc[upperField][0,0][0]
-                upperWD = struc[lowerField][0,0][0]
-                lowerWD_mean = np.angle(np.nanmean(np.exp(1j*lowerWD \
-                            *np.pi/180)))*180/np.pi
-                upperWD_mean = np.angle(np.nanmean(np.exp(1j*upperWD \
-                            *np.pi/180)))*180/np.pi
-                value = np.mod(np.angle(np.nanmean(np.exp(1j* \
-                    np.array([lowerWD_mean, upperWD_mean])* \
-                    np.pi/180)))*180/np.pi,360)
+                                    [lowerVal,upperVal])
 
             elif (field == 'Temperature'):
-                tmp_cup = np.array([3,26,88])
-                upperHt = tmp_cup[np.where(ht < tmp_cup)[0][0]]
-                lowerHt = tmp_cup[np.where(ht < tmp_cup)[0][0] - 1]
-                lowerField = 'Air_Temp_' + str(lowerHt) + 'm'
-                upperField = 'Air_Temp_' + str(upperHt) + 'm'
-                upperTemp = np.nanmean(struc[upperField][0,0][0])
-                lowerTemp = np.nanmean(struc[lowerField][0,0][0])
+                
+                # define measurement heights
+                msmnt_hts = np.array([3,26,88])
+                fld_str   = 'Air_Temp_'
+
+                # force height to be in range
+                ht = min(msmnt_hts[-1],ht)
+                ht = max(msmnt_hts[0],ht)
+
+                # perform interpolation
+                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
+                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
+                lowerField = fld_str + str(lowerHt) + 'm'
+                upperField = fld_str + str(upperHt) + 'm'
+                upperVal   = np.nanmean(struc[upperField][0,0][0])
+                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
                 value = np.interp(ht,[lowerHt,upperHt], \
-                                  [lowerTemp,upperTemp])
+                                    [lowerVal,upperVal])
+                
+            elif (field == 'Wind_Direction'):
+                
+                # define measurement heights
+                msmnt_hts = np.array([10,26,88,134])
+                fld_str   = 'Vane_WD_'
+
+                # force height to be in range
+                ht = min(msmnt_hts[-1],ht)
+                ht = max(msmnt_hts[0],ht)
+
+                # perform interpolation
+                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
+                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
+                lowerField = fld_str + str(lowerHt) + 'm'
+                upperField = fld_str + str(upperHt) + 'm'
+                lowerVal = struc[upperField][0,0][0]
+                upperVal = struc[lowerField][0,0][0]
+                lower_mean = np.angle(np.nanmean(np.exp(1j*lowerVal \
+                            *np.pi/180)))*180/np.pi
+                upper_mean = np.angle(np.nanmean(np.exp(1j*upperVal \
+                            *np.pi/180)))*180/np.pi
+                value = np.mod(np.angle(np.nanmean(np.exp(1j* \
+                    np.array([lower_mean, upper_mean])* \
+                    np.pi/180)))*180/np.pi,360)
 
             else:
-                print '***ERROR***: field {} is not coded for \"NREL\".'.format(field)
+                errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
+                raise AttributeError(errStr)            
 
         except KeyError:
             print '***WARNING***: KeyError for {}'.format(field)
@@ -675,6 +706,17 @@ def calculatefield(dataset,struc,ht,field):
 
             elif (field == 'tau_w'):
                 value = calculateKaimal(wp,dt)
+
+            elif (field == 'MO_Length'):
+                T_bar = interpolateparameter(dataset,struc,ht,'Temperature')
+                T = np.squeeze(struc['Sonic_Temp_rotated_' + \
+                                     str(ht) + 'm'][0,0][0])
+                Tp = scipy.signal.detrend(T)
+                upwp_bar = np.nanmean(up*wp)
+                vpwp_bar = np.nanmean(vp*wp)
+                wpTp_bar = np.nanmean(wp*Tp)
+                ustar = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
+                value = - (T_bar * ustar**3)/(0.41 * 9.81 * wpTp_bar)
 
             else:
                 print '***ERROR***: field {} is not coded for \"NREL\".'.format(field)
@@ -1853,6 +1895,40 @@ def timetup2flt(time_tup):
 
     return time_flt
 
+
+def nandetrend(x,y):
+    """ Linear detrend ignoring nan values in y
+
+        Args:
+            x (numpy array): x values
+            y (numpy array): y values
+
+        Returns:
+            y_det (numpy array): detrended values with nans replaced
+    """
+    import numpy as np
+
+    # initialize output
+    y_det   = np.empty(y.shape)
+
+    # find NaN indices
+    nan_idx = np.isnan(y)                       
+
+    # isolate non-NaN values
+    xnew = x[np.logical_not(nan_idx)]                        
+    ynew = y[np.logical_not(nan_idx)]
+
+    # determine least-squares linear regression
+    A = np.vstack([xnew, \
+                   np.ones(len(xnew))]).T
+    m, c = np.linalg.lstsq(A, ynew)[0]
+
+    # remove trend
+    y_det = y - m*x - c
+    
+    return y_det
+
+    
 ##def numpy2latex(a,toprow=None,firstcol=None):
 ##    """ Print numpy array in LaTeX-friendly formatting
 ##
