@@ -1247,13 +1247,13 @@ def signalPhaseDifferences(x):
     
     # if (2+)D array is fed in, halt with error
     if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
-        print 'ERROR: signalPhaseCoherence only works on 1D arrays'
-        return []
+        errStr = 'signalPhaseDifferences only works on 1D arrays'
+        raise AttributeError(errStr)
     
     n_t = x.shape[0]                        # no. of total components
-    n_f = uniqueComponents(n_t)        # no. of unique components
-    
-    X = np.fft.fft(x,axis=0)/n_t            # Fourier vector
+    n_f = uniqueComponents(n_t)             # no. of unique components
+
+    X = np.fft.fft(x)/n_t                   # Fourier vector
     Xuniq = X[:n_f]                         # unique Fourier components
     dtheta = np.angle(np.divide( \
         Xuniq[1:],Xuniq[:-1]))              # phase differences
@@ -1275,12 +1275,21 @@ def signalPhaseCoherence(x):
     
     # if (2+)D array is fed in, halt with error
     if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
-        print 'ERROR: signalPhaseCoherence only works on 1D arrays'
-        return []
-    
-    dtheta  = signalPhaseDifferences(x)     # phase differences
-    rho, mu = samplePhaseCoherence( \
-        dtheta)                             # temporal coherence parameters
+        errStr = 'signalPhaseCoherence only works on 1D arrays'
+        raise AttributeError(errStr)
+
+    # bypass if all nans
+    if np.all(np.isnan(x)):
+        rho, mu = np.NAN, np.NAN
+
+    # otherwise remove nans and proceed
+    else:
+        
+        nan_idx = np.isnan(x)                       # nan indices
+        x_nonan = x[np.logical_not(nan_idx)]        # remove nanes
+        dtheta  = signalPhaseDifferences(x_nonan)   # phase differences
+        rho, mu = samplePhaseCoherence( \
+            dtheta)                                 # temp coh parameters
     
     return (rho,mu)
 
