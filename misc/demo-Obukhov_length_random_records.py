@@ -12,7 +12,7 @@ import calendar, time
 import numpy as np
 
 
-n_recs  = 1                                 # no. random records to draw
+n_recs  = 10                                # no. random records to draw
 yearRng = [2012,2015]                       # range of years
 fields = jr.metadataFields('NREL')          # MD fields
 
@@ -61,3 +61,5 @@ while i_rec < n_recs:
             metadata[i_rec] = row.reshape(1,len(fields))
     
             i_rec += 1
+            
+            if not (i_rec % 5): print(i_rec)

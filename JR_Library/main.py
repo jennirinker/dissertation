@@ -133,7 +133,8 @@ def loadtimeseries(dataset,timestamp,ht):
 
 
     else:
-        print('***ERROR*** That dataset has not been coded yet.')
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
 
     return (t,u, v, w)
 
@@ -360,8 +361,8 @@ def screenmetadata(fields,metadata,dataset):
         cleandata = cleandata[np.where(cleandata[:,preCol] >= preLim)]
         
     else:
-        print '***ERROR*** That dataset is not coded yet'
-        return
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
         
     return cleandata
 
@@ -446,9 +447,10 @@ def metadataFields(dataset):
               'Sigma_v','Concentration_v','Location_v', \
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
-              'MO_Length']
+              'MO_Length_interp','MO_Length_near']
     else:
-        print '***ERROR***: that dataset is not coded yet.'
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
         
     return fields
 
@@ -465,7 +467,8 @@ def makemetadata(dataset):
         metadata = makeNRELmetadata(basedir)
 
     else:
-        print '***ERROR***: that dataset is not coded yet.'
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
 
     return metadata
 
@@ -515,9 +518,11 @@ def extractNRELparameters(struc,height):
 
     parameters = np.empty(len(fields))
 
+    outdict = calculatefield(dataset,struc,height)
+
     for i in range(len(fields)):
         field = fields[i]
-        parameters[i] = calculatefield(dataset,struc,height,field)
+        parameters[i] = outdict[field]
             
     return parameters
 
@@ -541,8 +546,6 @@ def interpolateparameter(dataset,struc,ht,field):
 
         try:
 
-            
-        
             if (field == 'Wind_Speed_Cup'):
 
                 # define measurement heights
@@ -617,14 +620,66 @@ def interpolateparameter(dataset,struc,ht,field):
             value = float('nan')
         
     else:
-        print '***ERROR***: that dataset is not coded yet.'
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+
+    return value
+        
+def closestparameter(dataset,struc,ht,field):
+    """ Return the closest parameter value
+
+        Args:
+            dataset (string): flag to indicate which dataset to analyze
+            struc (numpy structure): loaded from matlab
+            ht (float): measurement height to interpolate
+            field (string): field of interest for interpolation
+
+        Returns:
+            value (float): closest value
+    """
+    import numpy as np
+
+    if (dataset == 'NREL'):
+        dt = 0.05
+
+        try:
+
+            if (field == 'Temperature'):
+                
+                # define measurement heights
+                msmnt_hts = np.array([3,26,88])
+                fld_str   = 'Air_Temp_'
+
+                # force height to be in range
+                ht = min(msmnt_hts[-1],ht)
+                ht = max(msmnt_hts[0],ht)
+
+                # find closest value
+                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
+                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
+                dh      = upperHt - lowerHt
+                ht_clst = int(round((ht-lowerHt)/dh)*dh + lowerHt)
+                clstField = fld_str + str(lowerHt) + 'm'
+                value   = np.nanmean(struc[clstField][0,0][0])
+
+            else:
+                errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
+                raise AttributeError(errStr)            
+
+        except KeyError:
+            print '***WARNING***: KeyError for {}'.format(field)
+            value = float('nan')
+        
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
 
     return value
         
 
+def calculatefield(dataset,struc,ht):
+    """ Save atmophseric parameters in output dictionary
 
-def calculatefield(dataset,struc,ht,field):
-    """
     """
     import sys
     import numpy as np
@@ -632,102 +687,190 @@ def calculatefield(dataset,struc,ht,field):
     if (dataset == 'NREL'):
         dt = 0.05
 
+        # calculate fields necessary for later calculations
         (t,u,v,w) = loadtimeseries(dataset,struc,ht)
+        T_sonic_K = np.squeeze(struc['Sonic_Temp_rotated_' + \
+                             str(ht) + 'm'][0,0][0]) + 298.15
         up        = nandetrend(t,u)
         vp        = nandetrend(t,v)
         wp        = nandetrend(t,w)
+        Tp        = nandetrend(t,T_sonic_K)
+        upwp_bar  = np.nanmean(up*wp)
+        upvp_bar  = np.nanmean(up*vp)
+        vpwp_bar  = np.nanmean(vp*wp)
+        wpTp_bar  = np.nanmean(wp*Tp)
+        ustar     = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
+        rhou,muu  = signalPhaseCoherence(up)
+        rhov,muv  = signalPhaseCoherence(vp)
+        rhow,muw  = signalPhaseCoherence(wp)
+        Tbar_in_K = interpolateparameter(dataset, \
+                            struc,ht,'Temperature') + 298.15
+        Tbar_ne_K = closestparameter(dataset, \
+                            struc,ht,'Temperature') + 298.15
 
-        try:
-        
-            if ((field == 'Record_Time') or (field == 'Processed_Time') \
-                or (field == 'Height')):
-                value = 0
-                
-            elif (field == 'Wind_Speed_Cup'):
-                value = interpolateparameter(dataset,struc,ht,field)
-                
-            elif (field == 'Wind_Direction'):
-                value = interpolateparameter(dataset,struc,ht,field)
+        # initialize output dictionary
+        outdict = {}
 
-            elif (field == 'Precipitation'):
-                value = np.nanmean(struc['PRECIP_INTEN'][0,0][0])
-
-            elif (field == 'Mean_Wind_Speed'):
-                value = np.nanmean(u)
-
-            elif (field == 'Sigma_u'):
-                value = np.nanstd(up)
-
-            elif (field == 'Concentration_u'):
-                value = signalPhaseCoherence(up)[0]
-
-            elif (field == 'Location_u'):
-                value = signalPhaseCoherence(up)[1]
-
-            elif (field == 'Sigma_v'):
-                value = np.nanstd(vp)
-
-            elif (field == 'Concentration_v'):
-                value = signalPhaseCoherence(vp)[0]
-
-            elif (field == 'Location_v'):
-                value = signalPhaseCoherence(vp)[1]
-
-            elif (field == 'Sigma_w'):
-                value = np.nanstd(wp)
-
-            elif (field == 'Concentration_w'):
-                value = signalPhaseCoherence(wp)[0]
-                
-            elif (field == 'Location_w'):
-                value = signalPhaseCoherence(wp)[1]
-
-            elif (field == 'up_wp'):
-                value = np.nanmean(up*wp)           
-
-            elif (field == 'vp_wp'):
-                value = np.nanmean(vp*wp)
-
-            elif (field == 'wp_Tp'):
-                T = np.squeeze(struc['Sonic_Temp_rotated_' + \
-                                     str(ht) + 'm'][0,0][0])
-                Tp = scipy.signal.detrend(T)
-                value = np.nanmean(wp*Tp)
-
-            elif (field == 'up_vp'):
-                value = np.nanmean(up*vp) 
-
-            elif (field == 'tau_u'):
-                value = calculateKaimal(up + np.mean(u),dt)
-
-            elif (field == 'tau_v'):
-                value = calculateKaimal(vp,dt)
-
-            elif (field == 'tau_w'):
-                value = calculateKaimal(wp,dt)
-
-            elif (field == 'MO_Length'):
-                T_bar = interpolateparameter(dataset,struc,ht,'Temperature')
-                T = np.squeeze(struc['Sonic_Temp_rotated_' + \
-                                     str(ht) + 'm'][0,0][0])
-                Tp = scipy.signal.detrend(T)
-                upwp_bar = np.nanmean(up*wp)
-                vpwp_bar = np.nanmean(vp*wp)
-                wpTp_bar = np.nanmean(wp*Tp)
-                ustar = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
-                value = - (T_bar * ustar**3)/(0.41 * 9.81 * wpTp_bar)
-
-            else:
-                print '***ERROR***: field {} is not coded for \"NREL\".'.format(field)
-
-        except KeyError:
-            print '***WARNING***: KeyError for {}'.format(field)
-            value = float('nan')
+        # save values
+        outdict['Record_Time']     = 0
+        outdict['Processed_Time']  = 0
+        outdict['Height']          = 0
+        outdict['Wind_Speed_Cup']  = interpolateparameter( \
+                                        dataset,struc,ht,'Wind_Speed_Cup')
+        outdict['Wind_Direction']  = interpolateparameter( \
+                                        dataset,struc,ht,'Wind_Direction')
+        outdict['Precipitation']   = np.nanmean( \
+                                        struc['PRECIP_INTEN'][0,0][0])
+        outdict['Mean_Wind_Speed'] = np.nanmean(u)
+        outdict['Sigma_u']         = np.nanstd(up)
+        outdict['Concentration_u'] = rhou
+        outdict['Location_u']      = muu
+        outdict['Sigma_v']         = np.nanstd(vp)
+        outdict['Concentration_v'] = rhov
+        outdict['Location_v']      = muv
+        outdict['Sigma_w']         = np.nanstd(wp)
+        outdict['Concentration_w'] = rhow
+        outdict['Location_w']      = muw
+        outdict['up_wp']           = upwp_bar          
+        outdict['vp_wp']           = vpwp_bar
+        outdict['wp_Tp']           = wpTp_bar
+        outdict['up_vp']           = upvp_bar
+        outdict['tau_u']           = calculateKaimal(up + \
+                                            np.mean(u),dt)
+        outdict['tau_v']           = calculateKaimal(vp,dt)
+        outdict['tau_w']           = calculateKaimal(wp,dt)
+        outdict['MO_Length_interp'] = -(Tbar_in_K * ustar**3) \
+                                     /(0.41 * 9.81 * wpTp_bar)
+        outdict['MO_Length_near']  = - (Tbar_ne_K * ustar**3)/ \
+                                     (0.41 * 9.81 * wpTp_bar)
         
     else:
-        print '***ERROR***: that dataset is not coded yet.'
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
 
-    return value
+    return outdict
+
+##def calculatefield(dataset,struc,ht,field):
+##    """
+##    """
+##    import sys
+##    import numpy as np
+##
+##    if (dataset == 'NREL'):
+##        dt = 0.05
+##
+##        (t,u,v,w) = loadtimeseries(dataset,struc,ht)
+##        up        = nandetrend(t,u)
+##        vp        = nandetrend(t,v)
+##        wp        = nandetrend(t,w)
+##
+##        try:
+##        
+##            if ((field == 'Record_Time') or (field == 'Processed_Time') \
+##                or (field == 'Height')):
+##                value = 0
+##                
+##            elif (field == 'Wind_Speed_Cup'):
+##                value = interpolateparameter(dataset,struc,ht,field)
+##                
+##            elif (field == 'Wind_Direction'):
+##                value = interpolateparameter(dataset,struc,ht,field)
+##
+##            elif (field == 'Precipitation'):
+##                value = np.nanmean(struc['PRECIP_INTEN'][0,0][0])
+##
+##            elif (field == 'Mean_Wind_Speed'):
+##                value = np.nanmean(u)
+##
+##            elif (field == 'Sigma_u'):
+##                value = np.nanstd(up)
+##
+##            elif (field == 'Concentration_u'):
+##                value = signalPhaseCoherence(up)[0]
+##
+##            elif (field == 'Location_u'):
+##                value = signalPhaseCoherence(up)[1]
+##
+##            elif (field == 'Sigma_v'):
+##                value = np.nanstd(vp)
+##
+##            elif (field == 'Concentration_v'):
+##                value = signalPhaseCoherence(vp)[0]
+##
+##            elif (field == 'Location_v'):
+##                value = signalPhaseCoherence(vp)[1]
+##
+##            elif (field == 'Sigma_w'):
+##                value = np.nanstd(wp)
+##
+##            elif (field == 'Concentration_w'):
+##                value = signalPhaseCoherence(wp)[0]
+##                
+##            elif (field == 'Location_w'):
+##                value = signalPhaseCoherence(wp)[1]
+##
+##            elif (field == 'up_wp'):
+##                value = np.nanmean(up*wp)           
+##
+##            elif (field == 'vp_wp'):
+##                value = np.nanmean(vp*wp)
+##
+##            elif (field == 'wp_Tp'):
+##                T = np.squeeze(struc['Sonic_Temp_rotated_' + \
+##                                     str(ht) + 'm'][0,0][0]) + 298.15
+##                Tp = nandetrend(t,T)
+##                value = np.nanmean(wp*Tp)
+##
+##            elif (field == 'up_vp'):
+##                value = np.nanmean(up*vp) 
+##
+##            elif (field == 'tau_u'):
+##                value = calculateKaimal(up + np.mean(u),dt)
+##
+##            elif (field == 'tau_v'):
+##                value = calculateKaimal(vp,dt)
+##
+##            elif (field == 'tau_w'):
+##                value = calculateKaimal(wp,dt)
+##
+##            elif (field == 'MO_Length_interp'):
+##                T_bar = interpolateparameter(dataset, \
+##                    struc,ht,'Temperature') + 298.15
+##                T     = np.squeeze(struc['Sonic_Temp_rotated_' + \
+##                          str(ht) + 'm'][0,0][0]) + 298.15
+##                Tp       = nandetrend(t,T)
+##                upwp_bar = np.nanmean(up*wp)
+##                vpwp_bar = np.nanmean(vp*wp)
+##                wpTp_bar = np.nanmean(wp*Tp)
+##                ustar    = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
+##                value    = - (T_bar * ustar**3)/(0.41 * 9.81 * wpTp_bar)
+##
+##            elif (field == 'MO_Length_closest'):
+##                T_bar = closestparameter(dataset, \
+##                    struc,ht,'Temperature') + 298.15
+##                T     = np.squeeze(struc['Sonic_Temp_rotated_' + \
+##                            str(ht) + 'm'][0,0][0]) + 298.15
+##                Tp       = nandetrend(t,T)
+##                upwp_bar = np.nanmean(up*wp)
+##                vpwp_bar = np.nanmean(vp*wp)
+##                wpTp_bar = np.nanmean(wp*Tp)
+##                ustar    = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
+##                value    = - (T_bar * ustar**3)/(0.41 * 9.81 * wpTp_bar)
+##                
+##            else:
+##                errSt = 'Field {} is not coded for ' + \
+##                        'dataset \"NREL\".'.format(field)
+##                raise AttributeError(errStr)
+##
+##        except KeyError:
+##            print '***WARNING***: KeyError for {}'.format(field)
+##            value = float('nan')
+##        
+##    else:
+##        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+##        raise AttributeError(errStr)
+##
+##    return value
 
 
 # ==============================================================================
@@ -1052,8 +1195,8 @@ def fitcompositedistribution(dataset,iP,x):
             d_parms.append(Q_parms)
 
     else:
-
-        print('***ERROR: that dataset is not coded in fitdistribution***')
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
 
     # return values corresponding to minimum NSAE
     iD_min, iQ_min = np.where(NSAEs == NSAEs.min())
@@ -1912,20 +2055,27 @@ def nandetrend(x,y):
     # initialize output
     y_det   = np.empty(y.shape)
 
-    # find NaN indices
-    nan_idx = np.isnan(y)                       
+    # check if all NaNs
+    if np.all(np.isnan(y)):
+        y_det[:] = np.NAN
 
-    # isolate non-NaN values
-    xnew = x[np.logical_not(nan_idx)]                        
-    ynew = y[np.logical_not(nan_idx)]
+    # linear detrend if 1+ non-nan values
+    else:
 
-    # determine least-squares linear regression
-    A = np.vstack([xnew, \
-                   np.ones(len(xnew))]).T
-    m, c = np.linalg.lstsq(A, ynew)[0]
+        # find NaN indices
+        nan_idx = np.isnan(y)                       
 
-    # remove trend
-    y_det = y - m*x - c
+        # isolate non-NaN values
+        xnew = x[np.logical_not(nan_idx)]                        
+        ynew = y[np.logical_not(nan_idx)]
+
+        # determine least-squares linear regression
+        A = np.vstack([xnew, \
+                       np.ones(len(xnew))]).T
+        m, c = np.linalg.lstsq(A, ynew)[0]
+
+        # remove trend
+        y_det = y - m*x - c
     
     return y_det
 
