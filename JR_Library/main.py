@@ -92,7 +92,7 @@ def loadNRELmatlab():
 
     return (fields, metadata)
 
-def loadtimeseries(dataset,timestamp,ht):
+def loadtimeseries(dataset,timestamp,ht,clean=1):
     """ Load the turbulent time series for a given dataset and timestamp.
 
         Args:
@@ -125,18 +125,39 @@ def loadtimeseries(dataset,timestamp,ht):
             fpath = NRELtime2fpath(timestamp)
             struc = scio.loadmat(fpath)
 
-        # load data
+        # try to load data
         t = np.arange(12000)*dt
-        u = np.squeeze(struc['Sonic_u_' + str(ht) + 'm'][0,0][0])
-        v = np.squeeze(struc['Sonic_v_' + str(ht) + 'm'][0,0][0])
-        w = np.squeeze(struc['Sonic_w_' + str(ht) + 'm'][0,0][0])
-
+        try:
+            field = 'Sonic_u_' + str(ht) + 'm'
+            u = np.squeeze(struc[field][0,0][0])
+        except KeyError:
+            print '***WARNING***: KeyError for {}'.format(field)
+            u = np.empty(np.shape(t))
+            u[:] = np.nan
+        try:
+            field = 'Sonic_v_' + str(ht) + 'm'
+            v = np.squeeze(struc[field][0,0][0])
+        except KeyError:
+            print '***WARNING***: KeyError for {}'.format(field)
+            v = np.empty(np.shape(t))
+            v[:] = np.nan
+        try:
+            field = 'Sonic_w_' + str(ht) + 'm'
+            w = np.squeeze(struc[field][0,0][0])
+        except KeyError:
+            print '***WARNING***: KeyError for {}'.format(field)
+            w = np.empty(np.shape(t))
+            w[:] = np.nan
+        if clean:
+            u = remove_spikes(u)[0]
+            v = remove_spikes(v)[0]
+            w = remove_spikes(w)[0]
 
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
 
-    return (t,u, v, w)
+    return (t, u, v, w)
 
 
 class tsin:
@@ -601,15 +622,15 @@ def interpolateparameter(dataset,struc,ht,field):
                 lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
                 lowerField = fld_str + str(lowerHt) + 'm'
                 upperField = fld_str + str(upperHt) + 'm'
-                lowerVal = struc[upperField][0,0][0]
-                upperVal = struc[lowerField][0,0][0]
+                lowerVal = struc[lowerField][0,0][0]
+                upperVal = struc[upperField][0,0][0]
                 lower_mean = np.angle(np.nanmean(np.exp(1j*lowerVal \
-                            *np.pi/180)))*180/np.pi
+                            *np.pi/180)),deg=1)
                 upper_mean = np.angle(np.nanmean(np.exp(1j*upperVal \
-                            *np.pi/180)))*180/np.pi
+                            *np.pi/180)),deg=1)
                 value = np.mod(np.angle(np.nanmean(np.exp(1j* \
                     np.array([lower_mean, upper_mean])* \
-                    np.pi/180)))*180/np.pi,360)
+                    np.pi/180)),deg=1),360)
 
             else:
                 errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
@@ -2088,7 +2109,85 @@ def nandetrend(x,y):
     
     return y_det
 
+
+def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
+    """ Linearly interpolate spikes in time series
+
+        Spikes are detected by 1) finding standard deviation of the
+        bottom P% differences, 2) finding ``extremal'' values (above
+        beta times the standard deviation of the bottom P% differences),
+        3) finding extremal values withing spikeWidth points of one
+        another.
+
+        Args:
+            x (numpy array): time series
+            spikeWidth (int): optional, max width of spike (no. of points)
+            P (float): optional, threshold percentage for differences
+            beta (float): optional, scaling factor for spike detection
+
+        Returns:
+            x_cl (numpy array): time series with spikes removed
+            n_spikes (int): number of spikes removed from record
+    """
+    import numpy as np
+
+    N        = x.size                           # length of record
+    x_cl     = np.copy(x)                       # cleaned version
+    n_spikes = 0                                # initialize no. of spikes
     
+    diffs    = x[1:] - x[:-1]                   # velocity differences
+    absdiffs = abs(diffs)                       # sorted diff magnitudes
+    thresh   = np.sort(absdiffs)[int(N*P)]      # absdiff P quantile value
+    diffs_P  = diffs[np.where(abs(diffs) <= \
+                    thresh)]                    # diffs below P% threshold
+    sig_x    = np.std(diffs_P)                  # std dev of P% differences
+    ext_idx  = np.where(absdiffs > \
+        beta*sig_x)[0]                          # extremal indices
+                
+    # remove spike at end of record
+    if np.any(ext_idx >= N-spikeWidth):
+        spike_idx = ext_idx[np.where( \
+            ext_idx >= N-spikeWidth)[0][0]]     # get spike index
+        x_cl[spike_idx+1:] = x_cl[spike_idx]    # append clean value
+        ext_idx = ext_idx[np.where( \
+            ext_idx < N-spikeWidth)]            # update extremal indices
+        n_spikes += 1
+            
+    # remove spike at beginning of record
+    if np.any(ext_idx <= spikeWidth):
+        spike_idx = ext_idx[np.where( \
+            ext_idx <= spikeWidth)[0][-1]]      # get spike index
+        x_cl[:spike_idx+1] = x_cl[spike_idx+1]  # append clean value
+        ext_idx = ext_idx[np.where( \
+            ext_idx > spikeWidth)]              # update extremal indices
+        n_spikes += 1
+            
+    # loop through and remove spikes in middle of record
+    i = 0
+    while (i < ext_idx.size-1):
+        
+        # calculate distance between extremal values
+        idx_left, idx_right = ext_idx[i], ext_idx[i+1]
+        ext_dst = idx_right - idx_left
+        
+        # detect spike if two extremal values with opp sign are near each other
+        spike = (ext_dst < spikeWidth) and \
+            (diffs[idx_left]*diffs[idx_right] < 0)
+            
+        # linearly interpolate if spike is detected
+        if spike:
+            xp = np.array([idx_left,idx_right+1])
+            yp = np.array([x_cl[idx_left],x_cl[idx_right+1]])
+            x_cl[idx_left+1:idx_right+1] = \
+                np.interp(np.arange(idx_left+1,idx_right+1),xp,yp)
+            n_spikes += 1
+        
+        # continue looping through extremal values
+        i += 1        
+        
+    return x_cl, n_spikes
+
+
 ##def numpy2latex(a,toprow=None,firstcol=None):
 ##    """ Print numpy array in LaTeX-friendly formatting
 ##
