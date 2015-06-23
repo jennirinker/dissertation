@@ -26,7 +26,7 @@ import calendar, time
 # %% ====================== compare metadata values ===========================
 
 # get python and matlab indices
-idx_py = 3                                      # python index
+idx_py = 10                                      # python index
 time_flt = md_py[idx_py,0]                      # float of timestamp
 time_tup = jr.timeflt2tup(time_flt)             # tuple of timestamp
 ht       = int(md_py[idx_py,2])                 # measurment height
@@ -51,7 +51,7 @@ if (idx_mat.size > 0):
     row[2]  = ht
 
     # rearrange parameters from different metadata
-    parms = ['WS_Cup','Dir','Prec','U','sig_u','rho_u','mu_u','sig_v','rho_v', \
+    parms = ['WS_Cup','Dir  ','Prec ','U   ','sig_u ','rho_u','mu_u','sig_v','rho_v', \
         'mu_v','sig_w','rho_w','mu_w','tau_u','tau_v','tau_w']
     prms_mdpy  = np.append(dat_py[3:16],dat_py[20:])
     prms_mdmat = dat_mat[[6,7,8,13,14,15,16,17,18,19,20,21,22,27,28,29]]
@@ -60,7 +60,7 @@ if (idx_mat.size > 0):
     prms_manpy = np.append(row[3:16],row[20:-2])
 
 
-    print('    '.join(parms))
+    print('   '.join(parms))
     print('----------------------------------------------------------------------')
     print('   '.join(['{:.3f}'.format(i) for i in prms_mdmat]))
     print('   '.join(['{:.3f}'.format(i) for i in prms_mdpy]))
@@ -68,17 +68,18 @@ if (idx_mat.size > 0):
     print('')
     print('   '.join(['{:.3f}'.format(i) for i in prms_mdmat-prms_manpy]))
 
+# check time
+print(time_tup)
+print(jr.timeflt2tup(time_flt))
+
 ## check wind direction calculations
 #WD_26 = struc20['Vane_WD_26m'][0,0][0]
 #WD_88  = struc20['Vane_WD_88m'][0,0][0]
 #WD_26_mean = np.angle(np.sum(np.exp(1j*WD_26*np.pi/180.)),deg=1)
 #WD_88_mean = np.angle(np.sum(np.exp(1j*WD_88*np.pi/180.)),deg=1)
-#print(WD_134_mean)
+#print(WD_26_mean)
 #print(WD_88_mean)
 
-# manually extract parameters
-t, u, v, w = jr.loadtimeseries('NREL',time_flt,ht)
-plt.plot(t,u)
 
 #uhat = scipy.signal.detrend(u) + np.mean(u)
 #vhat = scipy.signal.detrend(v)

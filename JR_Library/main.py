@@ -92,7 +92,7 @@ def loadNRELmatlab():
 
     return (fields, metadata)
 
-def loadtimeseries(dataset,timestamp,ht,clean=1):
+def loadtimeseries(dataset,timestamp,ht):
     """ Load the turbulent time series for a given dataset and timestamp.
 
         Args:
@@ -148,10 +148,6 @@ def loadtimeseries(dataset,timestamp,ht,clean=1):
             print '***WARNING***: KeyError for {}'.format(field)
             w = np.empty(np.shape(t))
             w[:] = np.nan
-        if clean:
-            u = remove_spikes(u)[0]
-            v = remove_spikes(v)[0]
-            w = remove_spikes(w)[0]
 
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -399,11 +395,12 @@ def NRELfname2time(fname):
     import calendar
 
     # extract date information
-    year   = int(fname[6:10])
-    month  = int(fname[0:2])
-    day    = int(fname[3:5])
-    hour   = int(fname[11:13])
-    minute = int(fname[14:16])
+    year     = int(fname[6:10])
+    month    = int(fname[0:2])
+    day      = int(fname[3:5])
+    hour     = int(fname[11:13])
+    minute   = int(fname[14:16])
+    time_tup = (year,month,day,hour,minute)
 
     # convert tuple to float
     time_flt = timetup2flt(time_tup)
@@ -440,7 +437,8 @@ def NRELtime2fpath(time_flt):
 
     # get directory path
     basedir = getBasedir('NREL')
-    dirpath = os.path.join(basedir,yearS,monthS,dayS)    
+    dirpath = os.path.join(basedir,yearS,monthS,dayS)
+    
     # get filename
     fname_part = '_'.join([monthS,dayS,yearS,hourS,minS])
     fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
@@ -500,7 +498,6 @@ def makeNRELmetadata(basedir):
     import numpy as np
     import scipy.io as scio
     import os
-    import calendar, time
 
     # array of sampling heights
     heights = np.array([15,30,50,76,100,131])
@@ -515,14 +512,12 @@ def makeNRELmetadata(basedir):
             if fname.endswith('.mat'):
 
                 # load in 20 Hz datafile
-                struc = scio.loadmat(os.path.join(root,fname))                
+                fpath = os.path.join(root,fname)
+                struc = scio.loadmat(fpath)                
                 # loop through heights
                 for height in heights:
 
                     row = extractNRELparameters(struc,height)
-                    row[0] = NRELfname2time(fname)
-                    row[1] = calendar.timegm(time.gmtime())
-                    row[2] = height
                     metadata = np.vstack([metadata,row])
                 
     return metadata
@@ -628,9 +623,10 @@ def interpolateparameter(dataset,struc,ht,field):
                             *np.pi/180)),deg=1)
                 upper_mean = np.angle(np.nanmean(np.exp(1j*upperVal \
                             *np.pi/180)),deg=1)
-                value = np.mod(np.angle(np.nanmean(np.exp(1j* \
-                    np.array([lower_mean, upper_mean])* \
-                    np.pi/180)),deg=1),360)
+                dtheta     = np.angle(np.exp(1j*upper_mean*np.pi/180)/ \
+                                      np.exp(1j*lower_mean*np.pi/180),deg=1)
+                int_theta  = dtheta * (ht - lowerHt)/(upperHt - lowerHt)
+                value = np.mod(lower_mean+int_theta,360)
 
             else:
                 errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
@@ -702,14 +698,21 @@ def calculatefield(dataset,struc,ht):
     """ Save atmophseric parameters in output dictionary
 
     """
-    import sys
+    import sys, calendar, time
     import numpy as np
 
     if (dataset == 'NREL'):
         dt = 0.05
 
-        # calculate fields necessary for later calculations
-        (t,u,v,w) = loadtimeseries(dataset,struc,ht)
+        # load and remove spikes from time series
+        (t,uraw,vraw,wraw) = loadtimeseries(dataset,struc,ht)
+        u = remove_spikes(uraw)[0]
+        v = remove_spikes(vraw)[0]
+        w = remove_spikes(wraw)[0]
+
+        # calculate variables necessary for later calculations
+        fname     = struc['tower'][0,0][23][0,0][0][0,0][8][0]
+        rec_time  = NRELfname2time(fname)
         T_sonic_K = np.squeeze(struc['Sonic_Temp_rotated_' + \
                              str(ht) + 'm'][0,0][0]) + 298.15
         up        = nandetrend(t,u)
@@ -733,9 +736,9 @@ def calculatefield(dataset,struc,ht):
         outdict = {}
 
         # save values
-        outdict['Record_Time']     = 0
-        outdict['Processed_Time']  = 0
-        outdict['Height']          = 0
+        outdict['Record_Time']     = rec_time
+        outdict['Processed_Time']  = calendar.timegm(time.gmtime())   
+        outdict['Height']          = ht
         outdict['Wind_Speed_Cup']  = interpolateparameter( \
                                         dataset,struc,ht,'Wind_Speed_Cup')
         outdict['Wind_Direction']  = interpolateparameter( \
@@ -770,128 +773,6 @@ def calculatefield(dataset,struc,ht):
         raise AttributeError(errStr)
 
     return outdict
-
-##def calculatefield(dataset,struc,ht,field):
-##    """
-##    """
-##    import sys
-##    import numpy as np
-##
-##    if (dataset == 'NREL'):
-##        dt = 0.05
-##
-##        (t,u,v,w) = loadtimeseries(dataset,struc,ht)
-##        up        = nandetrend(t,u)
-##        vp        = nandetrend(t,v)
-##        wp        = nandetrend(t,w)
-##
-##        try:
-##        
-##            if ((field == 'Record_Time') or (field == 'Processed_Time') \
-##                or (field == 'Height')):
-##                value = 0
-##                
-##            elif (field == 'Wind_Speed_Cup'):
-##                value = interpolateparameter(dataset,struc,ht,field)
-##                
-##            elif (field == 'Wind_Direction'):
-##                value = interpolateparameter(dataset,struc,ht,field)
-##
-##            elif (field == 'Precipitation'):
-##                value = np.nanmean(struc['PRECIP_INTEN'][0,0][0])
-##
-##            elif (field == 'Mean_Wind_Speed'):
-##                value = np.nanmean(u)
-##
-##            elif (field == 'Sigma_u'):
-##                value = np.nanstd(up)
-##
-##            elif (field == 'Concentration_u'):
-##                value = signalPhaseCoherence(up)[0]
-##
-##            elif (field == 'Location_u'):
-##                value = signalPhaseCoherence(up)[1]
-##
-##            elif (field == 'Sigma_v'):
-##                value = np.nanstd(vp)
-##
-##            elif (field == 'Concentration_v'):
-##                value = signalPhaseCoherence(vp)[0]
-##
-##            elif (field == 'Location_v'):
-##                value = signalPhaseCoherence(vp)[1]
-##
-##            elif (field == 'Sigma_w'):
-##                value = np.nanstd(wp)
-##
-##            elif (field == 'Concentration_w'):
-##                value = signalPhaseCoherence(wp)[0]
-##                
-##            elif (field == 'Location_w'):
-##                value = signalPhaseCoherence(wp)[1]
-##
-##            elif (field == 'up_wp'):
-##                value = np.nanmean(up*wp)           
-##
-##            elif (field == 'vp_wp'):
-##                value = np.nanmean(vp*wp)
-##
-##            elif (field == 'wp_Tp'):
-##                T = np.squeeze(struc['Sonic_Temp_rotated_' + \
-##                                     str(ht) + 'm'][0,0][0]) + 298.15
-##                Tp = nandetrend(t,T)
-##                value = np.nanmean(wp*Tp)
-##
-##            elif (field == 'up_vp'):
-##                value = np.nanmean(up*vp) 
-##
-##            elif (field == 'tau_u'):
-##                value = calculateKaimal(up + np.mean(u),dt)
-##
-##            elif (field == 'tau_v'):
-##                value = calculateKaimal(vp,dt)
-##
-##            elif (field == 'tau_w'):
-##                value = calculateKaimal(wp,dt)
-##
-##            elif (field == 'MO_Length_interp'):
-##                T_bar = interpolateparameter(dataset, \
-##                    struc,ht,'Temperature') + 298.15
-##                T     = np.squeeze(struc['Sonic_Temp_rotated_' + \
-##                          str(ht) + 'm'][0,0][0]) + 298.15
-##                Tp       = nandetrend(t,T)
-##                upwp_bar = np.nanmean(up*wp)
-##                vpwp_bar = np.nanmean(vp*wp)
-##                wpTp_bar = np.nanmean(wp*Tp)
-##                ustar    = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
-##                value    = - (T_bar * ustar**3)/(0.41 * 9.81 * wpTp_bar)
-##
-##            elif (field == 'MO_Length_closest'):
-##                T_bar = closestparameter(dataset, \
-##                    struc,ht,'Temperature') + 298.15
-##                T     = np.squeeze(struc['Sonic_Temp_rotated_' + \
-##                            str(ht) + 'm'][0,0][0]) + 298.15
-##                Tp       = nandetrend(t,T)
-##                upwp_bar = np.nanmean(up*wp)
-##                vpwp_bar = np.nanmean(vp*wp)
-##                wpTp_bar = np.nanmean(wp*Tp)
-##                ustar    = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
-##                value    = - (T_bar * ustar**3)/(0.41 * 9.81 * wpTp_bar)
-##                
-##            else:
-##                errSt = 'Field {} is not coded for ' + \
-##                        'dataset \"NREL\".'.format(field)
-##                raise AttributeError(errStr)
-##
-##        except KeyError:
-##            print '***WARNING***: KeyError for {}'.format(field)
-##            value = float('nan')
-##        
-##    else:
-##        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-##        raise AttributeError(errStr)
-##
-##    return value
 
 
 # ==============================================================================
@@ -2064,6 +1945,7 @@ def timetup2flt(time_tup):
     """
     import calendar
 
+    time_tup = time_tup[:5]
     time_tup += (0,0,0)
     time_flt = calendar.timegm(time_tup)
 
@@ -2071,14 +1953,14 @@ def timetup2flt(time_tup):
 
 
 def nandetrend(x,y):
-    """ Linear detrend ignoring nan values in y
+    """ Linear detrend ignoring nan values in y (removes bias too)
 
         Args:
             x (numpy array): x values
             y (numpy array): y values
 
         Returns:
-            y_det (numpy array): detrended values with nans replaced
+            y_det (numpy array): detrended values with nans unchanged
     """
     import numpy as np
 
@@ -2187,6 +2069,26 @@ def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
         
     return x_cl, n_spikes
 
+
+def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
+    """ Remove spikes with linear trend removed (same mean)
+
+        Args:
+            t (numpy array): time steps
+            x (numpy array): raw time series
+
+        Returns:
+            x_cl (numpy array): time series with spikes
+                            removed and detrended
+    """
+
+    # remove spikes
+    x_nospike = remove_spikes(x,spikeWidth,P,beta)
+
+    # remove linear trend
+    x_cl = nandetrend(t,x_nospike) + np.nanmean(x_nospike)
+
+    return x_cl
 
 ##def numpy2latex(a,toprow=None,firstcol=None):
 ##    """ Print numpy array in LaTeX-friendly formatting
