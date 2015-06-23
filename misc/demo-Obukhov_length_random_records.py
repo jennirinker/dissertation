@@ -13,65 +13,65 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # %% =============== draw samples of records, save metadata ===================
-n_recs  = 500                               # no. random records to draw
-yearRng = [2012,2015]                       # range of years
-fields = jr.metadataFields('NREL')          # MD fields
-
-CSLim  = 3                          # lower cup speed limit
-dir1   = 240                        # CCW edge for direction range
-dir2   = 315                        # CW edge for direction range
-preLim = 2.7                        # lower precipitation limit
-
-# column indices for each value
-CScol  = fields.index('Wind_Speed_Cup')
-dirCol = fields.index('Wind_Direction')
-preCol = fields.index('Precipitation')
-
-i_rec = 0
-metadata = np.empty((n_recs,len(fields)))
-while i_rec < n_recs:
-    
-    # draw random time stamp/height
-    year   = random.randint(yearRng[0],yearRng[1])
-    month  = random.randint(1,12)
-    day    = random.randint(1,31)
-    hour   = random.randint(0,23)
-    minute = random.randint(0,6)*10
-    height = random.choice([15,30,50,76,100,131])
-    time_tup = (year,month,day,hour,minute)
-        
-    # check if it exists
-    fpath = jr.NRELtime2fpath(time_tup)
-    if len(fpath) > 0:
-        
-        # load structure
-        struc = scio.loadmat(fpath)
-        
-        # calculate parameters
-        row = jr.extractNRELparameters(struc,height)
-        
-        flagCS   = row[CScol] > CSLim
-        flagDir1 = row[dirCol] >= dir1
-        flagDir2 = row[dirCol] <= dir2
-        flagPrec = row[preCol] >= preLim
-        flagNaN  = not np.isnan(row[6])
-        
-        if (flagCS and flagDir1 and flagDir2 and flagPrec and flagNaN):
-            metadata[i_rec] = row.reshape(1,len(fields))
-    
-            i_rec += 1
-                                    
-            if not (i_rec % 5): print(i_rec)
+#n_recs  = 500                               # no. random records to draw
+#yearRng = [2012,2015]                       # range of years
+#fields = jr.metadataFields('NREL')          # MD fields
+#
+#CSLim  = 3                          # lower cup speed limit
+#dir1   = 240                        # CCW edge for direction range
+#dir2   = 315                        # CW edge for direction range
+#preLim = 2.7                        # lower precipitation limit
+#
+## column indices for each value
+#CScol  = fields.index('Wind_Speed_Cup')
+#dirCol = fields.index('Wind_Direction')
+#preCol = fields.index('Precipitation')
+#
+#i_rec = 0
+#metadata = np.empty((n_recs,len(fields)))
+#while i_rec < n_recs:
+#    
+#    # draw random time stamp/height
+#    year   = random.randint(yearRng[0],yearRng[1])
+#    month  = random.randint(1,12)
+#    day    = random.randint(1,31)
+#    hour   = random.randint(0,23)
+#    minute = random.randint(0,6)*10
+#    height = random.choice([15,30,50,76,100,131])
+#    time_tup = (year,month,day,hour,minute)
+#        
+#    # check if it exists
+#    fpath = jr.NRELtime2fpath(time_tup)
+#    if len(fpath) > 0:
+#        
+#        # load structure
+#        struc = scio.loadmat(fpath)
+#        
+#        # calculate parameters
+#        row = jr.extractNRELparameters(struc,height)
+#        
+#        flagCS   = row[CScol] > CSLim
+#        flagDir1 = row[dirCol] >= dir1
+#        flagDir2 = row[dirCol] <= dir2
+#        flagPrec = row[preCol] >= preLim
+#        flagNaN  = not np.isnan(row[6])
+#        
+#        if (flagCS and flagDir1 and flagDir2 and flagPrec and flagNaN):
+#            metadata[i_rec] = row.reshape(1,len(fields))
+#    
+#            i_rec += 1
+#                                    
+#            if not (i_rec % 5): print(i_rec)
                 
 # %% ============================== analysis ==================================
 
 
-### get indices
-#rhoCol    = fields.index('Concentration_u')
-#zCol      = fields.index('Height')
-#L_intrCol = fields.index('MO_Length_interp')
-#L_nearCol = fields.index('MO_Length_near')
-#time_Col   = fields.index('Record_Time')
+## get indices
+rhoCol    = fields.index('Concentration_u')
+zCol      = fields.index('Height')
+L_intrCol = fields.index('MO_Length_interp')
+L_nearCol = fields.index('MO_Length_near')
+time_Col   = fields.index('Record_Time')
 ##
 ### extract values
 #times   = metadata[:,time_Col]
@@ -79,33 +79,33 @@ while i_rec < n_recs:
 #for i in range(6):
 #    time_tup = jr.timeflt2tup(times[i])
 #    print(time_tup)
-#rho    = metadata[:,rhoCol]
-#z      = metadata[:,zCol]
-#L_intr = metadata[:,L_intrCol]
-#L_near = metadata[:,L_nearCol]
-#zeta   = z / L_intr
-#
-## separate by stability classes
-#xs_idx = np.where(zeta < -2)[0]
-#vs_idx = np.where(np.logical_and(zeta >= -2., zeta < -0.6))[0]
-#s_idx  = np.where(np.logical_and(zeta >= -0.6, zeta < -0.2))[0]
-#ws_idx = np.where(np.logical_and(zeta >= -0.2, zeta < -0.02))[0]
-#n_idx  = np.where(np.logical_and(zeta >= -0.02, zeta < 0.02))[0]
-#wu_idx = np.where(np.logical_and(zeta >= 0.02, zeta < 0.2))[0]
-#u_idx  = np.where(np.logical_and(zeta >= 0.2, zeta < 0.6))[0]
-#vu_idx = np.where(np.logical_and(zeta >= 0.6, zeta < 2.))[0]
-#xu_idx = np.where(zeta >= 2.)[0]
-#stab_cts = np.array([xs_idx.size,vs_idx.size,s_idx.size,ws_idx.size,n_idx.size, \
-#            wu_idx.size,u_idx.size,vu_idx.size,xu_idx.size])
-#rho_xs = rho[xs_idx]
-#rho_vs = rho[vs_idx]
-#rho_s  = rho[s_idx]
-#rho_ws = rho[ws_idx]
-#rho_n  = rho[n_idx]
-#rho_wu = rho[wu_idx]
-#rho_u  = rho[u_idx]
-#rho_vu = rho[vu_idx]
-#rho_xu = rho[xu_idx]        
+rho    = metadata[:,rhoCol]
+z      = metadata[:,zCol]
+L_intr = metadata[:,L_intrCol]
+L_near = metadata[:,L_nearCol]
+zeta   = z / L_intr
+
+# separate by stability classes
+xs_idx = np.where(zeta < -2)[0]
+vs_idx = np.where(np.logical_and(zeta >= -2., zeta < -0.6))[0]
+s_idx  = np.where(np.logical_and(zeta >= -0.6, zeta < -0.2))[0]
+ws_idx = np.where(np.logical_and(zeta >= -0.2, zeta < -0.02))[0]
+n_idx  = np.where(np.logical_and(zeta >= -0.02, zeta < 0.02))[0]
+wu_idx = np.where(np.logical_and(zeta >= 0.02, zeta < 0.2))[0]
+u_idx  = np.where(np.logical_and(zeta >= 0.2, zeta < 0.6))[0]
+vu_idx = np.where(np.logical_and(zeta >= 0.6, zeta < 2.))[0]
+xu_idx = np.where(zeta >= 2.)[0]
+stab_cts = np.array([xs_idx.size,vs_idx.size,s_idx.size,ws_idx.size,n_idx.size, \
+            wu_idx.size,u_idx.size,vu_idx.size,xu_idx.size])
+rho_xs = rho[xs_idx]
+rho_vs = rho[vs_idx]
+rho_s  = rho[s_idx]
+rho_ws = rho[ws_idx]
+rho_n  = rho[n_idx]
+rho_wu = rho[wu_idx]
+rho_u  = rho[u_idx]
+rho_vu = rho[vu_idx]
+rho_xu = rho[xu_idx]        
 
 # initialize figure
 plt.figure(1,figsize=(11,8))
@@ -178,4 +178,4 @@ plt.xticks(bin_cntrs, stab_lbls)
 plt.xlabel('Stability')
 plt.ylabel('Concentration Parameter')
 plt.title(r'Variation of $\rho$ with Stability')
-#plt.tight_layout()
+plt.tight_layout()

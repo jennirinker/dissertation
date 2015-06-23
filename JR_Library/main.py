@@ -2090,6 +2090,28 @@ def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
 
     return x_cl
 
+
+def timeUTC2local(dataset,UTCtime_flt):
+    """ Float to float
+    """
+    import datetime
+
+    if dataset == 'NREL':
+
+        UTCtime_tup = timeflt2tup(UTCtime_flt)
+        UTCtime_dat = datetime.datetime(UTCtime_tup[0], \
+                            UTCtime_tup[1],UTCtime_tup[2], \
+                            UTCtime_tup[3],UTCtime_tup[4])
+        time_delta  = datetime.timedelta(hours = -7)
+        loctime_dat = UTCtime_dat + time_delta
+        loctime_flt = timetup2flt(loctime_dat.timetuple()[:5])
+
+    else:
+        errStr = 'Dataset \"{}\" not coded.'.format(dataset)
+        raise KeyError(errStr)
+
+    return loctime_flt
+
 ##def numpy2latex(a,toprow=None,firstcol=None):
 ##    """ Print numpy array in LaTeX-friendly formatting
 ##
