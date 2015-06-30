@@ -3,19 +3,21 @@ Library of functions used in dissertation analyses.
 
 Module is separated into groups of functions:
     - File I/O:
-        Loading metadata files, TurbSim files, data records
+        Loading metadata files, TurbSim files, time series
     - Metadata processing:
         Extracting wind parameters from data
-    - Data analysis:
-        Calculating NSAE,
-        fitting composite distributions
+    - Metadata analysis:
+        Calculating NSAE, fitting composite distributions
     - Simulation:
-        Kaimal simulation
-    - IEC:
-        Kaimal spectrum, spatial coherence, etc.
+        Kaimal simulation, IEC functions
+    - TurbSim Analysis:
+        Hub-height pase differences, PSDs, velocity profiles
+    - Mappings:
+        Time UTC to local, general field to dataset-specific, etc.
     - Miscellaneous:
         Other functions
 
+Restructured 2015-06-30
 Jenni Rinker, Duke University
 """
 
@@ -92,68 +94,146 @@ def loadNRELmatlab():
 
     return (fields, metadata)
 
-def loadtimeseries(dataset,timestamp,ht):
-    """ Load the turbulent time series for a given dataset and timestamp.
+##def loadtimeseries(dataset,timestamp,field):
+##    """ Load the turbulent time series for a given dataset and timestamp.
+##
+##        Args:
+##            dataset (string): flag to indicate dataset
+##            timestamp (float/tuple): float or tuple representing time value
+##            field (string): name of data type
+##
+##        Returns:
+##            outdict (dictionary): keys = ['raw','clean','flags']
+##    """
+##    import scipy.io as scio
+##    import numpy as np
+##    import calendar
+##
+##    if (dataset == 'NREL'):
+##
+##        # define data ranges
+##        if ('Sonic_w' in field):
+##            dataRng = [-29.95,29.95]
+##        elif ('Sonic_Temp' in field):
+##            dataRng = [-19.95,49.95]
+##        elif ('Air_Temp' in field):
+##            dataRng = [-50.,50.]
+##        elif ('Cup' in field):
+##            dataRng = [0,80]
+##        elif ('Precip' in field):
+##            dataRng = [0.,3.]
+##        elif (('Sonic_u' in field) or ('Sonic_v' in field):
+##              dataRng = [-35.05,35.05]
+##        else:
+##              raise KeyError('Field {} not recognized.'.format(field))
+##            
+##        # convert tuple to timestamp if necessary
+##        if (type(timestamp) == tuple):
+##            timestamp = timetup2flt(timestamp)
+##
+##        # if we fed in the structure itself
+##        if (type(timestamp) == dict):
+##            struc = timestamp
+##        else:
+##            # get file path
+##            fpath = NRELtime2fpath(timestamp)
+##            struc = scio.loadmat(fpath)
+##
+##        # try to load data
+##        flags = []
+##        try:
+##            x_raw = np.squeeze(struc[field][0,0][0])
+##        except KeyError:
+##            x_raw = np.empty(12000)
+##            x_raw[:] = np.nan
+##            flags.append(1006)
+##
+##        x_tmp = np.copy(x_raw)
+##
+##        # check flags
+##        if x_raw.size < 12000:
+##            flags.append(1005)
+##        
+##        x_tmp[np.where(x_raw < dataRng[0])] = np.nan
+##        x_tmp[np.where(x_raw > dataRng[1])] = np.nan
+##
+##        if np.sum(np.isnan(x_tmp))/12000 > 0.01:
+##              flags.append(1003)
+##
+##        if np.all(np.isnan(x_raw)):
+##              flags.append(5003)
+##
+##        if (len(flags) == 0):# ENDXED HERE
+##        
+##
+##    else:
+##        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+##        raise AttributeError(errStr)
+##
+##    return outdict
 
-        Args:
-            dataset (string): flag to indicate dataset
-            timestamp (float/tuple): float or tuple representing time value
-
-        Returns:
-            t (numpy array): array of time values
-            u (numpy array): array of longitudinal win velocities
-    """
-    import scipy.io as scio
-    import numpy as np
-    import calendar
-
-    if (dataset == 'NREL'):
-
-        # time parameters
-        N  = 12000
-        dt = 0.05
-
-        # convert tuple to timestamp if necessary
-        if (type(timestamp) == tuple):
-            timestamp = timetup2flt(timestamp)
-
-        # skip to last step if it's a structure
-        if (type(timestamp) == dict):
-            struc = timestamp
-        else:
-            # get file path
-            fpath = NRELtime2fpath(timestamp)
-            struc = scio.loadmat(fpath)
-
-        # try to load data
-        t = np.arange(12000)*dt
-        try:
-            field = 'Sonic_u_' + str(ht) + 'm'
-            u = np.squeeze(struc[field][0,0][0])
-        except KeyError:
-            print '***WARNING***: KeyError for {}'.format(field)
-            u = np.empty(np.shape(t))
-            u[:] = np.nan
-        try:
-            field = 'Sonic_v_' + str(ht) + 'm'
-            v = np.squeeze(struc[field][0,0][0])
-        except KeyError:
-            print '***WARNING***: KeyError for {}'.format(field)
-            v = np.empty(np.shape(t))
-            v[:] = np.nan
-        try:
-            field = 'Sonic_w_' + str(ht) + 'm'
-            w = np.squeeze(struc[field][0,0][0])
-        except KeyError:
-            print '***WARNING***: KeyError for {}'.format(field)
-            w = np.empty(np.shape(t))
-            w[:] = np.nan
-
-    else:
-        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-        raise AttributeError(errStr)
-
-    return (t, u, v, w)
+##def loadtimeseries(dataset,timestamp,ht):
+##    """ Load the turbulent time series for a given dataset and timestamp.
+##
+##        Args:
+##            dataset (string): flag to indicate dataset
+##            timestamp (float/tuple): float or tuple representing time value
+##
+##        Returns:
+##            t (numpy array): array of time values
+##            u (numpy array): array of longitudinal win velocities
+##    """
+##    import scipy.io as scio
+##    import numpy as np
+##    import calendar
+##
+##    if (dataset == 'NREL'):
+##
+##        # time parameters
+##        N  = 12000
+##        dt = 0.05
+##
+##        # convert tuple to timestamp if necessary
+##        if (type(timestamp) == tuple):
+##            timestamp = timetup2flt(timestamp)
+##
+##        # skip to last step if it's a structure
+##        if (type(timestamp) == dict):
+##            struc = timestamp
+##        else:
+##            # get file path
+##            fpath = NRELtime2fpath(timestamp)
+##            struc = scio.loadmat(fpath)
+##
+##        # try to load data
+##        t = np.arange(12000)*dt
+##        try:
+##            field = 'Sonic_u_' + str(ht) + 'm'
+##            u = np.squeeze(struc[field][0,0][0])
+##        except KeyError:
+##            print '***WARNING***: KeyError for {}'.format(field)
+##            u = np.empty(np.shape(t))
+##            u[:] = np.nan
+##        try:
+##            field = 'Sonic_v_' + str(ht) + 'm'
+##            v = np.squeeze(struc[field][0,0][0])
+##        except KeyError:
+##            print '***WARNING***: KeyError for {}'.format(field)
+##            v = np.empty(np.shape(t))
+##            v[:] = np.nan
+##        try:
+##            field = 'Sonic_w_' + str(ht) + 'm'
+##            w = np.squeeze(struc[field][0,0][0])
+##        except KeyError:
+##            print '***WARNING***: KeyError for {}'.format(field)
+##            w = np.empty(np.shape(t))
+##            w[:] = np.nan
+##
+##    else:
+##        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+##        raise AttributeError(errStr)
+##
+##    return (t, u, v, w)
 
 
 class tsin:
@@ -345,110 +425,6 @@ def readInput_v2(filename):
 # METADATA PROCESSING
 # ==============================================================================
 
-def screenmetadata(fields,metadata,dataset):
-    """ Screen the metadata for data quality
-    
-        Args:
-            fields (list): list of fields associated with metadata cols
-            metadata(numpy array): array of metadata
-            dataset (string): toggle for dataset choice
-            
-        Returns:
-            cleandata (numpy array): numpy array with screened data
-    """
-    import numpy as np
-    
-    if (dataset == 'NREL'):
-        CSLim  = 3                          # lower cup speed limit
-        dir1   = 240                        # CCW edge for direction range
-        dir2   = 315                        # CW edge for direction range
-        preLim = 2.7                        # lower precipitation limit
-        
-        # column indices for each value
-        CScol  = fields.index('Wind_Speed_Cup')
-        dirCol = fields.index('Wind_Direction')
-        preCol = fields.index('Precipitation')
-        
-        # filter out the rows with NaN values???        
-        
-        # screen remaining data
-        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
-        cleandata = cleandata[np.where(cleandata[:,dirCol] >= dir1)]
-        cleandata = cleandata[np.where(cleandata[:,dirCol] <= dir2)]
-        cleandata = cleandata[np.where(cleandata[:,preCol] >= preLim)]
-        
-    else:
-        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-        raise AttributeError(errStr)
-        
-    return cleandata
-
-def NRELfname2time(fname):
-    """ Convert filename to float representing time stamp
-
-        Args:
-            fname (string): name of file
-
-        Returns:
-            timestamp (float): float representing timestamp
-    """
-    import calendar
-
-    # extract date information
-    year     = int(fname[6:10])
-    month    = int(fname[0:2])
-    day      = int(fname[3:5])
-    hour     = int(fname[11:13])
-    minute   = int(fname[14:16])
-    time_tup = (year,month,day,hour,minute)
-
-    # convert tuple to float
-    time_flt = timetup2flt(time_tup)
-
-    return time_flt
-
-
-def NRELtime2fpath(time_flt):
-    """ Convert float to path to data structure
-
-        Args:
-            time_flt (float): float representing timestamp
-
-        Returns:
-            fpath (string): path to data 
-            
-    """
-    import time
-    import os
-    import glob
-
-    # check if it's a tuple
-    if type(time_flt) == tuple:
-        time_tup = time_flt
-    else:
-        time_tup = timeflt2tup(time_flt)
-
-    # convert tuple to string values
-    yearS  = str(time_tup[0])
-    monthS = str(time_tup[1]).zfill(2)
-    dayS   = str(time_tup[2]).zfill(2)
-    hourS  = str(time_tup[3]).zfill(2)
-    minS   = str(time_tup[4]).zfill(2)
-
-    # get directory path
-    basedir = getBasedir('NREL')
-    dirpath = os.path.join(basedir,yearS,monthS,dayS)
-    
-    # get filename
-    fname_part = '_'.join([monthS,dayS,yearS,hourS,minS])
-    fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
-
-    # check if file doesn't exist
-    if len(fpath) > 0:  fpath = fpath[0]
-    else:               fpath = ''
-    
-    return fpath
-
 
 def metadataFields(dataset):
     """ Define list of fields to be stored in metadata table
@@ -472,6 +448,75 @@ def metadataFields(dataset):
         raise AttributeError(errStr)
         
     return fields
+
+
+def dataRanges(dataset,field):
+    """ Acceptable range of time series
+
+        Args:
+            dataset (string): flag for dataset
+            field (string): data field
+
+        Returns:
+            dataRng (list): [min,max] range of data
+    """
+
+    if (dataset == 'NREL'):
+
+        # define data ranges
+        if ('Sonic_u' in field):
+            dataRng = [-35.05,35.05]
+        elif ('Sonic_v' in field):
+            dataRng = [-35.05,35.05]
+        elif ('Sonic_w' in field):
+            dataRng = [-29.95,29.95]
+        elif ('Sonic_Temp' in field):
+            dataRng = [-19.95,49.95]
+        elif ('Air_Temp' in field):
+            dataRng = [-50.,50.]
+        elif ('Cup_WS' in field):
+            dataRng = [0.,80.]
+        elif ('Vane_WD' in field):
+            dataRng = [0.,360.]
+        elif ('PRECIP' in field):
+            dataRng = [0.,3.]
+        else:
+              raise KeyError('Field {} not recognized.'.format(field))
+
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+
+    return dataRng
+
+
+def getBasedir(dataset):
+    """ Get path to base directory and check if it exists
+
+        Args:
+            dataset (string): flag for dataset
+
+        Returns:
+            basedir (str): path to top level of data directory
+    """
+    import os
+    import platform
+
+    if (dataset == 'NREL'):
+        if (platform.system() == 'Linux'):
+            basedir = '/media/jrinker/JRinker SeaGate External/data/nrel-20Hz/'
+        elif (platform.system() == 'Windows'):
+            basedir = 'G:\\data\\nrel-20Hz'
+        if not os.path.exists(basedir):
+            errStr = 'Incorrect or unavailable base ' + \
+                     'directory for dataset \"{}\".'.format(dataset)
+            raise IOError(errStr)
+
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+
+    return basedir
 
 
 def makemetadata(dataset):
@@ -524,7 +569,14 @@ def makeNRELmetadata(basedir):
 
 
 def extractNRELparameters(struc,height):
-    """
+    """ Return row of metadata parameters
+
+        Args:
+            struc (dictionary): 20-Hz structure
+            height (int): measurement height
+
+        Returns:
+            parameters (numpy array): 1D array of metadata parameters
     """
     import numpy as np
 
@@ -579,6 +631,7 @@ def interpolateparameter(dataset,struc,ht,field):
                 upperField = fld_str + str(upperHt) + 'm'
                 upperVal   = np.nanmean(struc[upperField][0,0][0])
                 lowerVal   = np.nanmean(struc[lowerField][0,0][0])
+                print('lower',lowerVal,'upper',upperVal)
                 value = np.interp(ht,[lowerHt,upperHt], \
                                     [lowerVal,upperVal])
 
@@ -694,6 +747,64 @@ def closestparameter(dataset,struc,ht,field):
     return value
         
 
+def calculateKaimal(x,dt):
+    """ Return the optimal Kaimal time scale tau found using a grid search. 
+        Can be converted to length scale using L = tau * U.
+
+        Args:
+            x (numpy array): time history
+            dt (float): time step
+        
+        Returns:
+            tau (float): optimal Kaimal length scale
+    """
+    import numpy as np
+    
+    # if (2+)D array is fed in, halt with error
+    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
+        print 'ERROR: calculateKaimal only works on 1D arrays'
+        return []
+
+    # grid search parameters
+    n_m = 200;                                  # number of points in grid
+    tau_l = -1;                                 # left tau coefficient
+    tau_r = 3;                                  # right tau coefficient
+
+    # intermediate parameters
+    n_t  = x.shape[0]                           # no. of time steps
+    T    = n_t*dt                               # total time
+    n_f  = uniqueComponents(n_t)                # no. unique components
+    df   = 1/T                                  # frequency resolution
+    f    = df*np.arange(0,n_f). \
+        reshape(n_f,1)                          # frequency vector
+    sig  = np.std(x,ddof=1)                     # std. deviation
+
+    X_dat  = np.fft.fft(x,axis=0). \
+        reshape(n_t,1)/n_t                      # Fourier vector of data
+    Sk_dat = X2Sk(X_dat)[1:]* \
+        np.ones((1,n_m))                        # data discrete PSD from f1 up
+
+    taugrid = np.logspace(tau_l,tau_r,n_m). \
+        reshape(1,n_m)                          # grid of tau for search
+    
+    S_kaim = KaimalSpectrum(f,taugrid,sig)      # continuous Kaimal spectrum
+    Sk_kaim = S_kaim * df                       # discrete Kaimal spectrum
+    Sk_theo = np.empty(Sk_kaim.shape)
+    for i in range(n_m):
+        alpha = spectralScale(Sk_kaim[:,i],sig,n_t)
+        Sk_theo[:,i] = (alpha**2)*Sk_kaim[:,i]
+    Sk_theo = Sk_theo[1:]                       # strip off DC component
+    
+    J = np.sum(np.power(Sk_dat-Sk_theo, \
+        2),axis=0)                              # array of squared errors
+
+    i_min = np.argmin(J)                        # index of min error
+
+    tau = taugrid[0,i_min]                      # tau_minError
+    
+    return tau
+
+
 def calculatefield(dataset,struc,ht):
     """ Save atmophseric parameters in output dictionary
 
@@ -706,9 +817,9 @@ def calculatefield(dataset,struc,ht):
 
         # load and remove spikes from time series
         (t,uraw,vraw,wraw) = loadtimeseries(dataset,struc,ht)
-        u = remove_spikes(uraw)[0]
-        v = remove_spikes(vraw)[0]
-        w = remove_spikes(wraw)[0]
+        u = remove_spikes(uraw)
+        v = remove_spikes(vraw)
+        w = remove_spikes(wraw)
 
         # calculate variables necessary for later calculations
         fname     = struc['tower'][0,0][23][0,0][0][0,0][8][0]
@@ -776,8 +887,47 @@ def calculatefield(dataset,struc,ht):
 
 
 # ==============================================================================
-# DATA ANALYSIS
+# METADATA ANALYSIS
 # ==============================================================================
+
+def screenmetadata(fields,metadata,dataset):
+    """ Screen the metadata for data quality
+    
+        Args:
+            fields (list): list of fields associated with metadata cols
+            metadata(numpy array): array of metadata
+            dataset (string): toggle for dataset choice
+            
+        Returns:
+            cleandata (numpy array): numpy array with screened data
+    """
+    import numpy as np
+    
+    if (dataset == 'NREL'):
+        CSLim  = 3                          # lower cup speed limit
+        dir1   = 240                        # CCW edge for direction range
+        dir2   = 315                        # CW edge for direction range
+        preLim = 2.7                        # lower precipitation limit
+        
+        # column indices for each value
+        CScol  = fields.index('Wind_Speed_Cup')
+        dirCol = fields.index('Wind_Direction')
+        preCol = fields.index('Precipitation')
+        
+        # filter out the rows with NaN values???        
+        
+        # screen remaining data
+        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
+        cleandata = cleandata[np.where(cleandata[:,dirCol] >= dir1)]
+        cleandata = cleandata[np.where(cleandata[:,dirCol] <= dir2)]
+        cleandata = cleandata[np.where(cleandata[:,preCol] >= preLim)]
+        
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+        
+    return cleandata
+
 
 def compositeCDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
     """ Cumulative distribution function of single/composite distribution
@@ -1109,112 +1259,289 @@ def fitcompositedistribution(dataset,iP,x):
 
     return fit_parms_min
 
-def samplePhaseCoherence(theta):
-    """ Return concentration and location parameters for a sample of wrapping
-        random variables.
+
+# ==============================================================================
+# SIMULATION
+# ==============================================================================
+
+
+def wrappedCauchySample(n_t,n_m,rho,mu):
+    """ Random numbers from a Wrapped Cauchy distribution (n_t x n_m) with 
+        location parameter mu and concentration parameter rho.
+        
+        Reference: Statistical Analysis of Circular Data, Fisher, Sec. 3.3.4
+        Modified to correctly implement arccos.
         
         Args:
-            theta (numpy array): 1D array of sample of angles
-       
-        Returns:
+            n_t (int): sample size
+            n_m (int): number of samples
             rho (float): concentration parameter
             mu (float): location parameter
+    
+        Returns:
+            theta (numpy array): sample of angles
     """
     import numpy as np
     
-    # if (2+)D array is fed in, halt with error
-    if ((len(theta.shape)>1) and (theta.shape[0] != 1 and theta.shape[1] != 1)):
-        print 'ERROR: samplePhaseCoherence only works on 1D arrays'
+    if ((rho < 0) or (rho>1)):
+        print 'rho must be between 0 and 1'
         return []
     
-    n_t = theta.size                        # number of elements in sample
-    V = np.sum(np.exp(1j*theta))/n_t        # mean resultant vector
-    rho = np.abs(V)                         # concentration parameter
-    mu  = np.angle(V)                       # location parameter
+    U = np.random.rand(n_t,n_m)                     # uniform random numbers
     
-    return (rho,mu) 
+    V = np.cos(2.*np.pi*U)                          # See lines before Eq. 3.28
+    c = 2.*rho/(1+(rho**2))                         # See lines before Eq. 3.28
+    
+    B = 2*np.round(np.random.rand(n_t,n_m)) - 1     # boolean RV
+                
+    theta = wrap(np.multiply(B, (np.arccos(np.divide(V+c, \
+        1+c*V)))) + mu)                             # sample of angles
+    
+    return theta
 
 
-def signalPhaseDifferences(x):
-    """ Return phase differences for a time history.
-    
+def generateKaimal1D(n_t,n_m,dt,U,sig,tau,rho,mu):
+    """ Single-point turbulent time history with the Kaimal spectrum and the 
+        given parameters.
+
         Args:
-            x (numpy array): 1D array of time history
-       
-        Returns:
+            n_t (int): number time steps
+            n_m (int): number realizations
+            dt (float): time step size
+            U (float): mean wind speed
+            sig (float): wind standard deviation
+            tau (float): Kaimal integral time scale
             rho (float): concentration parameter
             mu (float): location parameter
-    """
-    import numpy as np
-    
-    # if (2+)D array is fed in, halt with error
-    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
-        errStr = 'signalPhaseDifferences only works on 1D arrays'
-        raise AttributeError(errStr)
-    
-    n_t = x.shape[0]                        # no. of total components
-    n_f = uniqueComponents(n_t)             # no. of unique components
-
-    X = np.fft.fft(x)/n_t                   # Fourier vector
-    Xuniq = X[:n_f]                         # unique Fourier components
-    dtheta = np.angle(np.divide( \
-        Xuniq[1:],Xuniq[:-1]))              # phase differences
-    
-    return dtheta
-
-
-def signalPhaseCoherence(x):
-    """ Return concentration and location parameters for a time history.
-    
-        Args:
-            x (numpy array): 1D array of time history
-       
-        Returns:
-            rho (float): concentration parameter
-            mu (float): location parameter
-    """
-    import numpy as np
-    
-    # if (2+)D array is fed in, halt with error
-    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
-        errStr = 'signalPhaseCoherence only works on 1D arrays'
-        raise AttributeError(errStr)
-
-    # bypass if all nans
-    if np.all(np.isnan(x)):
-        rho, mu = np.NAN, np.NAN
-
-    # otherwise remove nans and proceed
-    else:
         
-        nan_idx = np.isnan(x)                       # nan indices
-        x_nonan = x[np.logical_not(nan_idx)]        # remove nanes
-        dtheta  = signalPhaseDifferences(x_nonan)   # phase differences
-        rho, mu = samplePhaseCoherence( \
-            dtheta)                                 # temp coh parameters
-    
-    return (rho,mu)
-
-
-def signal2Sk(x):
-    """ Return array of discrete spectrum for signal x.
-
-        Args:
-            x (numpy array): array of time history
-       
         Returns:
-            Sk (numpy array): array of discrete spectral values
+            t (numpy array): time
+            x (numpy array): [n_t x n_m] array of turbulent wind records
     """
     import numpy as np
 
-    n_t  = x.shape[0];                      # no. of elements
-    X    = np.fft.fft(x,axis=0)/n_t;        # Fourier vector
-    Sk  = X2Sk(X);                          # discrete PSD
+    scale = 1;    # flag to scale for time discretizaion
 
-    return Sk
+    # intermediate parameters
+    T    = n_t*dt;                                  # total time
+    t    = np.arange(0,n_t)*dt;                     # time vector
+    n_f  = uniqueComponents(n_t);                   # no. unique components
+    df   = 1./T;                                    # frequency resolution
+    f    = df*np.arange(0,n_f);                     # frequency array
+
+    if (sig<0):
+        print 'Turbulence cannot be less than zero.';
+        return []
+        
+    elif (sig==0):
+        x = np.ones(n_t,n_m)*U;
+        return [t,x]
+        
+    else:
+        S = KaimalSpectrum(f,tau,sig);              # Kaimal spectrum
+        Sk = S*df;                                  # discrete spectrum
+        Xmag = Sk2Xuniq(Sk).reshape(n_f,1)          # S[k] -> |X[k]|
+        
+        if scale:                                   # spectral scaling
+            alpha = spectralScale(Sk,sig,n_t);      #   for discretizaion
+            Xmag = alpha*Xmag
+
+        dtheta = wrappedCauchySample(n_f-1,\
+            n_m,rho,mu)                             # phase differences
+        phases = np.cumsum(dtheta,axis=0)           # phases from f1 to end
+        phases = np.append(np.zeros((1,n_m)), \
+            phases, axis=0)                         # phases from f0 to end
+                
+        Xpha = np.exp(1j*phases)                    # phases -> phasors
+        
+        Xuniq = np.multiply(Xmag,Xpha)              # X = mags*phasors
+        Xuniq[0][:] = U;                            # real signal, correct mean
+        X = Xuniq2X(Xuniq,n_t)                      # full Fourier vector
+        
+        x = np.real(np.fft.ifft(X,axis=0) \
+            *n_t).reshape(n_t,n_m)                  # time series
+                
+        return (t,x)
 
 
-def spatialCoherence(Xi,Xj,df):
+def IEC_VelProfile(z,zhub,Vhub):
+    """ IEC velocity profile for values in array z with hub height zhub and hub
+        velocity Vhub.
+        
+        Args:
+            z (numpy array): array of heights in meters for velocity calcs
+            zhub (float): hub-height of turbine in meters
+            Vhub (float): hub-height mean velocity in m/s
+        
+        Returns:
+            V (numpy array): array of mean wind speeds at heights in z
+    """
+    import numpy as np
+
+    alpha = 0.2;
+
+    V = Vhub * np.power( \
+        z/zhub, alpha );
+
+    return V
+
+
+def IEC_Iref(turbc):
+    """ Turbulence intensity for turbulence class turbc
+    
+        Args:
+            turbc (string): turbulence class from IEC 61400-1 Ed. 3
+        
+        Returns:
+            Iref (float): reference turbulence intensity
+    """
+
+    if ('A' in turbc):                  # class A
+        Iref = 0.16;
+    elif ('B' in turbc):                # class B
+        Iref = 0.14;
+    elif ('C' in turbc):                # class C
+        Iref = 0.12;
+    else:                               # user's choice
+        Iref = float(turbc);
+
+    return Iref
+
+
+def IEC_Sigma1(Iref,Vhub):
+    """ Longitudinal standard deviation
+    
+        Args:
+            Iref (float): reference hub-height turbulence intensity
+            
+        Returns:
+            sigma1 (float): longitudinal standard deviation
+    """
+    
+    sigma1 = Iref*(0.75 * Vhub + 5.6);
+    
+    return sigma1
+
+
+def IEC_TiProfile(z,zhub,Vhub,turbc):
+    """ Turbulence intensity profile at heights z for hub height zhub, 
+        hub-height wind speed Vhub, and turbulence class turbc.
+        
+        Args:
+            z (numpy array): array of heights in meters for velocity calcs
+            zhub (float): hub-height of turbine in meters
+            Vhub (float): hub-height mean velocity in m/s
+            turbc (string): turbulence class from IEC 61400-1 Ed. 3
+            
+        Returns:
+            Ti (numpy array): turbulence intensity at heights in z
+    """
+
+    
+    Iref = IrefFromClass(turbc);                # reference hub-height TI  
+    sigma1 = calcSigma1(Iref,Vhub)              # reference standard deviation
+    V = VelProfile(z,zhub,Vhub);                # mean wind profile
+    Ti = sigma1 / V;                            # TI profile
+    
+    return Ti
+
+
+def IEC_Lambda1(zhub):
+    """ Longitudinal scale parameter
+    
+        Args:
+            zhub (float): hub-height of turbine in meters
+        
+        Returns:
+            Lambda1 (float): longitudinal scale parameter
+    """
+    
+    Lambda1 = (0.7 * zhub)*(zhub <= 60) \
+        + 42*(zhub > 60);               # longitudinal scale parameter
+    
+    return Lambda1
+
+
+def IEC_SpatialCoherence(zhub,Vhub,rsep,f):
+    """ Spatial coherence function for hub-height wind speed Vhub and hub 
+        height zhub at separation distance rsep and frequencies f.
+        
+        Args:
+            zhub (float): hub-height of turbine in meters
+            Vhub (float): hub-height mean velocity in m/s
+            rsep (float): separation distance in m
+            f (numpy array): frequencies in Hz
+        
+        Returns:
+            Coh (numpy array): values of spatial coherence function
+    """
+    import numpy as np
+
+    Lambda1 = calcLambda1(zhub)         # longitudinal scale parameter
+    Lc = 8.1*Lambda1;                   # coherence scale parameter
+
+    Coh = np.exp(-12*np.sqrt( \
+        np.power(f*rsep/Vhub,2) + \
+        np.power(0.12*rsep/Lc,2) ));    # spatial coherence
+
+    return Coh
+
+
+def KaimalSpectrum(f,tau,sig):
+    """ Kaimal spectrum (continuous, one-sided) for frequency f and time
+        length scale tau = L/U.
+
+        Args:
+            f (numpy array): frequencies
+            tau (float/numpy array): integral time scale (L/U)
+            sig (float): standard deviation
+       
+        Returns:
+            S (numpy array): Kaimal spectrum evaluated at f, tau, sig
+    """
+    import numpy as np
+
+    S = (sig**2)*(4.*tau)/ \
+        np.power(1.+6.*f*tau,5./3.);            # Kaimal 1972
+
+    return S
+
+
+def IEC_PSDs(zhub,Vhub,turbc,f):
+    """ Continuous power spectral densities for all 3 turbulence components
+    
+        Args:
+            zhub (float): hub-height of turbine in meters
+            Vhub (float): hub-height mean velocity in m/s
+            turbc (string): turbulence class from IEC 61400-1 Ed. 3
+            f (numpy array): frequencies in Hz
+            
+        Returns:
+            Su (numpy array): longitudinal PSD
+            Sv (numpy array): lateral PSD
+            Sw (numpy array): vertical PSD
+    """
+
+    Iref = IEC_Iref(turbc);             # reference turbulence intensity
+    sigma1 = IEC_Sigma1(Iref,Vhub);     # longitudinal standard deviation
+    sigma2 = 0.8*sigma1;                # lateral standard deviaiton
+    sigma3 = 0.5*sigma1;                # vertical standard deviation
+    Lambda1 = IEC_Lambda1(zhub);        # longitudinal scale parameter
+    L1 = 8.1*Lambda1;                   # longitudinal integral scale   
+    L2 = 2.7*Lambda1;                   # lateral integral scale  
+    L3 = 0.66*Lambda1;                  # vertical integral scale
+
+    Su = KaimalSpectrum(f,L1/Vhub,sigma1);  # longitudinal spectrum
+    Sv = KaimalSpectrum(f,L2/Vhub,sigma2);  # lateral spectrum
+    Sw = KaimalSpectrum(f,L3/Vhub,sigma3);  # vertical spectrum
+
+    return (Su,Sv,Sw)
+
+# ==============================================================================
+# TURBSIM ANALYSIS
+# ==============================================================================
+
+def vectorSpatCoh(Xi,Xj,df):
     """ Takes [n_f] x [n_p] arrays Xi and Xj, where n_p is the number of pairs 
         of points to be used in the calculation and returns arrays of the 
         frequency and coherence.
@@ -1250,65 +1577,7 @@ def spatialCoherence(Xi,Xj,df):
     return (f, Cohij)
 
 
-def calculateKaimal(x,dt):
-    """ Return the optimal Kaimal time scale tau found using a grid search. 
-        Can be converted to length scale using L = tau * U.
-
-        Args:
-            x (numpy array): time history
-            dt (float): time step
-        
-        Returns:
-            tau (float): optimal Kaimal length scale
-    """
-    import numpy as np
-    
-    # if (2+)D array is fed in, halt with error
-    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
-        print 'ERROR: calculateKaimal only works on 1D arrays'
-        return []
-
-    # grid search parameters
-    n_m = 200;                                  # number of points in grid
-    tau_l = -1;                                 # left tau coefficient
-    tau_r = 3;                                  # right tau coefficient
-
-    # intermediate parameters
-    n_t  = x.shape[0]                           # no. of time steps
-    T    = n_t*dt                               # total time
-    n_f  = uniqueComponents(n_t)                # no. unique components
-    df   = 1/T                                  # frequency resolution
-    f    = df*np.arange(0,n_f). \
-        reshape(n_f,1)                          # frequency vector
-    sig  = np.std(x,ddof=1)                     # std. deviation
-
-    X_dat  = np.fft.fft(x,axis=0). \
-        reshape(n_t,1)/n_t                      # Fourier vector of data
-    Sk_dat = X2Sk(X_dat)[1:]* \
-        np.ones((1,n_m))                        # data discrete PSD from f1 up
-
-    taugrid = np.logspace(tau_l,tau_r,n_m). \
-        reshape(1,n_m)                          # grid of tau for search
-    
-    S_kaim = KaimalSpectrum(f,taugrid,sig)      # continuous Kaimal spectrum
-    Sk_kaim = S_kaim * df                       # discrete Kaimal spectrum
-    Sk_theo = np.empty(Sk_kaim.shape)
-    for i in range(n_m):
-        alpha = spectralScale(Sk_kaim[:,i],sig,n_t)
-        Sk_theo[:,i] = (alpha**2)*Sk_kaim[:,i]
-    Sk_theo = Sk_theo[1:]                       # strip off DC component
-    
-    J = np.sum(np.power(Sk_dat-Sk_theo, \
-        2),axis=0)                              # array of squared errors
-
-    i_min = np.argmin(J)                        # index of min error
-
-    tau = taugrid[0,i_min]                      # tau_minError
-    
-    return tau
-
-
-def calculateTurbSimSC(fname,rsep):
+def TurbSimSpatCoh(fname,rsep):
     """ Loads turbsim file in fname and returns the spatial coherence at 
         frequency f given separation distance rsep.
         
@@ -1450,345 +1719,9 @@ def TurbSimHHPDDs(fname):
     return (dthetau,dthetav,dthetaw)
 
 
-def getBasedir(dataset):
-    """ Get path to base directory and check if it exists
-    """
-    import os
-    import platform
-
-    if (dataset == 'NREL'):
-        if (platform.system() == 'Linux'):
-            basedir = '/media/jrinker/JRinker SeaGate External/data/nrel-20Hz/'
-        elif (platform.system() == 'Windows'):
-            basedir = 'G:\\data\\nrel-20Hz'
-        if not os.path.exists(basedir):
-            errStr = 'Incorrect or unavailable base ' + \
-                     'directory for dataset \"{}\".'.format(dataset)
-            raise IOError(errStr)
-
-    else:
-        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-        raise AttributeError(errStr)
-
-    return basedir
-
-
 # ==============================================================================
-# SIMULATION
+# MAPPINGS
 # ==============================================================================
-
-def wrappedCauchySample(n_t,n_m,rho,mu):
-    """ Random numbers from a Wrapped Cauchy distribution (n_t x n_m) with 
-        location parameter mu and concentration parameter rho.
-        
-        Reference: Statistical Analysis of Circular Data, Fisher, Sec. 3.3.4
-        Modified to correctly implement arccos.
-        
-        Args:
-            n_t (int): sample size
-            n_m (int): number of samples
-            rho (float): concentration parameter
-            mu (float): location parameter
-    
-        Returns:
-            theta (numpy array): sample of angles
-    """
-    import numpy as np
-    
-    if ((rho < 0) or (rho>1)):
-        print 'rho must be between 0 and 1'
-        return []
-    
-    U = np.random.rand(n_t,n_m)                     # uniform random numbers
-    
-    V = np.cos(2.*np.pi*U)                          # See lines before Eq. 3.28
-    c = 2.*rho/(1+(rho**2))                         # See lines before Eq. 3.28
-    
-    B = 2*np.round(np.random.rand(n_t,n_m)) - 1     # boolean RV
-                
-    theta = wrap(np.multiply(B, (np.arccos(np.divide(V+c, \
-        1+c*V)))) + mu)                             # sample of angles
-    
-    return theta
-
-
-def generateKaimal1D(n_t,n_m,dt,U,sig,tau,rho,mu):
-    """ Single-point turbulent time history with the Kaimal spectrum and the 
-        given parameters.
-
-        Args:
-            n_t (int): number time steps
-            n_m (int): number realizations
-            dt (float): time step size
-            U (float): mean wind speed
-            sig (float): wind standard deviation
-            tau (float): Kaimal integral time scale
-            rho (float): concentration parameter
-            mu (float): location parameter
-        
-        Returns:
-            t (numpy array): time
-            x (numpy array): [n_t x n_m] array of turbulent wind records
-    """
-    import numpy as np
-
-    scale = 1;    # flag to scale for time discretizaion
-
-    # intermediate parameters
-    T    = n_t*dt;                                  # total time
-    t    = np.arange(0,n_t)*dt;                     # time vector
-    n_f  = uniqueComponents(n_t);                   # no. unique components
-    df   = 1./T;                                    # frequency resolution
-    f    = df*np.arange(0,n_f);                     # frequency array
-
-    if (sig<0):
-        print 'Turbulence cannot be less than zero.';
-        return []
-        
-    elif (sig==0):
-        x = np.ones(n_t,n_m)*U;
-        return [t,x]
-        
-    else:
-        S = KaimalSpectrum(f,tau,sig);              # Kaimal spectrum
-        Sk = S*df;                                  # discrete spectrum
-        Xmag = Sk2Xuniq(Sk).reshape(n_f,1)          # S[k] -> |X[k]|
-        
-        if scale:                                   # spectral scaling
-            alpha = spectralScale(Sk,sig,n_t);      #   for discretizaion
-            Xmag = alpha*Xmag
-
-        dtheta = wrappedCauchySample(n_f-1,\
-            n_m,rho,mu)                             # phase differences
-        phases = np.cumsum(dtheta,axis=0)           # phases from f1 to end
-        phases = np.append(np.zeros((1,n_m)), \
-            phases, axis=0)                         # phases from f0 to end
-                
-        Xpha = np.exp(1j*phases)                    # phases -> phasors
-        
-        Xuniq = np.multiply(Xmag,Xpha)              # X = mags*phasors
-        Xuniq[0][:] = U;                            # real signal, correct mean
-        X = Xuniq2X(Xuniq,n_t)                      # full Fourier vector
-        
-        x = np.real(np.fft.ifft(X,axis=0) \
-            *n_t).reshape(n_t,n_m)                  # time series
-                
-        return (t,x)
-
-# ==============================================================================
-# IEC
-# ==============================================================================
-
-def VelProfile(z,zhub,Vhub):
-    """ IEC velocity profile for values in array z with hub height zhub and hub
-        velocity Vhub.
-        
-        Args:
-            z (numpy array): array of heights in meters for velocity calcs
-            zhub (float): hub-height of turbine in meters
-            Vhub (float): hub-height mean velocity in m/s
-        
-        Returns:
-            V (numpy array): array of mean wind speeds at heights in z
-    """
-    import numpy as np
-
-    alpha = 0.2;
-
-    V = Vhub * np.power( \
-        z/zhub, alpha );
-
-    return V
-
-
-def IrefFromClass(turbc):
-    """ Turbulence intensity for turbulence class turbc
-    
-        Args:
-            turbc (string): turbulence class from IEC 61400-1 Ed. 3
-        
-        Returns:
-            Iref (float): reference turbulence intensity
-    """
-
-    if ('A' in turbc):                  # class A
-        Iref = 0.16;
-    elif ('B' in turbc):                # class B
-        Iref = 0.14;
-    elif ('C' in turbc):                # class C
-        Iref = 0.12;
-    else:                               # user's choice
-        Iref = float(turbc);
-
-    return Iref
-
-
-def calcSigma1(Iref,Vhub):
-    """ Longitudinal standard deviation
-    
-        Args:
-            Iref (float): reference hub-height turbulence intensity
-            
-        Returns:
-            sigma1 (float): longitudinal standard deviation
-    """
-    
-    sigma1 = Iref*(0.75 * Vhub + 5.6);
-    
-    return sigma1
-
-
-def TiProfile(z,zhub,Vhub,turbc):
-    """ Turbulence intensity profile at heights z for hub height zhub, 
-        hub-height wind speed Vhub, and turbulence class turbc.
-        
-        Args:
-            z (numpy array): array of heights in meters for velocity calcs
-            zhub (float): hub-height of turbine in meters
-            Vhub (float): hub-height mean velocity in m/s
-            turbc (string): turbulence class from IEC 61400-1 Ed. 3
-            
-        Returns:
-            Ti (numpy array): turbulence intensity at heights in z
-    """
-
-    
-    Iref = IrefFromClass(turbc);                # reference hub-height TI  
-    sigma1 = calcSigma1(Iref,Vhub)              # reference standard deviation
-    V = VelProfile(z,zhub,Vhub);                # mean wind profile
-    Ti = sigma1 / V;                            # TI profile
-    
-    return Ti
-
-
-def calcLambda1(zhub):
-    """ Longitudinal scale parameter
-    
-        Args:
-            zhub (float): hub-height of turbine in meters
-        
-        Returns:
-            Lambda1 (float): longitudinal scale parameter
-    """
-    
-    Lambda1 = (0.7 * zhub)*(zhub <= 60) \
-        + 42*(zhub > 60);               # longitudinal scale parameter
-    
-    return Lambda1
-
-
-def SpatialCoherence(zhub,Vhub,rsep,f):
-    """ Spatial coherence function for hub-height wind speed Vhub and hub 
-        height zhub at separation distance rsep and frequencies f.
-        
-        Args:
-            zhub (float): hub-height of turbine in meters
-            Vhub (float): hub-height mean velocity in m/s
-            rsep (float): separation distance in m
-            f (numpy array): frequencies in Hz
-        
-        Returns:
-            Coh (numpy array): values of spatial coherence function
-    """
-    import numpy as np
-
-    Lambda1 = calcLambda1(zhub)         # longitudinal scale parameter
-    Lc = 8.1*Lambda1;                   # coherence scale parameter
-
-    Coh = np.exp(-12*np.sqrt( \
-        np.power(f*rsep/Vhub,2) + \
-        np.power(0.12*rsep/Lc,2) ));    # spatial coherence
-
-    return Coh
-
-
-def KaimalSpectrum(f,tau,sig):
-    """ Kaimal spectrum (continuous, one-sided) for frequency f and time
-        length scale tau = L/U.
-
-        Args:
-            f (numpy array): frequencies
-            tau (float/numpy array): integral time scale (L/U)
-            sig (float): standard deviation
-       
-        Returns:
-            S (numpy array): Kaimal spectrum evaluated at f, tau, sig
-    """
-    import numpy as np
-
-    S = (sig**2)*(4.*tau)/ \
-        np.power(1.+6.*f*tau,5./3.);            # Kaimal 1972
-
-    return S
-
-
-def PSDs(zhub,Vhub,turbc,f):
-    """ Continuous power spectral densities for all 3 turbulence components
-    
-        Args:
-            zhub (float): hub-height of turbine in meters
-            Vhub (float): hub-height mean velocity in m/s
-            turbc (string): turbulence class from IEC 61400-1 Ed. 3
-            f (numpy array): frequencies in Hz
-            
-        Returns:
-            Su (numpy array): longitudinal PSD
-            Sv (numpy array): lateral PSD
-            Sw (numpy array): vertical PSD
-    """
-
-    Iref = IrefFromClass(turbc);        # referene turbulence intensity
-    sigma1 = calcSigma1(Iref,Vhub);     # longitudinal standard deviation
-    sigma2 = 0.8*sigma1;                # lateral standard deviaiton
-    sigma3 = 0.5*sigma1;                # vertical standard deviation
-    Lambda1 = calcLambda1(zhub);        # longitudinal scale parameter
-    L1 = 8.1*Lambda1;                   # longitudinal integral scale   
-    L2 = 2.7*Lambda1;                   # lateral integral scale  
-    L3 = 0.66*Lambda1;                  # vertical integral scale
-
-    Su = KaimalSpectrum(f,L1/Vhub,sigma1);  # longitudinal spectrum
-    Sv = KaimalSpectrum(f,L2/Vhub,sigma2);  # lateral spectrum
-    Sw = KaimalSpectrum(f,L3/Vhub,sigma3);  # vertical spectrum
-
-    return (Su,Sv,Sw)
-
-# ==============================================================================
-# MISCELLANEOUS
-# ==============================================================================
-
-def wrap(theta):
-    """ Wrap angle to [-pi,pi).
-    
-        Args:
-            theta (float): angle in radians
-    
-        Returns:
-            theta_out (float): wrapped angle
-    """
-    import numpy as np
-    
-    theta_out = np.multiply(theta<=np.pi,theta) + \
-        np.multiply(theta>np.pi,theta-2*np.pi)  # subtract 2pi from [pi,2pi)
-    
-    return theta_out
-
-
-def uniqueComponents(n_t):
-    """ Number of unique Fourier components for a vector of length n_t.
-
-        Args:
-           n_t (int): vector length
-        
-        Returns:
-           n_f (int): no. unique components
-    """
-    import numpy as np
-
-    n_f = int(np.ceil((float(n_t)-1) \
-        /2)+1);
-
-    return n_f
-
 
 def X2Sk(X):
     """ Convert Fourier array to discrete, one-sided spectral mass values.
@@ -1854,6 +1787,325 @@ def Xuniq2X(Xuniq,n_t):
     return X
 
 
+def signal2Sk(x):
+    """ Return array of discrete spectrum for signal x.
+
+        Args:
+            x (numpy array): array of time history
+       
+        Returns:
+            Sk (numpy array): array of discrete spectral values
+    """
+    import numpy as np
+
+    n_t  = x.shape[0];                      # no. of elements
+    X    = np.fft.fft(x,axis=0)/n_t;        # Fourier vector
+    Sk  = X2Sk(X);                          # discrete PSD
+
+    return Sk
+
+
+def samplePhaseCoherence(theta):
+    """ Return concentration and location parameters for a sample of wrapping
+        random variables.
+        
+        Args:
+            theta (numpy array): 1D array of sample of angles
+       
+        Returns:
+            rho (float): concentration parameter
+            mu (float): location parameter
+    """
+    import numpy as np
+    
+    # if (2+)D array is fed in, halt with error
+    if ((len(theta.shape)>1) and (theta.shape[0] != 1 and theta.shape[1] != 1)):
+        print 'ERROR: samplePhaseCoherence only works on 1D arrays'
+        return []
+    
+    n_t = theta.size                        # number of elements in sample
+    V = np.sum(np.exp(1j*theta))/n_t        # mean resultant vector
+    rho = np.abs(V)                         # concentration parameter
+    mu  = np.angle(V)                       # location parameter
+    
+    return (rho,mu)
+
+
+def signalPhaseDifferences(x):
+    """ Return phase differences for a time history.
+    
+        Args:
+            x (numpy array): 1D array of time history
+       
+        Returns:
+            rho (float): concentration parameter
+            mu (float): location parameter
+    """
+    import numpy as np
+    
+    # if (2+)D array is fed in, halt with error
+    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
+        errStr = 'signalPhaseDifferences only works on 1D arrays'
+        raise AttributeError(errStr)
+    
+    n_t = x.shape[0]                        # no. of total components
+    n_f = uniqueComponents(n_t)             # no. of unique components
+
+    X = np.fft.fft(x)/n_t                   # Fourier vector
+    Xuniq = X[:n_f]                         # unique Fourier components
+    dtheta = np.angle(np.divide( \
+        Xuniq[1:],Xuniq[:-1]))              # phase differences
+    
+    return dtheta
+
+
+def signalPhaseCoherence(x):
+    """ Return concentration and location parameters for a time history.
+    
+        Args:
+            x (numpy array): 1D array of time history
+       
+        Returns:
+            rho (float): concentration parameter
+            mu (float): location parameter
+    """
+    import numpy as np
+    
+    # if (2+)D array is fed in, halt with error
+    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
+        errStr = 'signalPhaseCoherence only works on 1D arrays'
+        raise AttributeError(errStr)
+
+    # bypass if all nans
+    if np.all(np.isnan(x)):
+        rho, mu = np.NAN, np.NAN
+
+    # otherwise remove nans and proceed
+    else:
+        
+        nan_idx = np.isnan(x)                       # nan indices
+        x_nonan = x[np.logical_not(nan_idx)]        # remove nanes
+        dtheta  = signalPhaseDifferences(x_nonan)   # phase differences
+        rho, mu = samplePhaseCoherence( \
+            dtheta)                                 # temp coh parameters
+    
+    return (rho,mu)
+
+
+def NRELfname2time(fname):
+    """ Convert filename to float representing time stamp
+
+        Args:
+            fname (string): name of file
+
+        Returns:
+            timestamp (float): float representing timestamp
+    """
+    import calendar
+
+    # extract date information
+    year     = int(fname[6:10])
+    month    = int(fname[0:2])
+    day      = int(fname[3:5])
+    hour     = int(fname[11:13])
+    minute   = int(fname[14:16])
+    time_tup = (year,month,day,hour,minute)
+
+    # convert tuple to float
+    time_flt = timetup2flt(time_tup)
+
+    return time_flt
+
+
+def NRELtime2fpath(timestamp):
+    """ Convert float to path to data structure
+
+        Args:
+            timestamp (float or tuple): float or tuple (year,month,day,hour,minute)
+                                        representing record start time
+
+        Returns:
+            fpath (string): path to data 
+            
+    """
+    import time
+    import os
+    import glob
+
+    # get tuple of timestampe
+    if (type(timestamp) == tuple): time_tup = timestamp
+    else:                          time_tup = timeflt2tup(timestamp)
+
+    # convert tuple to string values
+    yearS  = str(time_tup[0])
+    monthS = str(time_tup[1]).zfill(2)
+    dayS   = str(time_tup[2]).zfill(2)
+    hourS  = str(time_tup[3]).zfill(2)
+    minS   = str(time_tup[4]).zfill(2)
+
+    # get directory path
+    basedir = getBasedir('NREL')
+    dirpath = os.path.join(basedir,yearS,monthS,dayS)
+    
+    # get filename
+    fname_part = '_'.join([monthS,dayS,yearS,hourS,minS])
+    fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
+
+    # check if file doesn't exist
+    if len(fpath) > 0:  fpath = fpath[0]
+    else:               fpath = ''
+    
+    return fpath
+
+
+def timeflt2tup(time_flt):
+    """ Convert time in float to tuple
+
+        Args:
+            time_flt (float): timestamp in float format
+
+        Returns:
+            time_tup (tuple): (year,month,day,hour,minute)
+    """
+    import time
+
+    time_tup = time.gmtime(time_flt)[:5]    # convert float to tuple
+
+    return time_tup
+
+
+def timetup2flt(time_tup):
+    """ Convert time in float to tuple
+
+        Args:
+            time_tup (tuple): (year,month,day,hour,minute)
+            
+        Returns:
+            time_flt (float): timestamp in float format
+            
+    """
+    import calendar
+
+    time_tup = time_tup[:5]                 # ignore later entries in tuple
+    time_tup += (0,0,0,)                    # seconds, milliseconds, zre zero
+    time_flt = calendar.timegm(time_tup)    # convert to float
+
+    return time_flt
+
+
+def timeUTC2local(dataset,UTCtime_flt):
+    """ Convert timestamp in UTC (float) to timestamp
+        in local time for dataset (float)
+
+        Args:
+            dataset (string): flag to indicate dataset
+            UTCtime_flt (int/flt/numpy array): time or array of times
+                in UTC
+
+        Returns:
+            loctime_flt (int/flt/numpy array): time or array of times
+                in local time
+    """
+    import datetime
+    import numpy as np
+
+    # convert integers/floats to 1D numpy arrays for calculations
+    if (type(UTCtime_flt) in [int,float]):
+        UTCtime_flt = np.array([UTCtime_flt])
+
+    # initialize local time output
+    loctime_flt = np.empty(UTCtime_flt.shape)
+    
+    if dataset == 'NREL':
+
+        # convert each timestamp in a loop
+        for i in range(loctime_flt.size):
+
+            UTCtime_tup = timeflt2tup(\
+                UTCtime_flt[i])                 # UTC tuple
+            UTCtime_dat = datetime.datetime(\
+                UTCtime_tup[0],UTCtime_tup[1],\
+                UTCtime_tup[2],UTCtime_tup[3],\
+                UTCtime_tup[4])                 # UTC datetime object
+            time_delta  = datetime.timedelta(\
+                hours = -7)                     # time difference
+            loctime_dat = UTCtime_dat \
+                          + time_delta          # local datetime object
+            loctime_flt[i] = timetup2flt(\
+                loctime_dat.timetuple()[:5])    # local float
+
+    else:
+        errStr = 'Dataset \"{}\" not coded.'.format(dataset)
+        raise KeyError(errStr)
+
+    return np.squeeze(loctime_flt)
+
+
+def timeflt2arr(time_flt):
+    """ Expand timestamp in float to [year,month,day,hour,minute]
+
+        Args:
+            time_flt (int/flt/numpy array): N timestamps in float form
+
+        Returns:
+            time_vec (numpy array): Nx5 array of timestamps in
+                "expanded" format -- [year,month,day,hour,minute]
+    """
+    import numpy as np
+
+    # convert integers/floats to 1D numpy arrays for calculations
+    if (type(UTCtime_flt) in [int,float]):
+        UTCtime_flt = np.array([UTCtime_flt])
+
+    # initializze output array
+    time_vec = np.empty((time_flt.size,5))
+
+    # iteratively convert each timestamp
+    for i in range(time_flt.size):
+        time_tup = timeflt2tup(time_flt[i])
+        time_vec[i,:] = np.asarray(time_tup)
+
+    return time_vec
+
+
+# ==============================================================================
+# MISCELLANEOUS
+# ==============================================================================
+
+def wrap(theta):
+    """ Wrap angle to [-pi,pi).
+    
+        Args:
+            theta (float): angle in radians
+    
+        Returns:
+            theta_out (float): wrapped angle
+    """
+    import numpy as np
+    
+    theta_out = np.multiply(theta<=np.pi,theta) + \
+        np.multiply(theta>np.pi,theta-2*np.pi)  # subtract 2pi from [pi,2pi)
+    
+    return theta_out
+
+
+def uniqueComponents(n_t):
+    """ Number of unique Fourier components for a vector of length n_t.
+
+        Args:
+           n_t (int): vector length
+        
+        Returns:
+           n_f (int): no. unique components
+    """
+    import numpy as np
+
+    n_f = int(np.ceil((float(n_t)-1) \
+        /2)+1);
+
+    return n_f
+
+
 def spectralScale(Sk,sig,n_t):
     """ Spectral scaling factor for discrete power spectral coefficients Sk.
         
@@ -1880,6 +2132,7 @@ def spectralScale(Sk,sig,n_t):
         *(sig**2)/sumXkSq);                     # scaling factor
     
     return alpha
+
 
 def wrappedCauchyPDF(theta,rho,mu):
     """ Probability density function of wrapped Cauchy distribution.
@@ -1916,40 +2169,6 @@ def removeSpines(ax):
     ax.xaxis.set_ticks_position('bottom')
 
     return
-
-
-def timeflt2tup(time_flt):
-    """ Convert time in float to tuple
-
-        Args:
-            time_flt (float): timestamp in float format
-
-        Returns:
-            time_tup (tuple): (year,month,day,hour,minute)
-    """
-    import time
-
-    time_tup = time.gmtime(time_flt)[:5]
-
-    return time_tup
-
-def timetup2flt(time_tup):
-    """ Convert time in float to tuple
-
-        Args:
-            time_tup (tuple): (year,month,day,hour,minute)
-            
-        Returns:
-            time_flt (float): timestamp in float format
-            
-    """
-    import calendar
-
-    time_tup = time_tup[:5]
-    time_tup += (0,0,0)
-    time_flt = calendar.timegm(time_tup)
-
-    return time_flt
 
 
 def nandetrend(x,y):
@@ -2025,7 +2244,7 @@ def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
     sig_x    = np.std(diffs_P)                  # std dev of P% differences
     ext_idx  = np.where(absdiffs > \
         beta*sig_x)[0]                          # extremal indices
-                
+
     # remove spike at end of record
     if np.any(ext_idx >= N-spikeWidth):
         spike_idx = ext_idx[np.where( \
@@ -2067,11 +2286,11 @@ def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
         # continue looping through extremal values
         i += 1        
         
-    return x_cl, n_spikes
+    return x_cl
 
 
 def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
-    """ Remove spikes with linear trend removed (same mean)
+    """ Remove spikes and remove linear trend (same mean)
 
         Args:
             t (numpy array): time steps
@@ -2081,6 +2300,7 @@ def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
             x_cl (numpy array): time series with spikes
                             removed and detrended
     """
+    import numpy as np
 
     # remove spikes
     x_nospike = remove_spikes(x,spikeWidth,P,beta)
@@ -2090,50 +2310,6 @@ def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
 
     return x_cl
 
-
-def timeUTC2local(dataset,UTCtime_flt):
-    """ Float to float
-    """
-    import datetime
-
-    if dataset == 'NREL':
-
-        UTCtime_tup = timeflt2tup(UTCtime_flt)
-        UTCtime_dat = datetime.datetime(UTCtime_tup[0], \
-                            UTCtime_tup[1],UTCtime_tup[2], \
-                            UTCtime_tup[3],UTCtime_tup[4])
-        time_delta  = datetime.timedelta(hours = -7)
-        loctime_dat = UTCtime_dat + time_delta
-        loctime_flt = timetup2flt(loctime_dat.timetuple()[:5])
-
-    else:
-        errStr = 'Dataset \"{}\" not coded.'.format(dataset)
-        raise KeyError(errStr)
-
-    return loctime_flt
-
-##def numpy2latex(a,toprow=None,firstcol=None):
-##    """ Print numpy array in LaTeX-friendly formatting
-##
-##        Args:
-##            a (numpy array): array of values to print
-##            toprow (list/numpy array): headers for top row
-##            firstcol (list/numpy array): headers for first column
-##
-##        Returns:
-##            output (list): list of strings for each row
-##    """
-##
-##    m,n = a.shape                               # get dimensions
-##
-##    if toprow == None: toprow = ['']*n
-##    if firstcol == None: firstcol = ['']*m
-##
-##    for iRow in range(m):
-##
-##        rowStr = ''
-##
-##        for iCol in range(n):
 
             
                 

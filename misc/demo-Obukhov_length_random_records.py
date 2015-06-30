@@ -71,19 +71,18 @@ rhoCol    = fields.index('Concentration_u')
 zCol      = fields.index('Height')
 L_intrCol = fields.index('MO_Length_interp')
 L_nearCol = fields.index('MO_Length_near')
-time_Col   = fields.index('Record_Time')
+time_Col  = fields.index('Record_Time')
 ##
 ### extract values
-#times   = metadata[:,time_Col]
-#hours   = np.empty(n_recs)
-#for i in range(6):
-#    time_tup = jr.timeflt2tup(times[i])
-#    print(time_tup)
-rho    = metadata[:,rhoCol]
-z      = metadata[:,zCol]
-L_intr = metadata[:,L_intrCol]
-L_near = metadata[:,L_nearCol]
-zeta   = z / L_intr
+time_UTC = metadata[:,time_Col]
+time_loc = jr.timeUTC2local('NREL',time_UTC)
+time_arr = jr.timeflt2arr(time_loc)
+hours    = time_arr[:,3]
+rho      = metadata[:,rhoCol]
+z        = metadata[:,zCol]
+L_intr   = metadata[:,L_intrCol]
+L_near   = metadata[:,L_nearCol]
+zeta     = z / L_intr
 
 # separate by stability classes
 xs_idx = np.where(zeta < -2)[0]
@@ -178,4 +177,4 @@ plt.xticks(bin_cntrs, stab_lbls)
 plt.xlabel('Stability')
 plt.ylabel('Concentration Parameter')
 plt.title(r'Variation of $\rho$ with Stability')
-plt.tight_layout()
+#plt.tight_layout()
