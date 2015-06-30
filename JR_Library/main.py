@@ -94,146 +94,82 @@ def loadNRELmatlab():
 
     return (fields, metadata)
 
-##def loadtimeseries(dataset,timestamp,field):
-##    """ Load the turbulent time series for a given dataset and timestamp.
-##
-##        Args:
-##            dataset (string): flag to indicate dataset
-##            timestamp (float/tuple): float or tuple representing time value
-##            field (string): name of data type
-##
-##        Returns:
-##            outdict (dictionary): keys = ['raw','clean','flags']
-##    """
-##    import scipy.io as scio
-##    import numpy as np
-##    import calendar
-##
-##    if (dataset == 'NREL'):
-##
-##        # define data ranges
-##        if ('Sonic_w' in field):
-##            dataRng = [-29.95,29.95]
-##        elif ('Sonic_Temp' in field):
-##            dataRng = [-19.95,49.95]
-##        elif ('Air_Temp' in field):
-##            dataRng = [-50.,50.]
-##        elif ('Cup' in field):
-##            dataRng = [0,80]
-##        elif ('Precip' in field):
-##            dataRng = [0.,3.]
-##        elif (('Sonic_u' in field) or ('Sonic_v' in field):
-##              dataRng = [-35.05,35.05]
-##        else:
-##              raise KeyError('Field {} not recognized.'.format(field))
-##            
-##        # convert tuple to timestamp if necessary
-##        if (type(timestamp) == tuple):
-##            timestamp = timetup2flt(timestamp)
-##
-##        # if we fed in the structure itself
-##        if (type(timestamp) == dict):
-##            struc = timestamp
-##        else:
-##            # get file path
-##            fpath = NRELtime2fpath(timestamp)
-##            struc = scio.loadmat(fpath)
-##
-##        # try to load data
-##        flags = []
-##        try:
-##            x_raw = np.squeeze(struc[field][0,0][0])
-##        except KeyError:
-##            x_raw = np.empty(12000)
-##            x_raw[:] = np.nan
-##            flags.append(1006)
-##
-##        x_tmp = np.copy(x_raw)
-##
-##        # check flags
-##        if x_raw.size < 12000:
-##            flags.append(1005)
-##        
-##        x_tmp[np.where(x_raw < dataRng[0])] = np.nan
-##        x_tmp[np.where(x_raw > dataRng[1])] = np.nan
-##
-##        if np.sum(np.isnan(x_tmp))/12000 > 0.01:
-##              flags.append(1003)
-##
-##        if np.all(np.isnan(x_raw)):
-##              flags.append(5003)
-##
-##        if (len(flags) == 0):# ENDXED HERE
-##        
-##
-##    else:
-##        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-##        raise AttributeError(errStr)
-##
-##    return outdict
+def loadtimeseries(dataset,timestamp,datfield):
+    """ Load the time series for a given dataset, timestamp, and field
 
-##def loadtimeseries(dataset,timestamp,ht):
-##    """ Load the turbulent time series for a given dataset and timestamp.
-##
-##        Args:
-##            dataset (string): flag to indicate dataset
-##            timestamp (float/tuple): float or tuple representing time value
-##
-##        Returns:
-##            t (numpy array): array of time values
-##            u (numpy array): array of longitudinal win velocities
-##    """
-##    import scipy.io as scio
-##    import numpy as np
-##    import calendar
-##
-##    if (dataset == 'NREL'):
-##
-##        # time parameters
-##        N  = 12000
-##        dt = 0.05
-##
-##        # convert tuple to timestamp if necessary
-##        if (type(timestamp) == tuple):
-##            timestamp = timetup2flt(timestamp)
-##
-##        # skip to last step if it's a structure
-##        if (type(timestamp) == dict):
-##            struc = timestamp
-##        else:
-##            # get file path
-##            fpath = NRELtime2fpath(timestamp)
-##            struc = scio.loadmat(fpath)
-##
-##        # try to load data
-##        t = np.arange(12000)*dt
-##        try:
-##            field = 'Sonic_u_' + str(ht) + 'm'
-##            u = np.squeeze(struc[field][0,0][0])
-##        except KeyError:
-##            print '***WARNING***: KeyError for {}'.format(field)
-##            u = np.empty(np.shape(t))
-##            u[:] = np.nan
-##        try:
-##            field = 'Sonic_v_' + str(ht) + 'm'
-##            v = np.squeeze(struc[field][0,0][0])
-##        except KeyError:
-##            print '***WARNING***: KeyError for {}'.format(field)
-##            v = np.empty(np.shape(t))
-##            v[:] = np.nan
-##        try:
-##            field = 'Sonic_w_' + str(ht) + 'm'
-##            w = np.squeeze(struc[field][0,0][0])
-##        except KeyError:
-##            print '***WARNING***: KeyError for {}'.format(field)
-##            w = np.empty(np.shape(t))
-##            w[:] = np.nan
-##
-##    else:
-##        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-##        raise AttributeError(errStr)
-##
-##    return (t, u, v, w)
+        Args:
+            dataset (string): flag to indicate dataset
+            timestamp (float/tuple): float or tuple representing time value
+            datfield (string): dataset-specific field name
+
+        Returns:
+            outdict (dictionary): keys = ['raw','clean','flags']
+    """
+    import scipy.io as scio
+    import numpy as np
+    import calendar
+
+    if (dataset == 'NREL'):
+
+        # set data ranges, desired length of time series
+        dataRng = dataRanges(dataset,datfield)
+        N       = 12000
+        t       = np.arange(N)*0.05
+            
+        # convert tuple to float if necessary
+        if (type(timestamp) == tuple):
+            timestamp = timetup2flt(timestamp)
+
+        # get file path
+        fpath = NRELtime2fpath(timestamp)
+        struc = scio.loadmat(fpath)
+
+        # initialize list of flags
+        flags = []
+
+        # flag 1006: data is not present in 20-Hz structure, return NaNs
+        try:
+            x_raw = np.squeeze(struc[datfield][0,0][0])            
+            # flag 5003: data are all NaNs
+            if (np.all(np.isnan(x_raw))):
+                flags.append(5003)                
+        except KeyError:
+            x_raw = np.empty(N)
+            x_raw[:] = np.nan
+            flags.append(1006)
+
+        # copy raw data for analysis
+        x_cl  = np.copy(x_raw)
+
+        # flag 1005: data is not length N
+        if x_raw.size < N:
+            flags.append(1005)
+
+        # flag 1003: >1% are outside acceptable data range
+        x_cl[np.where(x_raw < dataRng[0])] = np.nan
+        x_cl[np.where(x_raw > dataRng[1])] = np.nan
+        if (np.sum(np.isnan(x_cl))/float(N) > 0.01):
+              flags.append(1003)
+
+        # sort flags
+        flags = sorted(flags)
+
+        # clean/detrend healthy data if no flags and it's a sonic time series
+        if ((len(flags) == 0) and ('Sonic' in datfield)):
+            x_cl = cleantimeseries(t,x_cl)
+
+        # save results in dictionary
+        outdict          = {}
+        outdict['time']  = t
+        outdict['raw']   = x_raw
+        outdict['clean'] = x_cl
+        outdict['flags'] = flags
+
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+
+    return outdict
 
 
 class tsin:
@@ -450,12 +386,12 @@ def metadataFields(dataset):
     return fields
 
 
-def dataRanges(dataset,field):
+def dataRanges(dataset,datfield):
     """ Acceptable range of time series
 
         Args:
             dataset (string): flag for dataset
-            field (string): data field
+            field (string): dataset-specific fieldname
 
         Returns:
             dataRng (list): [min,max] range of data
@@ -464,21 +400,21 @@ def dataRanges(dataset,field):
     if (dataset == 'NREL'):
 
         # define data ranges
-        if ('Sonic_u' in field):
+        if ('Sonic_u' in datfield):
             dataRng = [-35.05,35.05]
-        elif ('Sonic_v' in field):
+        elif ('Sonic_v' in datfield):
             dataRng = [-35.05,35.05]
-        elif ('Sonic_w' in field):
+        elif ('Sonic_w' in datfield):
             dataRng = [-29.95,29.95]
-        elif ('Sonic_Temp' in field):
+        elif ('Sonic_T' in datfield):
             dataRng = [-19.95,49.95]
-        elif ('Air_Temp' in field):
+        elif ('Air_Temp' in datfield):
             dataRng = [-50.,50.]
-        elif ('Cup_WS' in field):
+        elif ('Cup_WS' in datfield):
             dataRng = [0.,80.]
-        elif ('Vane_WD' in field):
+        elif ('Vane_WD' in datfield):
             dataRng = [0.,360.]
-        elif ('PRECIP' in field):
+        elif ('PRECIP' in datfield):
             dataRng = [0.,3.]
         else:
               raise KeyError('Field {} not recognized.'.format(field))
@@ -2066,6 +2002,42 @@ def timeflt2arr(time_flt):
         time_vec[i,:] = np.asarray(time_tup)
 
     return time_vec
+
+
+def field2datfield(dataset,field,ht):
+    """ Dataset-specific fieldname corresponding with custom fieldname
+        and height
+
+        Args:
+            dataset (string): flag for dataset
+            field (string): custom fieldname
+            ht (float): measurement height
+
+        Returns:
+            datfield (string): dataset-specific fieldname
+    """
+
+    ht = int(ht)                        # height must be int for string calculations
+
+    if dataset == 'NREL':
+
+        if   (field == 'Sonic_u'):        datfield = 'Sonic_u_' + str(ht) + 'm'
+        elif (field == 'Sonic_v'):        datfield = 'Sonic_v_' + str(ht) + 'm'
+        elif (field == 'Sonic_w'):        datfield = 'Sonic_w_' + str(ht) + 'm'
+        elif (field == 'Sonic_T'):        datfield = 'Sonic_Temp_Rotated_' + str(ht) + 'm'
+        elif (field == 'Air_Temp'):       datfield = 'Air_Temp_' + str(ht) + 'm'
+        elif (field == 'Wind_Speed_Cup'): datfield = 'Cup_WS_' + str(ht) + 'm'
+        elif (field == 'Wind_Direction'): datfield = 'Vane_WD_' + str(ht) + 'm'
+        elif (field == 'Precipitation'):  datfield = 'PRECIP_INTENS'
+        else:
+            errStr = 'Unknown custom field {} for dataset \"{}\"'.format(field,dataset)
+            raise AttributeError(errStr)
+
+    else:
+        errStr = 'Dataset \"{}\" not coded.'.format(dataset)
+        raise KeyError(errStr)
+
+    return datfield
 
 
 # ==============================================================================
