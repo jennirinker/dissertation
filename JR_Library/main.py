@@ -21,9 +21,9 @@ Restructured 2015-06-30
 Jenni Rinker, Duke University
 """
 
-# ==============================================================================
+# %%===========================================================================
 # FILE I/O
-# ==============================================================================
+# =============================================================================
 
 def loadmetadata(fname):
     """ Load data and fields from metadata file processed in Python,
@@ -87,27 +87,28 @@ def loadNRELmatlab():
     fields = [str(ele[0]) for ele in tmp]
 
     # replace necessary old fieldnames with new ones for screening
-    fields[fields.index('Cup_speed')] = 'Wind_Speed_Cup'
+    fields[fields.index('Cup_speed')]      = 'Wind_Speed_Cup'
     fields[fields.index('Wind_direction')] = 'Wind_Direction'
-    fields[fields.index('Precip_intens')] = 'Precipitation'
-    fields[fields.index('rho_u')] = 'Concentration_u'
+    fields[fields.index('Precip_intens')]  = 'Precipitation'
+    fields[fields.index('rho_u')]          = 'Concentration_u'
 
     return (fields, metadata)
 
-def loadtimeseries(dataset,timestamp,datfield):
-    """ Load the time series for a given dataset, timestamp, and field
+def loadtimeseries(dataset,datfield,data_in):
+    """ Load the time series for a given dataset, field and timestamp 
+        or structure
 
         Args:
             dataset (string): flag to indicate dataset
-            timestamp (float/tuple): float or tuple representing time value
             datfield (string): dataset-specific field name
+            data_in (float/tuple or dictionary): float or tuple representing 
+                time value or high-frequency data structure
 
         Returns:
             outdict (dictionary): keys = ['raw','clean','flags']
     """
     import scipy.io as scio
     import numpy as np
-    import calendar
 
     if (dataset == 'NREL'):
 
@@ -115,14 +116,17 @@ def loadtimeseries(dataset,timestamp,datfield):
         dataRng = dataRanges(dataset,datfield)
         N       = 12000
         t       = np.arange(N)*0.05
-            
-        # convert tuple to float if necessary
-        if (type(timestamp) == tuple):
-            timestamp = timetup2flt(timestamp)
-
-        # get file path
-        fpath = NRELtime2fpath(timestamp)
-        struc = scio.loadmat(fpath)
+                    
+        # determine what kind of data was provided
+        if (isinstance(data_in,dict)):                   # data structure given
+            struc = data_in
+        elif (isinstance(data_in,(int,float,tuple))):    # timestamp given
+            fpath = NRELtime2fpath(data_in)
+            struc = scio.loadmat(fpath)
+        else:
+            errStr = 'Incorrect data type ' + \
+                '\"{}\" for input \"data_in\".'.format(type(data_in))
+            raise TypeError(errStr)
 
         # initialize list of flags
         flags = []
@@ -148,7 +152,8 @@ def loadtimeseries(dataset,timestamp,datfield):
         # flag 1003: >1% are outside acceptable data range
         x_cl[np.where(x_raw < dataRng[0])] = np.nan
         x_cl[np.where(x_raw > dataRng[1])] = np.nan
-        if (np.sum(np.isnan(x_cl))/float(N) > 0.01):
+        percOut = np.sum(np.isnan(x_cl))/float(N)
+        if (percOut > 0.01):
               flags.append(1003)
 
         # sort flags
@@ -415,9 +420,9 @@ def dataRanges(dataset,datfield):
         elif ('Vane_WD' in datfield):
             dataRng = [0.,360.]
         elif ('PRECIP' in datfield):
-            dataRng = [0.,3.]
+            dataRng = [0.,4.]
         else:
-              raise KeyError('Field {} not recognized.'.format(field))
+              raise KeyError('Field {} not recognized.'.format(datfield))
 
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -497,7 +502,6 @@ def makeNRELmetadata(basedir):
                 struc = scio.loadmat(fpath)                
                 # loop through heights
                 for height in heights:
-
                     row = extractNRELparameters(struc,height)
                     metadata = np.vstack([metadata,row])
                 
@@ -516,171 +520,177 @@ def extractNRELparameters(struc,height):
     """
     import numpy as np
 
+    # define dataset
     dataset = 'NREL'
 
-    fields = metadataFields(dataset)
+    # get list of metadata fieldnames
+    md_fields = metadataFields(dataset)
 
-    parameters = np.empty(len(fields))
+    # intialize array of metadata parameters
+    parameters = np.empty(len(md_fields))
 
+    # calculate all fields
     outdict = calculatefield(dataset,struc,height)
 
-    for i in range(len(fields)):
-        field = fields[i]
+    # assign fields to location in output array
+    for i in range(len(md_fields)):
+        field = md_fields[i]
         parameters[i] = outdict[field]
             
     return parameters
 
 
-def interpolateparameter(dataset,struc,ht,field):
-    """ Interpolate a parameter value
-
-        Args:
-            dataset (string): flag to indicate which dataset to analyze
-            struc (numpy structure): loaded from matlab
-            ht (float): measurement height to interpolate
-            field (string): field of interest for interpolation
-
-        Returns:
-            value (float): interpolated value
-    """
-    import numpy as np
-
-    if (dataset == 'NREL'):
-        dt = 0.05
-
-        try:
-
-            if (field == 'Wind_Speed_Cup'):
-
-                # define measurement heights
-                msmnt_hts = np.array([10,26,80,88,134])
-                fld_str   = 'Cup_WS_'
-
-                # force height to be in range
-                ht = min(msmnt_hts[-1],ht)
-                ht = max(msmnt_hts[0],ht)
-
-                # perform interpolation
-                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
-                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
-                lowerField = fld_str + str(lowerHt) + 'm'
-                upperField = fld_str + str(upperHt) + 'm'
-                upperVal   = np.nanmean(struc[upperField][0,0][0])
-                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
-                print('lower',lowerVal,'upper',upperVal)
-                value = np.interp(ht,[lowerHt,upperHt], \
-                                    [lowerVal,upperVal])
-
-            elif (field == 'Temperature'):
-                
-                # define measurement heights
-                msmnt_hts = np.array([3,26,88])
-                fld_str   = 'Air_Temp_'
-
-                # force height to be in range
-                ht = min(msmnt_hts[-1],ht)
-                ht = max(msmnt_hts[0],ht)
-
-                # perform interpolation
-                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
-                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
-                lowerField = fld_str + str(lowerHt) + 'm'
-                upperField = fld_str + str(upperHt) + 'm'
-                upperVal   = np.nanmean(struc[upperField][0,0][0])
-                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
-                value = np.interp(ht,[lowerHt,upperHt], \
-                                    [lowerVal,upperVal])
-                
-            elif (field == 'Wind_Direction'):
-                
-                # define measurement heights
-                msmnt_hts = np.array([10,26,88,134])
-                fld_str   = 'Vane_WD_'
-
-                # force height to be in range
-                ht = min(msmnt_hts[-1],ht)
-                ht = max(msmnt_hts[0],ht)
-
-                # perform interpolation
-                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
-                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
-                lowerField = fld_str + str(lowerHt) + 'm'
-                upperField = fld_str + str(upperHt) + 'm'
-                lowerVal = struc[lowerField][0,0][0]
-                upperVal = struc[upperField][0,0][0]
-                lower_mean = np.angle(np.nanmean(np.exp(1j*lowerVal \
-                            *np.pi/180)),deg=1)
-                upper_mean = np.angle(np.nanmean(np.exp(1j*upperVal \
-                            *np.pi/180)),deg=1)
-                dtheta     = np.angle(np.exp(1j*upper_mean*np.pi/180)/ \
-                                      np.exp(1j*lower_mean*np.pi/180),deg=1)
-                int_theta  = dtheta * (ht - lowerHt)/(upperHt - lowerHt)
-                value = np.mod(lower_mean+int_theta,360)
-
-            else:
-                errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
-                raise AttributeError(errStr)            
-
-        except KeyError:
-            print '***WARNING***: KeyError for {}'.format(field)
-            value = float('nan')
-        
-    else:
-        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-        raise AttributeError(errStr)
-
-    return value
-        
-def closestparameter(dataset,struc,ht,field):
-    """ Return the closest parameter value
-
-        Args:
-            dataset (string): flag to indicate which dataset to analyze
-            struc (numpy structure): loaded from matlab
-            ht (float): measurement height to interpolate
-            field (string): field of interest for interpolation
-
-        Returns:
-            value (float): closest value
-    """
-    import numpy as np
-
-    if (dataset == 'NREL'):
-        dt = 0.05
-
-        try:
-
-            if (field == 'Temperature'):
-                
-                # define measurement heights
-                msmnt_hts = np.array([3,26,88])
-                fld_str   = 'Air_Temp_'
-
-                # force height to be in range
-                ht = min(msmnt_hts[-1],ht)
-                ht = max(msmnt_hts[0],ht)
-
-                # find closest value
-                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
-                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
-                dh      = upperHt - lowerHt
-                ht_clst = int(round((ht-lowerHt)/dh)*dh + lowerHt)
-                clstField = fld_str + str(lowerHt) + 'm'
-                value   = np.nanmean(struc[clstField][0,0][0])
-
-            else:
-                errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
-                raise AttributeError(errStr)            
-
-        except KeyError:
-            print '***WARNING***: KeyError for {}'.format(field)
-            value = float('nan')
-        
-    else:
-        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-        raise AttributeError(errStr)
-
-    return value
+#def interpolateparameter(dataset,struc,ht,field):
+#    """ Interpolate a parameter value
+#
+#        Args:
+#            dataset (string): flag to indicate which dataset to analyze
+#            struc (numpy structure): loaded from matlab
+#            ht (float): measurement height to interpolate
+#            field (string): field of interest for interpolation
+#
+#        Returns:
+#            value (float): interpolated value
+#    """
+#    import numpy as np
+#
+#    if (dataset == 'NREL'):
+#        dt = 0.05
+#
+#        try:
+#
+#            if (field == 'Wind_Speed_Cup'):
+#
+#                # define measurement heights
+#                msmnt_hts = np.array([10,26,80,88,134])
+#                fld_str   = 'Cup_WS_'
+#
+#                # force height to be in range
+#                ht = min(msmnt_hts[-1],ht)
+#                ht = max(msmnt_hts[0],ht)
+#
+#                # perform interpolation
+#                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
+#                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
+#                lowerField = fld_str + str(lowerHt) + 'm'
+#                upperField = fld_str + str(upperHt) + 'm'
+#                upperVal   = np.nanmean(struc[upperField][0,0][0])
+#                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
+#                print('lower',lowerVal,'upper',upperVal)
+#                value = np.interp(ht,[lowerHt,upperHt], \
+#                                    [lowerVal,upperVal])
+#
+#            elif (field == 'Temperature'):
+#                
+#                # define measurement heights
+#                msmnt_hts = np.array([3,26,88])
+#                fld_str   = 'Air_Temp_'
+#
+#                # force height to be in range
+#                ht = min(msmnt_hts[-1],ht)
+#                ht = max(msmnt_hts[0],ht)
+#
+#                # perform interpolation
+#                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
+#                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
+#                lowerField = fld_str + str(lowerHt) + 'm'
+#                upperField = fld_str + str(upperHt) + 'm'
+#                upperVal   = np.nanmean(struc[upperField][0,0][0])
+#                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
+#                value = np.interp(ht,[lowerHt,upperHt], \
+#                                    [lowerVal,upperVal])
+#                
+#            elif (field == 'Wind_Direction'):
+#                
+#                # define measurement heights
+#                msmnt_hts = np.array([10,26,88,134])
+#                fld_str   = 'Vane_WD_'
+#
+#                # force height to be in range
+#                ht = min(msmnt_hts[-1],ht)
+#                ht = max(msmnt_hts[0],ht)
+#
+#                # perform interpolation
+#                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
+#                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
+#                lowerField = fld_str + str(lowerHt) + 'm'
+#                upperField = fld_str + str(upperHt) + 'm'
+#                lowerVal = struc[lowerField][0,0][0]
+#                upperVal = struc[upperField][0,0][0]
+#                lower_mean = np.angle(np.nanmean(np.exp(1j*lowerVal \
+#                            *np.pi/180)),deg=1)
+#                upper_mean = np.angle(np.nanmean(np.exp(1j*upperVal \
+#                            *np.pi/180)),deg=1)
+#                dtheta     = np.angle(np.exp(1j*upper_mean*np.pi/180)/ \
+#                                      np.exp(1j*lower_mean*np.pi/180),deg=1)
+#                int_theta  = dtheta * (ht - lowerHt)/(upperHt - lowerHt)
+#                value = np.mod(lower_mean+int_theta,360)
+#
+#            else:
+#                errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
+#                raise AttributeError(errStr)            
+#
+#        except KeyError:
+#            print '***WARNING***: KeyError for {}'.format(field)
+#            value = float('nan')
+#        
+#    else:
+#        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+#        raise AttributeError(errStr)
+#
+#    return value
+#        
+#def closestparameter(dataset,struc,ht,field):
+#    """ Return the closest parameter value
+#
+#        Args:
+#            dataset (string): flag to indicate which dataset to analyze
+#            struc (numpy structure): loaded from matlab
+#            ht (float): measurement height to interpolate
+#            field (string): field of interest for interpolation
+#
+#        Returns:
+#            value (float): closest value
+#    """
+#    import numpy as np
+#
+#    if (dataset == 'NREL'):
+#        dt = 0.05
+#
+#        try:
+#
+#            if (field == 'Temperature'):
+#                
+#                # define measurement heights
+#                msmnt_hts = np.array([3,26,88])
+#                fld_str   = 'Air_Temp_'
+#
+#                # force height to be in range
+#                ht = min(msmnt_hts[-1],ht)
+#                ht = max(msmnt_hts[0],ht)
+#
+#                # find closest value
+#                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
+#                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
+#                dh      = upperHt - lowerHt
+#                ht_clst = int(round((ht-lowerHt)/dh)*dh + lowerHt)
+#                clstField = fld_str + str(lowerHt) + 'm'
+#                value   = np.nanmean(struc[clstField][0,0][0])
+#
+#            else:
+#                errStr = 'Field \"{}\" is not coded'.format(field) + \
+#                    ' for dataset \"NREL\".'
+#                raise AttributeError(errStr)            
+#
+#        except KeyError:
+#            print '***WARNING***: KeyError for {}'.format(field)
+#            value = float('nan')
+#        
+#    else:
+#        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+#        raise AttributeError(errStr)
+#
+#    return value
         
 
 def calculateKaimal(x,dt):
@@ -741,79 +751,210 @@ def calculateKaimal(x,dt):
     return tau
 
 
-def calculatefield(dataset,struc,ht):
+def interpolationHeights(dataset,ht,field):
+    """ Get upper and lower measurement heights for interpolation
+    
+        Args:
+            dataset (string): flag to indicate which dataset to analyze
+            struc (numpy structure): loaded from matlab
+            ht (float): measurement height to interpolate
+            field (string): field of interest for interpolation
+
+        Returns:
+            interp_heights (tuple): (lowerHt,upperHt)
+            
+    """
+    import numpy as np
+    
+    if (dataset == 'NREL'):
+
+        if (field == 'Wind_Speed_Cup'):
+            msmnt_hts = np.array([10,26,80,88,134])
+
+        elif (field == 'Temperature'):
+            msmnt_hts = np.array([3,26,88])
+            
+        elif (field == 'Wind_Direction'):
+            msmnt_hts = np.array([10,26,88,134])
+
+        else:
+            errStr = 'Field \"{}\" is not coded '.format(field) + \
+                'for dataset \"NREL\".'
+            raise AttributeError(errStr)    
+                        
+        # force height to be in range
+        ht = min(msmnt_hts[-1],ht)
+        ht = max(msmnt_hts[0],ht)
+        
+        # find upper and lower heights
+        upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
+        lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
+        
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+        
+    return (lowerHt,upperHt)
+    
+    
+def interpolateparameter(dataset,ht,lo_val,hi_val,field):
+    """ Interpolate parameter value
+    """
+    import numpy as np
+    
+    if (dataset == 'NREL'):
+        
+        # get heights for that measurement
+        lo_ht, hi_ht = interpolationHeights(dataset,ht,field)
+        
+        # throw error if interpolationHeights gave wrong value
+        if ((ht < lo_ht) or (ht > hi_ht)):
+            raise ValueError('Error in interpolation heights.')
+        
+        # linearly interpolate linear variables
+        if ((field == 'Wind_Speed_Cup') or (field == 'Temperature')):
+            val = (hi_val - lo_val) / float((hi_ht - lo_ht)) * \
+                (ht - lo_ht) + lo_val
+            
+        # special interpolate wrapping variables
+        elif (field == 'Wind_Direction'):
+            dtheta = np.angle(np.exp(1j*hi_val*np.pi/180.)/\
+                np.exp(1j*lo_val*np.pi/180.),deg=1)
+            val = (dtheta / (hi_ht - lo_ht) * (ht - lo_ht) + lo_val) % 360.
+            
+        else:
+            raise KeyError('Unknown field \"{}\" for '.format(field) + \
+                'dataset \"NREL\"')
+        
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+        
+    return val
+
+
+def calculatefield(dataset,struc20,ht):
     """ Save atmophseric parameters in output dictionary
 
     """
-    import sys, calendar, time
+    import calendar, time
     import numpy as np
 
     if (dataset == 'NREL'):
-        dt = 0.05
-
-        # load and remove spikes from time series
-        (t,uraw,vraw,wraw) = loadtimeseries(dataset,struc,ht)
-        u = remove_spikes(uraw)
-        v = remove_spikes(vraw)
-        w = remove_spikes(wraw)
-
-        # calculate variables necessary for later calculations
-        fname     = struc['tower'][0,0][23][0,0][0][0,0][8][0]
-        rec_time  = NRELfname2time(fname)
-        T_sonic_K = np.squeeze(struc['Sonic_Temp_rotated_' + \
-                             str(ht) + 'm'][0,0][0]) + 298.15
-        up        = nandetrend(t,u)
-        vp        = nandetrend(t,v)
-        wp        = nandetrend(t,w)
-        Tp        = nandetrend(t,T_sonic_K)
-        upwp_bar  = np.nanmean(up*wp)
-        upvp_bar  = np.nanmean(up*vp)
-        vpwp_bar  = np.nanmean(vp*wp)
-        wpTp_bar  = np.nanmean(wp*Tp)
-        ustar     = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
-        rhou,muu  = signalPhaseCoherence(up)
-        rhov,muv  = signalPhaseCoherence(vp)
-        rhow,muw  = signalPhaseCoherence(wp)
-        Tbar_in_K = interpolateparameter(dataset, \
-                            struc,ht,'Temperature') + 298.15
-        Tbar_ne_K = closestparameter(dataset, \
-                            struc,ht,'Temperature') + 298.15
-
-        # initialize output dictionary
-        outdict = {}
-
-        # save values
-        outdict['Record_Time']     = rec_time
-        outdict['Processed_Time']  = calendar.timegm(time.gmtime())   
-        outdict['Height']          = ht
-        outdict['Wind_Speed_Cup']  = interpolateparameter( \
-                                        dataset,struc,ht,'Wind_Speed_Cup')
-        outdict['Wind_Direction']  = interpolateparameter( \
-                                        dataset,struc,ht,'Wind_Direction')
-        outdict['Precipitation']   = np.nanmean( \
-                                        struc['PRECIP_INTEN'][0,0][0])
-        outdict['Mean_Wind_Speed'] = np.nanmean(u)
-        outdict['Sigma_u']         = np.nanstd(up)
-        outdict['Concentration_u'] = rhou
-        outdict['Location_u']      = muu
-        outdict['Sigma_v']         = np.nanstd(vp)
-        outdict['Concentration_v'] = rhov
-        outdict['Location_v']      = muv
-        outdict['Sigma_w']         = np.nanstd(wp)
-        outdict['Concentration_w'] = rhow
-        outdict['Location_w']      = muw
-        outdict['up_wp']           = upwp_bar          
-        outdict['vp_wp']           = vpwp_bar
-        outdict['wp_Tp']           = wpTp_bar
-        outdict['up_vp']           = upvp_bar
-        outdict['tau_u']           = calculateKaimal(up + \
-                                            np.mean(u),dt)
-        outdict['tau_v']           = calculateKaimal(vp,dt)
-        outdict['tau_w']           = calculateKaimal(wp,dt)
-        outdict['MO_Length_interp'] = -(Tbar_in_K * ustar**3) \
-                                     /(0.41 * 9.81 * wpTp_bar)
-        outdict['MO_Length_near']  = - (Tbar_ne_K * ustar**3)/ \
-                                     (0.41 * 9.81 * wpTp_bar)
+        
+        # get interpolation/closest heights
+        T_hts = interpolationHeights(dataset,ht,'Temperature')
+        loht_T, hiht_T = T_hts
+        clht_T = T_hts[np.abs(np.array(T_hts)-ht).argmin()]
+        loht_WS, hiht_WS = interpolationHeights(dataset,ht,'Wind_Speed_Cup')
+        loht_WD, hiht_WD = interpolationHeights(dataset,ht,'Wind_Direction')
+        
+        # load all necessary time series, incrementally checking flags
+        clean = 1
+        fields = ['Sonic_u','Sonic_v','Sonic_w','Sonic_T','Temperature',\
+            'Temperature','Temperature','Wind_Speed_Cup','Wind_Speed_Cup',\
+            'Wind_Direction','Wind_Direction','Precipitation']
+        ts_hts = [ht, ht, ht, ht, loht_T, hiht_T, clht_T, loht_WS, hiht_WS,\
+                loht_WD, hiht_WD,ht]
+        time_series = np.empty((12,12000))
+        for i in range(12):
+            
+            # load time series for that field, measurement height
+            field = fields[i]
+            ts_ht = ts_hts[i]            
+            datfield = field2datfield(dataset,field,ts_ht)
+            outdict = loadtimeseries(dataset,datfield,struc20)
+            
+            # save time series if it is clean
+            if (len(outdict['flags']) == 0):
+                time_series[i,:] = outdict['clean']
+            else:
+                clean = 0
+                
+        # if all time series are clean
+        if clean:
+            
+            # put all time series in variables
+            dt, N = 0.05, 12000
+            t     = np.arange(N)*dt                 # time vector
+            u     = time_series[0,:]                # Sonic_u
+            v     = time_series[1,:]                # Sonic_v
+            w     = time_series[2,:]                # Sonic_w
+            T_s   = time_series[3,:]                # Sonic_T
+            T_lo  = time_series[4,:]                # lower ht temp
+            T_hi  = time_series[5,:]                # upper ht temp
+            T_cl  = time_series[6,:]                # closest ht temp
+            WS_lo = time_series[7,:]                # lower ht cup WS
+            WS_hi = time_series[8,:]                # upper ht cup WS
+            WD_lo = time_series[9,:]                # lower ht wind dir
+            WD_hi = time_series[10,:]               # upper ht wind dir
+            P     = time_series[11,:]               # precipitation
+            
+            # get variables necessary for later calculations
+            fname     = struc20['tower'][0,0][23][0,0][0][0,0][8][0]
+            rec_time  = NRELfname2time(fname)
+            T_sonic_K = T_s + 298.15
+            up        = nandetrend(t,u)
+            vp        = nandetrend(t,v)
+            wp        = nandetrend(t,w)
+            Tp        = nandetrend(t,T_sonic_K)
+            upwp_bar  = np.nanmean(up*wp)
+            upvp_bar  = np.nanmean(up*vp)
+            vpwp_bar  = np.nanmean(vp*wp)
+            wpTp_bar  = np.nanmean(wp*Tp)
+            ustar     = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
+            rhou,muu  = signalPhaseCoherence(up)
+            rhov,muv  = signalPhaseCoherence(vp)
+            rhow,muw  = signalPhaseCoherence(wp)
+            Tbar_lo_K = np.nanmean(T_lo) + 298.15
+            Tbar_hi_K = np.nanmean(T_hi) + 298.15
+            Tbar_cl_K = np.nanmean(T_cl) + 298.15
+            WSbar_lo  = np.nanmean(WS_lo)
+            WSbar_hi  = np.nanmean(WS_hi)
+            WDbar_lo  = np.angle(np.nanmean(np.exp(1j*WD_lo*np.pi/180.)),deg=1)
+            WDbar_hi  = np.angle(np.nanmean(np.exp(1j*WD_hi*np.pi/180.)),deg=1)
+            Tbar_in_K = interpolateparameter(dataset,ht,Tbar_lo_K,Tbar_hi_K,\
+                                            'Temperature')
+            WSbar_in  = interpolateparameter(dataset,ht,WSbar_lo,WSbar_hi,\
+                                            'Wind_Speed_Cup')
+            WDbar_in  = interpolateparameter(dataset,ht,WDbar_lo,WDbar_hi,\
+                                            'Wind_Direction')
+    
+            # initialize output dictionary
+            outdict = {}
+    
+            # save values
+            outdict['Record_Time']     = rec_time
+            outdict['Processed_Time']  = calendar.timegm(time.gmtime())   
+            outdict['Height']          = ht
+            outdict['Wind_Speed_Cup']  = WSbar_in
+            outdict['Wind_Direction']  = WDbar_in
+            outdict['Precipitation']   = np.nanmean(P)
+            outdict['Mean_Wind_Speed'] = np.nanmean(u)
+            outdict['Sigma_u']         = np.nanstd(up)
+            outdict['Concentration_u'] = rhou
+            outdict['Location_u']      = muu
+            outdict['Sigma_v']         = np.nanstd(vp)
+            outdict['Concentration_v'] = rhov
+            outdict['Location_v']      = muv
+            outdict['Sigma_w']         = np.nanstd(wp)
+            outdict['Concentration_w'] = rhow
+            outdict['Location_w']      = muw
+            outdict['up_wp']           = upwp_bar          
+            outdict['vp_wp']           = vpwp_bar
+            outdict['wp_Tp']           = wpTp_bar
+            outdict['up_vp']           = upvp_bar
+            outdict['tau_u']           = calculateKaimal(up + \
+                                                np.mean(u),dt)
+            outdict['tau_v']           = calculateKaimal(vp,dt)
+            outdict['tau_w']           = calculateKaimal(wp,dt)
+            outdict['MO_Length_interp'] = -(Tbar_in_K * ustar**3) \
+                                         /(0.41 * 9.81 * wpTp_bar)
+            outdict['MO_Length_near']  = - (Tbar_cl_K * ustar**3)/ \
+                                         (0.41 * 9.81 * wpTp_bar)
+            
+        else:
+            outdict = {}
         
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -2024,11 +2165,11 @@ def field2datfield(dataset,field,ht):
         if   (field == 'Sonic_u'):        datfield = 'Sonic_u_' + str(ht) + 'm'
         elif (field == 'Sonic_v'):        datfield = 'Sonic_v_' + str(ht) + 'm'
         elif (field == 'Sonic_w'):        datfield = 'Sonic_w_' + str(ht) + 'm'
-        elif (field == 'Sonic_T'):        datfield = 'Sonic_Temp_Rotated_' + str(ht) + 'm'
-        elif (field == 'Air_Temp'):       datfield = 'Air_Temp_' + str(ht) + 'm'
+        elif (field == 'Sonic_T'):        datfield = 'Sonic_Temp_rotated_' + str(ht) + 'm'
+        elif (field == 'Temperature'):       datfield = 'Air_Temp_' + str(ht) + 'm'
         elif (field == 'Wind_Speed_Cup'): datfield = 'Cup_WS_' + str(ht) + 'm'
         elif (field == 'Wind_Direction'): datfield = 'Vane_WD_' + str(ht) + 'm'
-        elif (field == 'Precipitation'):  datfield = 'PRECIP_INTENS'
+        elif (field == 'Precipitation'):  datfield = 'PRECIP_INTEN'
         else:
             errStr = 'Unknown custom field {} for dataset \"{}\"'.format(field,dataset)
             raise AttributeError(errStr)
