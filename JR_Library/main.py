@@ -109,6 +109,11 @@ def loadtimeseries(dataset,datfield,data_in):
     """
     import scipy.io as scio
     import numpy as np
+    
+    # make sure datfield is valied before proceeding
+    if (not check_datfields(dataset,datfield)):
+        raise KeyError('Invalid datafield \"{}\".'.format(\
+                    datfield))
 
     if (dataset == 'NREL'):
 
@@ -131,19 +136,20 @@ def loadtimeseries(dataset,datfield,data_in):
         # initialize list of flags
         flags = []
 
-        # flag 1006: data is not present in 20-Hz structure, return NaNs
+        # try to load time series
         try:
             x_raw = np.squeeze(struc[datfield][0,0][0])            
             # flag 5003: data are all NaNs
             if (np.all(np.isnan(x_raw))):
                 flags.append(5003)                
         except KeyError:
+            # flag 1006: data are not in 20-Hz structure
             x_raw = np.empty(N)
             x_raw[:] = np.nan
             flags.append(1006)
-
-        # copy raw data for analysis
-        x_cl  = np.copy(x_raw)
+                
+        # copy raw data for analysis, make sure is float for NaN values
+        x_cl  = x_raw.astype(float)
 
         # flag 1005: data is not length N
         if x_raw.size < N:
@@ -155,6 +161,9 @@ def loadtimeseries(dataset,datfield,data_in):
         percOut = np.sum(np.isnan(x_cl))/float(N)
         if (percOut > 0.01):
               flags.append(1003)
+
+        # flag 1007: data are quantized
+        
 
         # sort flags
         flags = sorted(flags)
@@ -362,7 +371,7 @@ def readInput_v2(filename):
         print 'That is neither a .sum or .inp';
         return [];
 
-# ==============================================================================
+# %%============================================================================
 # METADATA PROCESSING
 # ==============================================================================
 
@@ -390,6 +399,34 @@ def metadataFields(dataset):
         
     return fields
 
+
+def check_datfields(dataset,datfield):
+    """ Define list of fields of all possible correct fieldnames for 
+        error checking
+
+        Returns:
+            fields (list): list of strings defining metadata
+                columns
+    """
+
+    if (dataset == 'NREL'):
+        fields = ['Sonic_u_15m','Sonic_u_30m','Sonic_u_50m','Sonic_u_76m',\
+            'Sonic_u_100m','Sonic_u_131m','Sonic_v_15m','Sonic_v_30m',\
+            'Sonic_v_50m','Sonic_v_76m','Sonic_v_100m','Sonic_v_131m',\
+            'Sonic_w_15m','Sonic_w_30m','Sonic_w_50m','Sonic_w_76m',\
+            'Sonic_w_100m','Sonic_w_131m','Sonic_Temp_rotated_15m',\
+            'Sonic_Temp_rotated_30m','Sonic_Temp_rotated_50m',\
+            'Sonic_Temp_rotated_76m','Sonic_Temp_rotated_100m',\
+            'Sonic_Temp_rotated_131m','Air_Temp_3m','Air_Temp_26m',\
+            'Air_Temp_88m','Cup_WS_10m','Cup_WS_26m','Cup_WS_80m',\
+            'Cup_WS_88m','Cup_WS_134m','Vane_WD_10m','Vane_WD_26m',\
+            'Vane_WD_88m','Vane_WD_134m','PRECIP_INTEN']
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+        
+    return datfield in fields
+    
 
 def dataRanges(dataset,datfield):
     """ Acceptable range of time series
@@ -487,11 +524,19 @@ def makeNRELmetadata(basedir):
 
     # array of sampling heights
     heights = np.array([15,30,50,76,100,131])
+    
+    # count number of records in directory
+    n_files = 0
+    for root, dirs, files in os.walk(basedir,topdown=False):
+        for fname in files:
+            if fname.endswith('.mat'):
+                n_files += 1
 
-    # initialize array
-    metadata = np.empty([0,len(metadataFields('NREL'))])
+    # initialize array at max possible size
+    metadata = np.empty([n_files,len(metadataFields('NREL'))])
 
     # recursively loop through all .mat files in 20 Hz directory
+    i_rec = 0
     for root, dirs, files in os.walk(basedir,topdown=False):
         print ' Procesing ' + root
         for fname in files:
@@ -503,7 +548,12 @@ def makeNRELmetadata(basedir):
                 # loop through heights
                 for height in heights:
                     row = extractNRELparameters(struc,height)
-                    metadata = np.vstack([metadata,row])
+                    if (not np.all(np.isnan(row))):
+                        metadata[i_rec,:] = row
+                        i_rec += 1
+    
+    # remove last entries of array
+    metadata = metadata[:i_rec,:]
                 
     return metadata
 
@@ -532,166 +582,16 @@ def extractNRELparameters(struc,height):
     # calculate all fields
     outdict = calculatefield(dataset,struc,height)
 
-    # assign fields to location in output array
-    for i in range(len(md_fields)):
-        field = md_fields[i]
-        parameters[i] = outdict[field]
+    # assign fields to location in output array if dictionary is non-empty
+    if (len(outdict) > 0):
+        for i in range(len(md_fields)):
+            field = md_fields[i]
+            parameters[i] = outdict[field]
+    else:
+        parameters[:] = np.nan
             
     return parameters
 
-
-#def interpolateparameter(dataset,struc,ht,field):
-#    """ Interpolate a parameter value
-#
-#        Args:
-#            dataset (string): flag to indicate which dataset to analyze
-#            struc (numpy structure): loaded from matlab
-#            ht (float): measurement height to interpolate
-#            field (string): field of interest for interpolation
-#
-#        Returns:
-#            value (float): interpolated value
-#    """
-#    import numpy as np
-#
-#    if (dataset == 'NREL'):
-#        dt = 0.05
-#
-#        try:
-#
-#            if (field == 'Wind_Speed_Cup'):
-#
-#                # define measurement heights
-#                msmnt_hts = np.array([10,26,80,88,134])
-#                fld_str   = 'Cup_WS_'
-#
-#                # force height to be in range
-#                ht = min(msmnt_hts[-1],ht)
-#                ht = max(msmnt_hts[0],ht)
-#
-#                # perform interpolation
-#                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
-#                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
-#                lowerField = fld_str + str(lowerHt) + 'm'
-#                upperField = fld_str + str(upperHt) + 'm'
-#                upperVal   = np.nanmean(struc[upperField][0,0][0])
-#                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
-#                print('lower',lowerVal,'upper',upperVal)
-#                value = np.interp(ht,[lowerHt,upperHt], \
-#                                    [lowerVal,upperVal])
-#
-#            elif (field == 'Temperature'):
-#                
-#                # define measurement heights
-#                msmnt_hts = np.array([3,26,88])
-#                fld_str   = 'Air_Temp_'
-#
-#                # force height to be in range
-#                ht = min(msmnt_hts[-1],ht)
-#                ht = max(msmnt_hts[0],ht)
-#
-#                # perform interpolation
-#                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
-#                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
-#                lowerField = fld_str + str(lowerHt) + 'm'
-#                upperField = fld_str + str(upperHt) + 'm'
-#                upperVal   = np.nanmean(struc[upperField][0,0][0])
-#                lowerVal   = np.nanmean(struc[lowerField][0,0][0])
-#                value = np.interp(ht,[lowerHt,upperHt], \
-#                                    [lowerVal,upperVal])
-#                
-#            elif (field == 'Wind_Direction'):
-#                
-#                # define measurement heights
-#                msmnt_hts = np.array([10,26,88,134])
-#                fld_str   = 'Vane_WD_'
-#
-#                # force height to be in range
-#                ht = min(msmnt_hts[-1],ht)
-#                ht = max(msmnt_hts[0],ht)
-#
-#                # perform interpolation
-#                upperHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0]]
-#                lowerHt = msmnt_hts[np.where(ht < msmnt_hts)[0][0] - 1]
-#                lowerField = fld_str + str(lowerHt) + 'm'
-#                upperField = fld_str + str(upperHt) + 'm'
-#                lowerVal = struc[lowerField][0,0][0]
-#                upperVal = struc[upperField][0,0][0]
-#                lower_mean = np.angle(np.nanmean(np.exp(1j*lowerVal \
-#                            *np.pi/180)),deg=1)
-#                upper_mean = np.angle(np.nanmean(np.exp(1j*upperVal \
-#                            *np.pi/180)),deg=1)
-#                dtheta     = np.angle(np.exp(1j*upper_mean*np.pi/180)/ \
-#                                      np.exp(1j*lower_mean*np.pi/180),deg=1)
-#                int_theta  = dtheta * (ht - lowerHt)/(upperHt - lowerHt)
-#                value = np.mod(lower_mean+int_theta,360)
-#
-#            else:
-#                errStr = 'Field \"{}\" is not coded for dataset \"NREL\".'.format(field)
-#                raise AttributeError(errStr)            
-#
-#        except KeyError:
-#            print '***WARNING***: KeyError for {}'.format(field)
-#            value = float('nan')
-#        
-#    else:
-#        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-#        raise AttributeError(errStr)
-#
-#    return value
-#        
-#def closestparameter(dataset,struc,ht,field):
-#    """ Return the closest parameter value
-#
-#        Args:
-#            dataset (string): flag to indicate which dataset to analyze
-#            struc (numpy structure): loaded from matlab
-#            ht (float): measurement height to interpolate
-#            field (string): field of interest for interpolation
-#
-#        Returns:
-#            value (float): closest value
-#    """
-#    import numpy as np
-#
-#    if (dataset == 'NREL'):
-#        dt = 0.05
-#
-#        try:
-#
-#            if (field == 'Temperature'):
-#                
-#                # define measurement heights
-#                msmnt_hts = np.array([3,26,88])
-#                fld_str   = 'Air_Temp_'
-#
-#                # force height to be in range
-#                ht = min(msmnt_hts[-1],ht)
-#                ht = max(msmnt_hts[0],ht)
-#
-#                # find closest value
-#                upperHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0]]
-#                lowerHt = msmnt_hts[np.where(ht <= msmnt_hts)[0][0] - 1]
-#                dh      = upperHt - lowerHt
-#                ht_clst = int(round((ht-lowerHt)/dh)*dh + lowerHt)
-#                clstField = fld_str + str(lowerHt) + 'm'
-#                value   = np.nanmean(struc[clstField][0,0][0])
-#
-#            else:
-#                errStr = 'Field \"{}\" is not coded'.format(field) + \
-#                    ' for dataset \"NREL\".'
-#                raise AttributeError(errStr)            
-#
-#        except KeyError:
-#            print '***WARNING***: KeyError for {}'.format(field)
-#            value = float('nan')
-#        
-#    else:
-#        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-#        raise AttributeError(errStr)
-#
-#    return value
-        
 
 def calculateKaimal(x,dt):
     """ Return the optimal Kaimal time scale tau found using a grid search. 
@@ -807,9 +707,9 @@ def interpolateparameter(dataset,ht,lo_val,hi_val,field):
         # get heights for that measurement
         lo_ht, hi_ht = interpolationHeights(dataset,ht,field)
         
-        # throw error if interpolationHeights gave wrong value
-        if ((ht < lo_ht) or (ht > hi_ht)):
-            raise ValueError('Error in interpolation heights.')
+        # force height to be in measurement range
+        ht = min(lo_ht,ht)
+        ht = max(hi_ht,ht)
         
         # linearly interpolate linear variables
         if ((field == 'Wind_Speed_Cup') or (field == 'Temperature')):
@@ -963,7 +863,7 @@ def calculatefield(dataset,struc20,ht):
     return outdict
 
 
-# ==============================================================================
+# %%============================================================================
 # METADATA ANALYSIS
 # ==============================================================================
 
@@ -2087,7 +1987,7 @@ def timeUTC2local(dataset,UTCtime_flt):
     import numpy as np
 
     # convert integers/floats to 1D numpy arrays for calculations
-    if (type(UTCtime_flt) in [int,float]):
+    if (isinstance(UTCtime_flt,(int,float))):
         UTCtime_flt = np.array([UTCtime_flt])
 
     # initialize local time output
@@ -2131,8 +2031,8 @@ def timeflt2arr(time_flt):
     import numpy as np
 
     # convert integers/floats to 1D numpy arrays for calculations
-    if (type(UTCtime_flt) in [int,float]):
-        UTCtime_flt = np.array([UTCtime_flt])
+    if (isinstance(time_flt,(int,float))):
+        time_flt = np.array([time_flt])
 
     # initializze output array
     time_vec = np.empty((time_flt.size,5))
@@ -2173,6 +2073,11 @@ def field2datfield(dataset,field,ht):
         else:
             errStr = 'Unknown custom field {} for dataset \"{}\"'.format(field,dataset)
             raise AttributeError(errStr)
+            
+        # check that datafield is valid
+        if (not check_datfields(dataset,datfield)):
+            raise ValueError('Invalid height {} for field {}'.format(\
+                ht,field))
 
     else:
         errStr = 'Dataset \"{}\" not coded.'.format(dataset)
@@ -2424,7 +2329,24 @@ def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
     return x_cl
 
 
+def is_quantized(x):
+    """ Check if time series x is quantized
+    
+        Args:
+            x (numpy array): time series
             
+        Returns:
+            flag (boolean): flag if quantized
+    """
+    import numpy as np
+        
+    # parameters to detect quantization
+    n_zero    = 4                  # number of allowable consecutive zeros
+    quant_tol = 1e-12              # tolerance for defining zero
+    n_steps   = 10                 # no. quantization steps before flagging
+
+    diffs      = x[1:] - x[:-1]
+    zero_jumps = diffs < quant_tol
                 
     
 
