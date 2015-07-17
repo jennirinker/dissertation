@@ -2349,4 +2349,57 @@ def is_quantized(x):
     zero_jumps = diffs < quant_tol
                 
     
+def sheared_axes(fig,rect,x_ticks,y_ticks,skew_ang=3.14159/6):
+    """ Define floating axes and sheared axes for plotting sheared data
+    
+        Args:
+            fig (matplotlib figure): handle to matplotlib figure
+            rect (int): 3-digit integer indicating subplots (e.g., 121)
+            x_ticks (list): list of tuples (x_tick,x_ticklabel)
+            y_ticks (list): list of tuples (y_tick,y_ticklabel)
+            skew_ang (float,opt): skew angle in radians
+            
+        Returns:
+            ax_flt (floating subplot): handle to floating axes
+            ax_shr (parasite subplot): handle to sheared axes
+    """
+    from matplotlib.transforms import Affine2D
+    import mpl_toolkits.axisartist.floating_axes as floating_axes
+    from mpl_toolkits.axisartist.grid_finder import FixedLocator, DictFormatter
+    
+    # define affine transformation
+    tr = Affine2D().skew(0,skew_ang)
+    
+    # get locations and labels of xticks
+    xtick_locations = FixedLocator([xtick[0] for xtick in x_ticks])
+    xtick_labels    = DictFormatter(dict(x_ticks))
+
+    # get locations and labels of yticks
+    ytick_locations = FixedLocator([ytick[0] for ytick in y_ticks])
+    ytick_labels = DictFormatter(dict(y_ticks))
+    
+    # get extremes from tick labels
+    x_lo, x_hi = x_ticks[0][0], x_ticks[-1][0]
+    y_lo, y_hi = y_ticks[0][0], y_ticks[-1][0]
+    
+    # define grid helper to transform between data coors and affine coors
+    grid_helper = floating_axes.GridHelperCurveLinear(tr,
+                                extremes=(x_lo, x_hi, y_lo, y_hi),
+                                grid_locator1=xtick_locations,
+                                grid_locator2=ytick_locations,
+                                tick_formatter1=xtick_labels,
+                                tick_formatter2=ytick_labels,
+                                )
+
+    # create the floating axes
+    ax_flt = floating_axes.FloatingSubplot(fig, rect, \
+        grid_helper=grid_helper)
+        
+    # add floating axis to figure
+    fig.add_subplot(ax_flt)
+
+    # define rotated axes
+    ax_shr = ax_flt.get_aux_axes(tr)
+
+    return ax_flt, ax_shr
 
