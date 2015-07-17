@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import sys
-sys.path.append('..')
-import JR_Library.TS_io as jrio
-import JR_Library.IEC as IEC
-import JR_Library.ExtractWindParameters as ewp
-import JR_Library.misc as misc
+libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+if (libpath not in sys.path): sys.path.append(libpath)
+    
+import JR_Library.main as jr
+
 
 # name of file to load
 dname   = '3-PDDs/TS/'
@@ -29,7 +29,7 @@ outname = dname + fname + '.wnd';
 
 # read file
 tsout = io.readModel(outname);
-tsin  = jrio.readInput_v2(inpname);
+tsin  = jr.readInput_v2(inpname);
 
 # useful values
 y = tsout.grid.y;               # y-grid vector
@@ -37,40 +37,40 @@ y = tsout.grid.y;               # y-grid vector
 z = tsout.grid.z;         # wnd
 [Y, Z] = np.meshgrid(y, z);     # grid arrays
 n_t = tsout.uhub.size;          # (grid.n_t is not correct)
-n_f = misc.uniqueComponents(n_t);     # unique components counting DC
+n_f = jr.uniqueComponents(n_t);     # unique components counting DC
 rsep = min(tsout.grid.dy,\
            tsout.grid.dz);      # coherence sep distance
 
 # ============== TurbSim ==============
 
 # calculate velocity and turb intesn profiles
-U  = ewp.TurbSimVelProfile(outname);
+U  = jr.TurbSimVelProfile(outname);
 Ti = tsout.Ti;
 		
 # calculate spatial coherence
-f, Coh = ewp.calculateTurbSimSC(outname,rsep);
+f, Coh = jr.calculateTurbSimSC(outname,rsep);
 
 # calculate hub-height spectra
-Suk, Svk, Swk = ewp.TurbSimHHPSDs(outname);
+Suk, Svk, Swk = jr.TurbSimHHPSDs(outname);
 
 # phase differences
 dthetau, dthetav, dthetaw = \
-    ewp.TurbSimHHPDDs(outname);
+    jr.TurbSimHHPDDs(outname);
 
 # ============== Theory ==============
 zhub = tsout.grid.zhub
 Vhub = tsout.UHUB
 turbc = tsin.turbc
 df = 1./(n_t*tsout.dt)
-U_IEC  = IEC.VelProfile(z,zhub,Vhub);
-TI_IEC = IEC.TiProfile(z,zhub,Vhub,turbc);
-Coh_IEC = IEC.SpatialCoherence(zhub,Vhub,rsep,f);
-Su_IEC, Sv_IEC, Sw_IEC = IEC.PSDs(zhub,Vhub,turbc,f);
+U_IEC  = jr.VelProfile(z,zhub,Vhub);
+TI_IEC = jr.TiProfile(z,zhub,Vhub,turbc);
+Coh_IEC = jr.SpatialCoherence(zhub,Vhub,rsep,f);
+Su_IEC, Sv_IEC, Sw_IEC = jr.PSDs(zhub,Vhub,turbc,f);
 Suk_IEC = Su_IEC*df
 Svk_IEC = Sv_IEC*df
 Swk_IEC = Sw_IEC*df
 thetaPlot = np.linspace(-np.pi,np.pi,100)
-fWC = misc.wrappedCauchyPDF(thetaPlot,rho,mu)
+fWC = jr.wrappedCauchyPDF(thetaPlot,rho,mu)
 
 # ============== Plot ==============
 axwidth = 0.23;
