@@ -2349,7 +2349,7 @@ def is_quantized(x):
     zero_jumps = diffs < quant_tol
                 
     
-def sheared_axes(fig,rect,x_ticks,y_ticks,skew_ang=3.14159/6):
+def sheared_axes(fig,rect,x_ticks,y_ticks,skew_ang=3.14159/8):
     """ Define floating axes and sheared axes for plotting sheared data
     
         Args:
