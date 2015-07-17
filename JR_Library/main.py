@@ -2086,6 +2086,30 @@ def field2datfield(dataset,field,ht):
     return datfield
 
 
+def grid2ticklist(grid_locs):
+    """ Convert list of grid locations to tuple array of tick positions and
+        and labels for plotting TurbSim plots
+
+        Args:
+            grid_locs (numpy ndarray): grid locations
+
+        Returns:
+            ticks (list): list of tuples (tick_loc,tick_label)
+    """
+    n_grid = grid_locs.size                     # number grid points
+    i_lab  = [0,n_grid/2,n_grid-1]              # indices w/text labels
+
+    ticks  = []
+    for i in range(n_grid):
+        if (i in i_lab):                        # add labels 1st, last, mid
+            ticks.append((grid_locs[i],'{:.0f}'.format(grid_locs[i])))
+        else:                                   # no labels elsewhere
+            ticks.append((grid_locs[i],''))
+
+    return ticks
+
+
+
 # ==============================================================================
 # MISCELLANEOUS
 # ==============================================================================
@@ -2402,4 +2426,6 @@ def sheared_axes(fig,rect,x_ticks,y_ticks,skew_ang=3.14159/8):
     ax_shr = ax_flt.get_aux_axes(tr)
 
     return ax_flt, ax_shr
+
+
 
