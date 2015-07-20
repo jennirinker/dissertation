@@ -2270,7 +2270,6 @@ def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
 
         Returns:
             x_cl (numpy array): time series with spikes removed
-            n_spikes (int): number of spikes removed from record
     """
     import numpy as np
 
@@ -2365,13 +2364,27 @@ def is_quantized(x):
     import numpy as np
         
     # parameters to detect quantization
-    n_zero    = 4                  # number of allowable consecutive zeros
-    quant_tol = 1e-12              # tolerance for defining zero
-    n_steps   = 10                 # no. quantization steps before flagging
+    n_zero    = 4                   # number of allowable consecutive zeros
+    quant_tol = 1e-12               # tolerance for defining zero
+    n_steps   = 10                  # no. quantization steps before flagging
 
-    diffs      = x[1:] - x[:-1]
-    zero_jumps = diffs < quant_tol
-                
+    diffs      = x[1:] - x[:-1]     # point-to-point differences
+    zero_jumps = diffs < quant_tol  # differences that are zero
+
+    quant = np.zeros(n_zero)        # subarray for searching for quants
+
+    # loop through elements of x searching for quants
+    quant_idx = []
+    for i in range(diffs.size-n_zero+1):
+        if np.all(diffs[i:i+n_zero] == quant):
+            quant_idx.append(i)
+
+    if (len(quant_idx) > n_steps):
+        flag = 1
+    else:
+        flag = 0
+
+    return flag
     
 def sheared_axes(fig,rect,x_ticks,y_ticks,skew_ang=3.14159/8):
     """ Define floating axes and sheared axes for plotting sheared data
