@@ -163,7 +163,8 @@ def loadtimeseries(dataset,datfield,data_in):
               flags.append(1003)
 
         # flag 1007: data are quantized
-        
+        if (is_quantized(x_raw)):
+            flags.append(1007)
 
         # sort flags
         flags = sorted(flags)
