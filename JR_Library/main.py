@@ -2125,9 +2125,11 @@ def wrap(theta):
             theta_out (float): wrapped angle
     """
     import numpy as np
-    
-    theta_out = np.multiply(theta<=np.pi,theta) + \
-        np.multiply(theta>np.pi,theta-2*np.pi)  # subtract 2pi from [pi,2pi)
+
+    theta_out = theta % (2*np.pi)           # mod to [0,2pi)
+    theta_out = np.multiply(theta_out<=np.pi,theta_out) + \
+        np.multiply(theta_out>np.pi, \
+                    theta_out-2*np.pi)      # subtract 2pi from [pi,2pi)
     
     return theta_out
 
