@@ -2476,6 +2476,7 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     """
     import matplotlib as mpl
     import matplotlib.pyplot as plt
+    import numpy as np
     
     cdict = {
         'red': [],
