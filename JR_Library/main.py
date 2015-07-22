@@ -521,20 +521,33 @@ def makeNRELmetadata(basedir):
     """
     import numpy as np
     import scipy.io as scio
-    import os
+    import os, sys
 
-    # array of sampling heights
-    heights = np.array([15,30,50,76,100,131])
+    heights = np.array([15,30,50,76,100,131])   # sampling heights
+    CSLim  = 3                          # lower cup speed limit
+    dir1   = 240                        # CCW edge for direction range
+    dir2   = 315                        # CW edge for direction range
+    preLim = 2.7                        # lower precipitation limit
+    fields = metadataFields('NREL')     # list of metadata columns
+
+    # column indices for each value
+    CScol  = fields.index('Wind_Speed_Cup')
+    dirCol = fields.index('Wind_Direction')
+    preCol = fields.index('Precipitation')
     
     # count number of records in directory
-    n_files = 0
-    for root, dirs, files in os.walk(basedir,topdown=False):
-        for fname in files:
-            if fname.endswith('.mat'):
-                n_files += 1
+    n_years = len(next(os.walk(basedir))[1])
+    max_files = n_years * 365 * 24 * 6
+    max_recs = max_files * heights.size
+
+    print('Beginning NREL metadata processing...')
+    print('Initializing metadata array...')
+    sys.stdout.flush()
 
     # initialize array at max possible size
-    metadata = np.empty([n_files,len(metadataFields('NREL'))])
+    metadata = np.empty((max_recs,len(fields)))
+
+    print('Recursing through data directory...')
 
     # recursively loop through all .mat files in 20 Hz directory
     i_rec = 0
@@ -543,14 +556,29 @@ def makeNRELmetadata(basedir):
         for fname in files:
             if fname.endswith('.mat'):
 
-                # load in 20 Hz datafile
+                # get path to 20-Hz structure
                 fpath = os.path.join(root,fname)
-                struc = scio.loadmat(fpath)                
+                print(fpath)
+
+                # load structure
+                struc = scio.loadmat(fpath)
+
                 # loop through heights
                 for height in heights:
+                    
+                    # calculate parameters
                     row = extractNRELparameters(struc,height)
-                    if (not np.all(np.isnan(row))):
-                        metadata[i_rec,:] = row
+
+                    # perform all data checks
+                    flagCS   = row[CScol] > CSLim
+                    flagDir1 = row[dirCol] >= dir1
+                    flagDir2 = row[dirCol] <= dir2
+                    flagPrec = row[preCol] >= preLim
+                    flagNaN  = not np.isnan(row[6])
+
+                    # if all checks okay, save in data and update
+                    if (flagCS and flagDir1 and flagDir2 and flagPrec and flagNaN):
+                        metadata[i_rec,:] = row.reshape(1,len(fields))
                         i_rec += 1
     
     # remove last entries of array
