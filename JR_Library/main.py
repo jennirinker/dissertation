@@ -115,6 +115,9 @@ def loadtimeseries(dataset,datfield,data_in):
         raise KeyError('Invalid datafield \"{}\".'.format(\
                     datfield))
 
+    # turn off warnings about invalid entries
+    np.seterr(invalid='ignore')
+
     if (dataset == 'NREL'):
 
         # set data ranges, desired length of time series
@@ -517,23 +520,22 @@ def makemetadata(dataset):
 
 
 def makeNRELmetadata(basedir):
-    """ Make metadata table for NREL data
+    """ Construct (unscreened) metadata table for NREL dataset.
+        Loops through basedir, loading time series, performing QC
+        checks, then (if QC okay) calculating metadata parameters.
+
+        Args:
+            basedir (string): path to base directory
+
+        Returns:
+            metadata (numpy array): array of metadata parameters
     """
     import numpy as np
     import scipy.io as scio
     import os, sys
 
-    heights = np.array([15,30,50,76,100,131])   # sampling heights
-    CSLim  = 3                          # lower cup speed limit
-    dir1   = 240                        # CCW edge for direction range
-    dir2   = 315                        # CW edge for direction range
-    preLim = 2.7                        # lower precipitation limit
-    fields = metadataFields('NREL')     # list of metadata columns
-
-    # column indices for each value
-    CScol  = fields.index('Wind_Speed_Cup')
-    dirCol = fields.index('Wind_Direction')
-    preCol = fields.index('Precipitation')
+    heights = np.array([15,30,50,76,100,131]) # sampling heights
+    fields = metadataFields('NREL')           # list of metadata columns
     
     # count number of records in directory
     n_years = len(next(os.walk(basedir))[1])
@@ -558,7 +560,6 @@ def makeNRELmetadata(basedir):
 
                 # get path to 20-Hz structure
                 fpath = os.path.join(root,fname)
-                print(fpath)
 
                 # load structure
                 struc = scio.loadmat(fpath)
@@ -569,19 +570,15 @@ def makeNRELmetadata(basedir):
                     # calculate parameters
                     row = extractNRELparameters(struc,height)
 
-                    # perform all data checks
-                    flagCS   = row[CScol] > CSLim
-                    flagDir1 = row[dirCol] >= dir1
-                    flagDir2 = row[dirCol] <= dir2
-                    flagPrec = row[preCol] >= preLim
+                    # check if QC okay
                     flagNaN  = not np.isnan(row[6])
 
-                    # if all checks okay, save in data and update
-                    if (flagCS and flagDir1 and flagDir2 and flagPrec and flagNaN):
+                    # if QC good, save data in array
+                    if (flagNaN):
                         metadata[i_rec,:] = row.reshape(1,len(fields))
                         i_rec += 1
-    
-    # remove last entries of array
+
+    # remove unused entries of array
     metadata = metadata[:i_rec,:]
                 
     return metadata
