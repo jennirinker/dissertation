@@ -519,73 +519,41 @@ def makemetadata(dataset):
     return metadata
 
 
-def makeNRELmetadata(basedir):
-    """ Construct (unscreened) metadata table for NREL dataset.
-        Loops through basedir, loading time series, performing QC
-        checks, then (if QC okay) calculating metadata parameters.
-
-        Args:
-            basedir (string): path to base directory
-
-        Returns:
-            metadata (numpy array): array of metadata parameters
+def NRELlistmetadata(i,list_mats):
+    """ Return list of parameters all heights for element i
+        in list_mats
     """
     import numpy as np
+    import sys
     import scipy.io as scio
-    import os, sys
 
-    heights = np.array([15,30,50,76,100,131]) # sampling heights
-    fields = metadataFields('NREL')           # list of metadata columns
+    heights = np.array([15,30,50,76,100,131])   # sampling heights
+    fpath   = list_mats[i]                      # path to mat file
+    n_fiels = len(metadataFields('NREL'))       # list of metadata columns
     
-    # count number of records in directory
-    n_years = len(next(os.walk(basedir))[1])
-    max_files = n_years * 365 * 24 * 6
-    max_recs = max_files * heights.size
+    # try to load the structure, return arrays of NaNs if failed
+    try:
+        struc = scio.loadmat(fpath)
+    except:
+        parms    = np.empty(n_fields)
+        parms[:] = np.nan
+        return [parms for _ in range(heights.size)]
 
-    print('Beginning NREL metadata processing...')
-    print('Initializing metadata array...')
-    sys.stdout.flush()
+    # loop through heights
+    h_parms = []
+    for height in heights:
+        
+        # calculate parameters
+        row = NRELstruc2metadata(struc,height)
 
-    # initialize array at max possible size
-    metadata = np.empty((max_recs,len(fields)))
-
-    print('Recursing through data directory...')
-
-    # recursively loop through all .mat files in 20 Hz directory
-    i_rec = 0
-    for root, dirs, files in os.walk(basedir,topdown=False):
-        print ' Procesing ' + root
-        for fname in files:
-            if fname.endswith('.mat'):
-
-                # get path to 20-Hz structure
-                fpath = os.path.join(root,fname)
-
-                # load structure
-                struc = scio.loadmat(fpath)
-
-                # loop through heights
-                for height in heights:
-                    
-                    # calculate parameters
-                    row = extractNRELparameters(struc,height)
-
-                    # check if QC okay
-                    flagNaN  = not np.isnan(row[6])
-
-                    # if QC good, save data in array
-                    if (flagNaN):
-                        metadata[i_rec,:] = row.reshape(1,len(fields))
-                        i_rec += 1
-
-    # remove unused entries of array
-    metadata = metadata[:i_rec,:]
+        # append to list of structure parametsr
+        h_parms.append(row)
                 
-    return metadata
+    return h_parms
 
 
-def extractNRELparameters(struc,height):
-    """ Return row of metadata parameters
+def NRELstruc2metadata(struc,height):
+    """ Calculate metadata parameters from high-frequency .mat
 
         Args:
             struc (dictionary): 20-Hz structure
@@ -617,6 +585,106 @@ def extractNRELparameters(struc,height):
         parameters[:] = np.nan
             
     return parameters
+
+
+##def makeNRELmetadata(basedir):
+##    """ Construct (unscreened) metadata table for NREL dataset.
+##        Loops through basedir, loading time series, performing QC
+##        checks, then (if QC okay) calculating metadata parameters.
+##
+##        Args:
+##            basedir (string): path to base directory
+##
+##        Returns:
+##            metadata (numpy array): array of metadata parameters
+##    """
+##    import numpy as np
+##    import scipy.io as scio
+##    import os, sys
+##
+##    heights = np.array([15,30,50,76,100,131]) # sampling heights
+##    fields = metadataFields('NREL')           # list of metadata columns
+##    
+##    # count number of records in directory
+##    n_years = len(next(os.walk(basedir))[1])
+##    max_files = n_years * 365 * 24 * 6
+##    max_recs = max_files * heights.size
+##
+##    print('Beginning NREL metadata processing...')
+##    print('Initializing metadata array...')
+##    sys.stdout.flush()
+##
+##    # initialize array at max possible size
+##    metadata = np.empty((max_recs,len(fields)))
+##
+##    print('Recursing through data directory...')
+##
+##    # recursively loop through all .mat files in 20 Hz directory
+##    i_rec = 0
+##    for root, dirs, files in os.walk(basedir,topdown=False):
+##        print ' Procesing ' + root
+##        for fname in files:
+##            if fname.endswith('.mat'):
+##
+##                # get path to 20-Hz structure
+##                fpath = os.path.join(root,fname)
+##
+##                # load structure
+##                struc = scio.loadmat(fpath)
+##
+##                # loop through heights
+##                for height in heights:
+##                    
+##                    # calculate parameters
+##                    row = extractNRELparameters(struc,height)
+##
+##                    # check if QC okay
+##                    flagNaN  = not np.isnan(row[6])
+##
+##                    # if QC good, save data in array
+##                    if (flagNaN):
+##                        metadata[i_rec,:] = row.reshape(1,len(fields))
+##                        i_rec += 1
+##
+##    # remove unused entries of array
+##    metadata = metadata[:i_rec,:]
+##                
+##    return metadata
+##
+##
+##def extractNRELparameters(struc,height):
+##    """ Return row of metadata parameters
+##
+##        Args:
+##            struc (dictionary): 20-Hz structure
+##            height (int): measurement height
+##
+##        Returns:
+##            parameters (numpy array): 1D array of metadata parameters
+##    """
+##    import numpy as np
+##
+##    # define dataset
+##    dataset = 'NREL'
+##
+##    # get list of metadata fieldnames
+##    md_fields = metadataFields(dataset)
+##
+##    # intialize array of metadata parameters
+##    parameters = np.empty(len(md_fields))
+##
+##    # calculate all fields
+##    outdict = calculatefield(dataset,struc,height)
+##
+##    # assign fields to location in output array if dictionary is non-empty
+##    if (len(outdict) > 0):
+##        for i in range(len(md_fields)):
+##            field = md_fields[i]
+##            parameters[i] = outdict[field]
+##    else:
+##        parameters[:] = np.nan
+##            
+##    return parameters
 
 
 def calculateKaimal(x,dt):
@@ -888,6 +956,38 @@ def calculatefield(dataset,struc20,ht):
 
     return outdict
 
+
+def list_matfiles(basedir,save=0):
+    """ List all .mat files in subdirectories of base directory.
+        Save in file in top level of base directory if desired.
+
+        Args:
+            basedir (string): path to top level of base directory
+            save (boolean): opt, flag to save list
+
+        Returns:
+            list_mats (list): list of paths to mat files
+    """
+    import sys, os, datetime, json
+
+    list_mats = []
+    print('Processing files...')
+    sys.stdout.flush()
+    for root, dirs, files in os.walk(basedir,topdown=False):
+        for fname in files:
+            if fname.endswith('.mat'):
+                list_mats.append(os.path.join(root,fname))
+    print('Completed')
+
+    if save:
+        fname = 'listmats_' + datetime.date.today(). \
+                isoformat() + '.txt'
+        fpath = os.path.join(basedir,fname)
+        with open(fpath,'w') as f:
+            json.dump(list_mats,f)
+        print('Data saved to ' + fpath)
+
+    return list_mats
 
 # %%============================================================================
 # METADATA ANALYSIS
