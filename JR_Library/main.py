@@ -1480,7 +1480,7 @@ def IEC_SpatialCoherence(zhub,Vhub,rsep,f):
     """
     import numpy as np
 
-    Lambda1 = calcLambda1(zhub)         # longitudinal scale parameter
+    Lambda1 = IEC_Lambda1(zhub)         # longitudinal scale parameter
     Lc = 8.1*Lambda1;                   # coherence scale parameter
 
     Coh = np.exp(-12*np.sqrt( \
