@@ -13,15 +13,18 @@ import calendar, time
 
 # %% ===================== load metadata structures ===========================
 
-## load fields, metadata from matlab
-#flds_mat, md_mat = jr.loadNRELmatlab()
-#
-## load python-processed metadata
-#fname = 'C:\\Users\\jrinker\\Dropbox\\research' + \
-#    '\\processed_data\\NREL_metadata.mat'
-#struc = scio.loadmat(fname)
-#flds_py = struc['fields']
-#md_py   = struc['metadata']
+# load fields, metadata from matlab
+flds_mat, raw_mat = jr.loadNRELmatlab()
+clean_mat = jr.screenmetadata(flds_mat,md_mat,'NREL')
+
+# load python-processed metadata
+fname = 'C:\\Users\\jrinker\\Dropbox\\research' + \
+    '\\processed_data\\NREL_metadata_py.mat'
+struc = scio.loadmat(fname)
+flds_py = [string.rstrip(' ') for string in  struc['fields']]
+raw_py  = struc['metadata']
+md_py   = jr.screenmetadata(flds_py,raw_py,'NREL')
+del struc
 
 # %% ====================== compare metadata values ===========================
 

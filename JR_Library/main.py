@@ -58,7 +58,7 @@ def loadmetadata(fname):
 
 
 def loadNRELmatlab():
-    """ Load the metadata table processed in Matlab
+    """ Load the (uncleaned) metadata table processed in Matlab
 
         Returns:
             fields (list): names of fields in coumns
