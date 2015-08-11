@@ -15,7 +15,7 @@ import calendar, time
 
 # load fields, metadata from matlab
 flds_mat, raw_mat = jr.loadNRELmatlab()
-clean_mat = jr.screenmetadata(flds_mat,md_mat,'NREL')
+clean_mat = jr.screenmetadata(flds_mat,raw_mat,'NREL')
 
 # load python-processed metadata
 fname = 'C:\\Users\\jrinker\\Dropbox\\research' + \

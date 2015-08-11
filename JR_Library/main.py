@@ -165,8 +165,9 @@ def loadtimeseries(dataset,datfield,data_in):
         if (percOut > 0.01):
               flags.append(1003)
 
-        # flag 1007: data are quantized
-        if (is_quantized(x_raw)):
+        # flag 1007: sonic wind velocities are quantized
+        if (is_quantized(x_raw) and any(x in datfield for \
+                x in ['Sonic_u','Sonic_v','Sonic_w'])):
             flags.append(1007)
 
         # sort flags
@@ -489,6 +490,7 @@ def getBasedir(dataset):
             basedir = '/media/jrinker/JRinker SeaGate External/data/nrel-20Hz/'
         elif (platform.system() == 'Windows'):
             basedir = 'G:\\data\\nrel-20Hz'
+#            basedir = 'E:\\data\\nrel-20Hz'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -527,14 +529,15 @@ def NRELlistmetadata(i,list_mats):
     import sys
     import scipy.io as scio
 
-    heights = np.array([15,30,50,76,100,131])   # sampling heights
-    fpath   = list_mats[i]                      # path to mat file
-    n_fiels = len(metadataFields('NREL'))       # list of metadata columns
+    heights  = np.array([15,30,50,76,100,131])   # sampling heights
+    fpath    = list_mats[i]                      # path to mat file
+    n_fields = len(metadataFields('NREL'))       # list of metadata columns
     
     # try to load the structure, return arrays of NaNs if failed
     try:
         struc = scio.loadmat(fpath)
     except:
+        print('Cannot load {}'.format(fpath))
         parms    = np.empty(n_fields)
         parms[:] = np.nan
         return [parms for _ in range(heights.size)]
@@ -851,7 +854,7 @@ def calculatefield(dataset,struc20,ht):
         ts_hts = [ht, ht, ht, ht, loht_T, hiht_T, clht_T, loht_WS, hiht_WS,\
                 loht_WD, hiht_WD,ht]
         time_series = np.empty((12,12000))
-        for i in range(12):
+        for i in range(len(fields)):
             
             # load time series for that field, measurement height
             field = fields[i]
@@ -2036,8 +2039,14 @@ def NRELtime2fpath(timestamp):
     import glob
 
     # get tuple of timestampe
-    if (type(timestamp) == tuple): time_tup = timestamp
-    else:                          time_tup = timeflt2tup(timestamp)
+    if isinstance(timestamp,tuple):
+            time_tup = timestamp
+    elif isinstance(timestamp,(int,float)):
+            time_tup = timeflt2tup(timestamp)
+    else:
+        errStr = 'Invalid {} for timestamp'. \
+                     format(type(timestamp))
+        raise TypeError(errStr)
 
     # convert tuple to string values
     yearS  = str(time_tup[0])
@@ -2055,8 +2064,11 @@ def NRELtime2fpath(timestamp):
     fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
 
     # check if file doesn't exist
-    if len(fpath) > 0:  fpath = fpath[0]
-    else:               fpath = ''
+    if len(fpath) > 0:
+        fpath = fpath[0]
+    else:
+        print('***WARNING***: file {} does not exist.'.format(fname_part))
+        fpath = ''
     
     return fpath
 

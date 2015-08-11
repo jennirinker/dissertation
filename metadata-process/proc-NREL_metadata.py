@@ -10,6 +10,7 @@ import scipy.io as scio
 
 if (__name__ == '__main__'):
     libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+#    libpath = 'E:\\NREL-metadata-process'
     if (libpath not in sys.path): sys.path.append(libpath)
     import JR_Library.main as jr
     
@@ -19,7 +20,7 @@ if (__name__ == '__main__'):
     fields   = jr.metadataFields('NREL')
     foutname = 'NREL-metadata.mat'
     
-    # get list of mat files
+    # load saved list of mat files
     lmats_fname = [fp for fp in os.listdir(basedir) if 'listmats' in fp][0]
     lmats_fpath = os.path.join(basedir,lmats_fname)
     with open(lmats_fpath,'r') as f:

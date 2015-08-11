@@ -7,102 +7,93 @@ import json
 import numpy as np
 import scipy.io as scio
 
-# clean date 1: [2012,1,28,18,50]
-# clean date 2: [2012,08,08,09,50]
-# clean date 3: [2013,03,11,06,20]
+# clean date 1: (2013,3,11,6,20)
+# clean date 2: (2013,4,15,3,0)
+# clean date 3: (2013,4,15,3,10)
+# clean date 4: (2013,5,30,3,50)
+# clean date 5: (2013,11,3,14,30)
+
+# =================== COMPARE MAT/PY VALUES FOR CLEAN ======================
+
+## calculate python metadata
+#i_files = []
+#timestamp = (2013,3,11,6,20)
+#fpath     = jr.NRELtime2fpath(timestamp)
+#i_files.append(list_mats.index(fpath))
+#md_list = []
+#for i in range(len(i_files)):
+#    md_list.append(jr.NRELlistmetadata(i_files[i],list_mats))
+#md_py = np.empty((6*len(i_files),len(fields)))
+#for i in range(len(i_files)):
+#    md_py[6*i:6*(i+1)] = np.asarray(md_list[i])
+#dat_py = md_py[0,:]
+#
+## get matlab index/metadata
+#flds_mat, raw_mat = jr.loadNRELmatlab()
+#clean_mat = jr.screenmetadata(flds_mat,raw_mat,'NREL')
+#ht = 15
+#rec_vec  = np.asarray(timestamp + (ht,))         # time/height tuple
+#idx_mat = np.squeeze(np.where(np.all( \
+#    clean_mat[:,:6]==rec_vec,axis=1)))             # corresponding matlab index
+#dat_mat = clean_mat[idx_mat,:]
+#
+#
+#
+#parms = ['WS_Cup','Dir  ','Prec ','U   ','sig_u ','rho_u','mu_u','sig_v','rho_v', \
+#    'mu_v','sig_w','rho_w','mu_w','tau_u','tau_v','tau_w']
+#prms_mdpy  = np.append(dat_py[3:16],dat_py[20:])
+#prms_mdmat = dat_mat[[6,7,8,13,14,15,16,17,18,19,20,21,22,27,28,29]]
+#
+#
+#print('   '.join(parms))
+#print('----------------------------------------------------------------------')
+#print('   '.join(['{:.3f}'.format(i) for i in prms_mdmat]))
+#print('   '.join(['{:.3f}'.format(i) for i in prms_mdpy]))
+
+
+# ================= CALCULATE A FEW METADATAS IN PARALLEL ====================
 
 if (__name__ == '__main__'):
     libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
     if (libpath not in sys.path): sys.path.append(libpath)
     import JR_Library.main as jr
     
-    # variables for later
+    # load list of mat files
     basedir  = jr.getBasedir('NREL')
-    njobs    = 4
     fields   = jr.metadataFields('NREL')
-    n_recs   = 50
-#    foutname = 'NREL-metadata.mat'
-    
-    # get indices of random mat files to proces
     lmats_fname = [fp for fp in os.listdir(basedir) if 'listmats' in fp][0]
     lmats_fpath = os.path.join(basedir,lmats_fname)
     with open(lmats_fpath,'r') as f:
         list_mats = json.load(f)
-    n_files = len(list_mats)
-    i_files = np.random.choice(n_files,n_recs,replace=False)
+
+    
+    # get list of file indices
+    i_files = []
+    timestamp = (2013,3,11,6,20)
+    fpath     = jr.NRELtime2fpath(timestamp)
+    i_files.append(list_mats.index(fpath))
+    timestamp = (2013,11,3,14,30)
+    fpath     = jr.NRELtime2fpath(timestamp)
+    i_files.append(list_mats.index(fpath))
+    
+    # variables for later
+    basedir  = jr.getBasedir('NREL')
+    njobs    = min(4,len(i_files))
+    fields   = jr.metadataFields('NREL')
         
     # process files in parallel
     md_list = []
-    for i in range(n_recs):
-        md_list.append(jr.NRELlistmetadata(i_files[i],list_mats))
-        print(i)
-        sys.stdout.flush()
-#    md_list = Parallel(n_jobs=njobs,verbose=9) \
-#        (delayed(jr.NRELlistmetadata)(i_files[i],list_mats) for i in range(n_recs))
+#    for i in range(len(i_files)):
+#        md_list.append(jr.NRELlistmetadata(i_files[i],list_mats))
+    md_list = Parallel(n_jobs=njobs,verbose=9) \
+        (delayed(jr.NRELlistmetadata)(i_files[i],list_mats) for i \
+            in range(len(i_files)))
         
     # convert list of arrays to metadata
-    metadata = np.empty((6*n_recs,len(fields)))
-#    for i in range(n_files):
-    for i in range(n_recs):
+    metadata = np.empty((6*len(i_files),len(fields)))
+    for i in range(len(i_files)):
         metadata[6*i:6*(i+1)] = np.asarray(md_list[i])
-        
-#    # save output
-#    mdict             = {}
-#    mdict['fields']   = fields
-#    mdict['metadata'] = metadata
-#    scio.savemat(foutname,mdict)
 
 
 
-# %% =============== draw samples of records, save metadata ===================
-#n_recs  = 500                               # no. random records to draw
-#yearRng = [2012,2015]                       # range of years
-#fields = jr.metadataFields('NREL')          # MD fields
-#
-#CSLim  = 3                          # lower cup speed limit
-#dir1   = 240                        # CCW edge for direction range
-#dir2   = 315                        # CW edge for direction range
-#preLim = 2.7                        # lower precipitation limit
-#
-# column indices for each value
-#CScol  = fields.index('Wind_Speed_Cup')
-#dirCol = fields.index('Wind_Direction')
-#preCol = fields.index('Precipitation')
-#
-#i_rec = 0
-#metadata = np.empty((n_recs,len(fields)))
-#while i_rec < n_recs:
-#    
-#    # draw random time stamp/height
-#    year   = random.randint(yearRng[0],yearRng[1])
-#    month  = random.randint(1,12)
-#    day    = random.randint(1,31)
-#    hour   = random.randint(0,23)
-#    minute = random.randint(0,6)*10
-#    height = random.choice([15,30,50,76,100,131])
-#    time_tup = (year,month,day,hour,minute)
-#        
-#    # check if it exists
-#    fpath = jr.NRELtime2fpath(time_tup)
-#    if len(fpath) > 0:
-#        
-#        # load structure
-#        struc = scio.loadmat(fpath)
-#        
-#        # calculate parameters
-#        row = jr.extractNRELparameters(struc,height)
-#        
-#        flagCS   = row[CScol] > CSLim
-#        flagDir1 = row[dirCol] >= dir1
-#        flagDir2 = row[dirCol] <= dir2
-#        flagPrec = row[preCol] >= preLim
-#        flagNaN  = not np.isnan(row[6])
-#        
-#        if (flagCS and flagDir1 and flagDir2 and flagPrec and flagNaN):
-#            metadata[i_rec] = row.reshape(1,len(fields))
-#    
-#            i_rec += 1
-#                                    
-#            if not (i_rec % 5): print(i_rec)
-                
 
