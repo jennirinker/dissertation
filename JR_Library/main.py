@@ -452,6 +452,9 @@ def readInput_v2(filename):
 def metadataFields(dataset):
     """ Define list of fields to be stored in metadata table
 
+        Args:
+            dataset (string): flag for dataset
+
         Returns:
             fields (list): list of strings defining metadata
                 columns
@@ -473,7 +476,7 @@ def metadataFields(dataset):
               'Sigma_v','Concentration_v','Location_v', \
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
-              'MO_Length_interp','MO_Length_near']
+              'MO_Length']
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -484,6 +487,10 @@ def metadataFields(dataset):
 def check_datfields(dataset,datfield):
     """ Define list of fields of all possible correct fieldnames for 
         error checking
+
+        Args:
+            dataset (string): flag for dataset
+            datfield (string): dataset-specific fieldname
 
         Returns:
             fields (list): list of strings defining metadata
@@ -516,14 +523,42 @@ def check_datfields(dataset,datfield):
         raise AttributeError(errStr)
         
     return datfield in fields
-    
+
+
+def datasetSpecs(dataset):
+    """ Measurement specifics for dataset
+
+        Args:
+            dataset (string): flag for dataset
+
+        Returns:
+            n_t (int): number of time steps per record
+            dt (float): time step
+            heights (numpy array): measurement heights
+    """
+    import numpy as np
+
+    if (dataset == 'NREL'):
+        n_t     = 12000
+        dt      = 0.05
+        heights = np.array([15,30,50,76,100,131])
+    elif (dataset == 'fluela'):
+        n_t     = 6000
+        dt      = 0.10
+        heights = np.array([36,54,75])
+    else:
+        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+        raise AttributeError(errStr)
+
+    return (n_t,dt,heights)
+
 
 def dataRanges(dataset,datfield):
     """ Acceptable range of time series
 
         Args:
             dataset (string): flag for dataset
-            field (string): dataset-specific fieldname
+            datfield (string): dataset-specific fieldname
 
         Returns:
             dataRng (list): [min,max] range of data
@@ -562,7 +597,7 @@ def dataRanges(dataset,datfield):
         elif ('Sonic_T' in datfield):
             dataRng = [-19.95,49.95]
         elif ('Sonic_Cup' in datfield):
-            dataRng = [  0.00,49.57]            # sqrt(2*35.05**2)
+            dataRng = [  0.00,49.57]            # sqrt(2*(35.05**2))
         elif ('Sonic_direction' in datfield):
             dataRng = [ 0.00,360.00]            # angle from 0 to 360
         else:
@@ -633,7 +668,7 @@ def makemetadata(dataset):
     return metadata
 
 
-def NRELlistmetadata(i,list_mats):
+def listmetadata(dataset,i,list_mats):
     """ Return list of parameters all heights for element i
         in list_mats
     """
@@ -641,33 +676,38 @@ def NRELlistmetadata(i,list_mats):
     import sys
     import scipy.io as scio
 
-    heights  = np.array([15,30,50,76,100,131])   # sampling heights
-    fpath    = list_mats[i]                      # path to mat file
-    n_fields = len(metadataFields('NREL'))       # list of metadata columns
-    
-    # try to load the structure, return arrays of NaNs if failed
-    try:
-        struc = scio.loadmat(fpath)
-    except:
-        print('Cannot load {}'.format(fpath))
-        parms    = np.empty(n_fields)
-        parms[:] = np.nan
-        return [parms for _ in range(heights.size)]
-
-    # loop through heights
-    h_parms = []
-    for height in heights:
+    if (dataset in ['NREL','fluela']):
+        heights  = datasetSpecs(dataset)[2]          # sampling heights
+        fpath    = list_mats[i]                      # path to mat file
+        n_fields = len(metadataFields(dataset))      # list of metadata columns
         
-        # calculate parameters
-        row = NRELstruc2metadata(struc,height)
+        # try to load the structure, return arrays of NaNs if failed
+        try:
+            struc = scio.loadmat(fpath)
+        except Exception as e:
+            print('Cannot load {}'.format(fpath))
+            print('  ' + str(e))
+            parms    = np.empty(n_fields)
+            parms[:] = np.nan
+            return [parms for _ in range(heights.size)]
 
-        # append to list of structure parametsr
-        h_parms.append(row)
+        # loop through heights
+        h_parms = []
+        for height in heights:
+            
+            # calculate parameters
+            row = struc2metadata(dataset,struc,height)
+
+            # append to list of structure parametsr
+            h_parms.append(row)
+            
+    else:
+        errStr = 'Dataset {} not coded'.format(dataset)
                 
     return h_parms
 
 
-def NRELstruc2metadata(struc,height):
+def struc2metadata(dataset,struc,height):
     """ Calculate metadata parameters from high-frequency .mat
 
         Args:
@@ -679,26 +719,28 @@ def NRELstruc2metadata(struc,height):
     """
     import numpy as np
 
-    # define dataset
-    dataset = 'NREL'
+    if (dataset in ['NREL','fluela']):
 
-    # get list of metadata fieldnames
-    md_fields = metadataFields(dataset)
+        # get list of metadata fieldnames
+        md_fields = metadataFields(dataset)
 
-    # intialize array of metadata parameters
-    parameters = np.empty(len(md_fields))
+        # intialize array of metadata parameters
+        parameters = np.empty(len(md_fields))
 
-    # calculate all fields
-    outdict = calculatefield(dataset,struc,height)
+        # calculate all fields
+        outdict = calculatefield(dataset,struc,height)
 
-    # assign fields to location in output array if dictionary is non-empty
-    if (len(outdict) > 0):
-        for i in range(len(md_fields)):
-            field = md_fields[i]
-            parameters[i] = outdict[field]
-    else:
-        parameters[:] = np.nan
+        # assign fields to location in output array if dictionary is non-empty
+        if (len(outdict) > 0):
+            for i in range(len(md_fields)):
+                field = md_fields[i]
+                parameters[i] = outdict[field]
+        else:
+            parameters[:] = np.nan
             
+    else:
+        errStr = 'Dataset {} is not coded'.format(dataset)
+
     return parameters
 
 
@@ -1150,7 +1192,7 @@ def calculatefield(dataset,struc20,ht):
                                                 np.mean(u),dt)
             outdict['tau_v']           = calculateKaimal(vp,dt)
             outdict['tau_w']           = calculateKaimal(wp,dt)
-            outdict['MO_Length_interp'] = -(Tbar_K * ustar**3) \
+            outdict['MO_Length']       = -(Tbar_K * ustar**3) \
                                          /(0.41 * 9.81 * wpTp_bar)
             
         else:
