@@ -94,13 +94,14 @@ def loadNRELmatlab():
 
     return (fields, metadata)
 
-def loadtimeseries(dataset,datfield,data_in):
+def loadtimeseries(dataset,field,ht,data_in):
     """ Load the time series for a given dataset, field and timestamp 
         or structure
 
         Args:
             dataset (string): flag to indicate dataset
-            datfield (string): dataset-specific field name
+            field (string): general field name
+            ht (int): measurement height
             data_in (float/tuple or dictionary): float or tuple representing 
                 time value or high-frequency data structure
 
@@ -110,7 +111,8 @@ def loadtimeseries(dataset,datfield,data_in):
     import scipy.io as scio
     import numpy as np
     
-    # make sure datfield is valied before proceeding
+    # make sure datfield is valid before proceeding
+    datfield = field2datfield(dataset,field,ht)
     if (not check_datfields(dataset,datfield)):
         raise KeyError('Invalid datafield \"{}\".'.format(\
                     datfield))
@@ -122,14 +124,80 @@ def loadtimeseries(dataset,datfield,data_in):
 
         # set data ranges, desired length of time series
         dataRng = dataRanges(dataset,datfield)
-        N       = 12000
-        t       = np.arange(N)*0.05
+        dt, N   = 0.05, 12000
+        t       = np.arange(N)*dt
                     
         # determine what kind of data was provided
         if (isinstance(data_in,dict)):                   # data structure given
             struc = data_in
         elif (isinstance(data_in,(int,float,tuple))):    # timestamp given
-            fpath = NRELtime2fpath(data_in)
+            fpath = time2fpath(dataset,data_in)
+            struc = scio.loadmat(fpath)
+        else:
+            errStr = 'Incorrect data type ' + \
+                '\"{}\" for input \"data_in\".'.format(type(data_in))
+            raise TypeError(errStr)
+
+        # initialize list of flags
+        flags = []
+
+        # try to load time series
+        try:
+            x_raw = np.squeeze(struc[datfield][0,0][0])            
+            # flag 5003: data are all NaNs
+            if (np.all(np.isnan(x_raw))):
+                flags.append(5003)                
+        except KeyError:
+            # flag 1006: data are not in 20-Hz structure
+            x_raw = np.empty(N)
+            x_raw[:] = np.nan
+            flags.append(1006)
+                
+        # copy raw data for analysis, make sure is float for NaN values
+        x_cl  = x_raw.astype(float)
+
+        # flag 1005: data is not length N
+        if x_raw.size < N:
+            flags.append(1005)
+
+        # flag 1003: >1% are outside acceptable data range
+        x_cl[np.where(x_raw < dataRng[0])] = np.nan
+        x_cl[np.where(x_raw > dataRng[1])] = np.nan
+        percOut = np.sum(np.isnan(x_cl))/float(N)
+        if (percOut > 0.01):
+              flags.append(1003)
+
+        # flag 1007: sonic wind velocities are quantized
+        if (is_quantized(x_raw) and any(x in datfield for \
+                x in ['Sonic_u','Sonic_v','Sonic_w'])):
+            flags.append(1007)
+
+        # sort flags
+        flags = sorted(flags)
+
+        # clean/detrend healthy data if no flags and it's a sonic time series
+        if ((len(flags) == 0) and ('Sonic' in datfield)):
+            x_cl = cleantimeseries(t,x_cl)
+
+        # save results in dictionary
+        outdict          = {}
+        outdict['time']  = t
+        outdict['raw']   = x_raw
+        outdict['clean'] = x_cl
+        outdict['flags'] = flags
+
+    elif (dataset == 'fluela'):
+
+        # set data ranges, desired length of time series
+        dataRng = dataRanges(dataset,datfield)
+        dt, N   = 0.10, 6000
+        t       = np.arange(N)*dt
+                    
+        # determine what kind of data was provided
+        if (isinstance(data_in,dict)):                   # data structure given
+            struc = data_in
+        elif (isinstance(data_in,(int,float,tuple))):    # timestamp given
+            fpath = time2fpath(dataset,data_in)
             struc = scio.loadmat(fpath)
         else:
             errStr = 'Incorrect data type ' + \
@@ -398,6 +466,14 @@ def metadataFields(dataset):
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
               'MO_Length_interp','MO_Length_near']
+    elif (dataset == 'fluela'):
+        fields = ['Record_Time','Processed_Time','Height','Sonic_Cup', \
+              'Sonic_Direction', 'Mean_Wind_Speed', \
+              'Sigma_u','Concentration_u','Location_u', \
+              'Sigma_v','Concentration_v','Location_v', \
+              'Sigma_w','Concentration_w','Location_w', \
+              'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
+              'MO_Length_interp','MO_Length_near']
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -426,6 +502,15 @@ def check_datfields(dataset,datfield):
             'Air_Temp_88m','Cup_WS_10m','Cup_WS_26m','Cup_WS_80m',\
             'Cup_WS_88m','Cup_WS_134m','Vane_WD_10m','Vane_WD_26m',\
             'Vane_WD_88m','Vane_WD_134m','PRECIP_INTEN']
+    elif (dataset == 'fluela'):
+        fields = ['Sonic_u_36m','Sonic_u_54m','Sonic_u_75m',\
+                  'Sonic_v_36m','Sonic_v_54m','Sonic_v_75m',\
+                  'Sonic_w_36m','Sonic_w_54m','Sonic_w_75m',\
+                  'Sonic_Temp_rotated_36m','Sonic_Temp_rotated_54m',\
+                  'Sonic_Temp_rotated_75m','Sonic_CupEqHorizSpeed_36m',\
+                  'Sonic_CupEqHorizSpeed_54m','Sonic_CupEqHorizSpeed_75m',\
+                  'Sonic_direction_36m','Sonic_direction_54m',\
+                  'Sonic_direction_75m']
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -465,6 +550,23 @@ def dataRanges(dataset,datfield):
             dataRng = [0.,4.]
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
+    elif (dataset == 'fluela'):
+
+        # define data ranges
+        if ('Sonic_u' in datfield):
+            dataRng = [-35.05,35.05]
+        elif ('Sonic_v' in datfield):
+            dataRng = [-35.05,35.05]
+        elif ('Sonic_w' in datfield):
+            dataRng = [-29.95,29.95]
+        elif ('Sonic_T' in datfield):
+            dataRng = [-19.95,49.95]
+        elif ('Sonic_Cup' in datfield):
+            dataRng = [  0.00,49.57]            # sqrt(2*35.05**2)
+        elif ('Sonic_direction' in datfield):
+            dataRng = [ 0.00,360.00]            # angle from 0 to 360
+        else:
+              raise KeyError('Field {} not recognized.'.format(datfield))
 
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -491,6 +593,16 @@ def getBasedir(dataset):
         elif (platform.system() == 'Windows'):
             basedir = 'G:\\data\\nrel-20Hz'
 #            basedir = 'E:\\data\\nrel-20Hz'
+        if not os.path.exists(basedir):
+            errStr = 'Incorrect or unavailable base ' + \
+                     'directory for dataset \"{}\".'.format(dataset)
+            raise IOError(errStr)
+    elif (dataset == 'fluela'):
+        if (platform.system() == 'Linux'):
+            basedir = '/media/jrinker/JRinker SeaGate External/data/fluela-high_freq/'
+        elif (platform.system() == 'Windows'):
+            basedir = 'G:\\data\\fluela-high_freq'
+#            basedir = 'E:\\data\\fluela-high_freq'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -838,6 +950,8 @@ def calculatefield(dataset,struc20,ht):
     import numpy as np
 
     if (dataset == 'NREL'):
+
+        dt, N = 0.05, 12000
         
         # get interpolation/closest heights
         T_hts = interpolationHeights(dataset,ht,'Temperature')
@@ -847,21 +961,20 @@ def calculatefield(dataset,struc20,ht):
         loht_WD, hiht_WD = interpolationHeights(dataset,ht,'Wind_Direction')
         
         # load all necessary time series, incrementally checking flags
-        clean = 1
+        clean  = 1
         fields = ['Sonic_u','Sonic_v','Sonic_w','Sonic_T','Temperature',\
             'Temperature','Temperature','Wind_Speed_Cup','Wind_Speed_Cup',\
             'Wind_Direction','Wind_Direction','Precipitation']
         ts_hts = [ht, ht, ht, ht, loht_T, hiht_T, clht_T, loht_WS, hiht_WS,\
-                loht_WD, hiht_WD,ht]
-        time_series = np.empty((12,12000))
+                loht_WD, hiht_WD, ht]
+        time_series = np.empty((len(fields),N))
         for i in range(len(fields)):
             
             # load time series for that field, measurement height
             field = fields[i]
-            ts_ht = ts_hts[i]            
-            datfield = field2datfield(dataset,field,ts_ht)
-            outdict = loadtimeseries(dataset,datfield,struc20)
-            
+            ts_ht = ts_hts[i]
+            outdict  = loadtimeseries(dataset,field,ts_ht,struc20)
+
             # save time series if it is clean
             if (len(outdict['flags']) == 0):
                 time_series[i,:] = outdict['clean']
@@ -872,7 +985,6 @@ def calculatefield(dataset,struc20,ht):
         if clean:
             
             # put all time series in variables
-            dt, N = 0.05, 12000
             t     = np.arange(N)*dt                 # time vector
             u     = time_series[0,:]                # Sonic_u
             v     = time_series[1,:]                # Sonic_v
@@ -949,6 +1061,97 @@ def calculatefield(dataset,struc20,ht):
                                          /(0.41 * 9.81 * wpTp_bar)
             outdict['MO_Length_near']  = - (Tbar_cl_K * ustar**3)/ \
                                          (0.41 * 9.81 * wpTp_bar)
+            
+        else:
+            outdict = {}
+
+    elif (dataset == 'fluela'):
+
+        dt, N = 0.10, 6000
+        
+        # no need to interpolate -- only have sonic measurements
+        
+        # load all necessary time series, incrementally checking flags
+        clean  = 1
+        fields = ['Sonic_u','Sonic_v','Sonic_w','Sonic_T',\
+            'Sonic_Cup','Sonic_Direction']
+        ts_hts = [ht, ht, ht, ht, ht, ht]
+        time_series = np.empty((len(fields),N))
+        for i in range(len(fields)):
+            
+            # load time series for that field, measurement height
+            field = fields[i]
+            ts_ht = ts_hts[i]
+            outdict  = loadtimeseries(dataset,field,ts_ht,struc20)
+            
+            # save time series if it is clean
+            if (len(outdict['flags']) == 0):
+                time_series[i,:] = outdict['clean']
+            else:
+                clean = 0
+                
+        # if all time series are clean
+        if clean:
+            
+            # put all time series in variables
+            t     = np.arange(N)*dt                 # time vector
+            u     = time_series[0,:]                # Sonic_u
+            v     = time_series[1,:]                # Sonic_v
+            w     = time_series[2,:]                # Sonic_w
+            T_s   = time_series[3,:]                # Sonic_T
+            WS    = time_series[4,:]                # Sonic Cup WS
+            WD    = time_series[5,:]                # Sonic Wind Direction
+
+            
+            # get variables necessary for later calculations
+            fname     = struc20['tower'][0,0][23][0,0][0][0,0][3][0]
+            rec_time  = NRELfname2time(fname)
+            T_sonic_K = T_s + 298.15
+            up        = nandetrend(t,u)
+            vp        = nandetrend(t,v)
+            wp        = nandetrend(t,w)
+            Tp        = nandetrend(t,T_sonic_K)
+            upwp_bar  = np.nanmean(up*wp)
+            upvp_bar  = np.nanmean(up*vp)
+            vpwp_bar  = np.nanmean(vp*wp)
+            wpTp_bar  = np.nanmean(wp*Tp)
+            ustar     = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
+            rhou,muu  = signalPhaseCoherence(up)
+            rhov,muv  = signalPhaseCoherence(vp)
+            rhow,muw  = signalPhaseCoherence(wp)
+            Tbar_K    = np.nanmean(T_sonic_K) + 298.15
+            WSbar     = np.nanmean(WS)
+            WDbar     = np.angle(np.nanmean(np.exp(1j*WD*np.pi/180.)),deg=1)
+    
+            # initialize output dictionary
+            outdict = {}
+    
+            # save values
+            outdict['Record_Time']     = rec_time
+            outdict['Processed_Time']  = calendar.timegm(time.gmtime())   
+            outdict['Height']          = ht
+            outdict['Sonic_Cup']       = WSbar
+            outdict['Sonic_Direction'] = WDbar
+            outdict['Mean_Wind_Speed'] = np.nanmean(u)
+            outdict['Sigma_u']         = np.nanstd(up)
+            outdict['Concentration_u'] = rhou
+            outdict['Location_u']      = muu
+            outdict['Sigma_v']         = np.nanstd(vp)
+            outdict['Concentration_v'] = rhov
+            outdict['Location_v']      = muv
+            outdict['Sigma_w']         = np.nanstd(wp)
+            outdict['Concentration_w'] = rhow
+            outdict['Location_w']      = muw
+            outdict['up_wp']           = upwp_bar          
+            outdict['vp_wp']           = vpwp_bar
+            outdict['wp_Tp']           = wpTp_bar
+            outdict['up_vp']           = upvp_bar
+            outdict['tau_u']           = calculateKaimal(up + \
+                                                np.mean(u),dt)
+            outdict['tau_v']           = calculateKaimal(vp,dt)
+            outdict['tau_w']           = calculateKaimal(wp,dt)
+            outdict['MO_Length_interp'] = -(Tbar_K * ustar**3) \
+                                         /(0.41 * 9.81 * wpTp_bar)
             
         else:
             outdict = {}
@@ -2023,7 +2226,7 @@ def NRELfname2time(fname):
     return time_flt
 
 
-def NRELtime2fpath(timestamp):
+def time2fpath(dataset,timestamp):
     """ Convert float to path to data structure
 
         Args:
@@ -2038,37 +2241,43 @@ def NRELtime2fpath(timestamp):
     import os
     import glob
 
-    # get tuple of timestampe
-    if isinstance(timestamp,tuple):
-            time_tup = timestamp
-    elif isinstance(timestamp,(int,float)):
-            time_tup = timeflt2tup(timestamp)
+    if (dataset in ['NREL','fluela']):
+
+        # get tuple of timestampe
+        if isinstance(timestamp,tuple):
+                time_tup = timestamp
+        elif isinstance(timestamp,(int,float)):
+                time_tup = timeflt2tup(timestamp)
+        else:
+            errStr = 'Invalid {} for timestamp'. \
+                         format(type(timestamp))
+            raise TypeError(errStr)
+
+        # convert tuple to string values
+        yearS  = str(time_tup[0])
+        monthS = str(time_tup[1]).zfill(2)
+        dayS   = str(time_tup[2]).zfill(2)
+        hourS  = str(time_tup[3]).zfill(2)
+        minS   = str(time_tup[4]).zfill(2)
+
+        # get directory path
+        basedir = getBasedir(dataset)
+        dirpath = os.path.join(basedir,yearS,monthS,dayS)
+        
+        # get filename
+        fname_part = '_'.join([monthS,dayS,yearS,hourS,minS])
+        fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
+
+        # check if file doesn't exist
+        if len(fpath) > 0:
+            fpath = fpath[0]
+        else:
+            errStr = 'File {} does not exist.'.format(fname_part)
+            raise IOError(errStr)
+
     else:
-        errStr = 'Invalid {} for timestamp'. \
-                     format(type(timestamp))
-        raise TypeError(errStr)
-
-    # convert tuple to string values
-    yearS  = str(time_tup[0])
-    monthS = str(time_tup[1]).zfill(2)
-    dayS   = str(time_tup[2]).zfill(2)
-    hourS  = str(time_tup[3]).zfill(2)
-    minS   = str(time_tup[4]).zfill(2)
-
-    # get directory path
-    basedir = getBasedir('NREL')
-    dirpath = os.path.join(basedir,yearS,monthS,dayS)
-    
-    # get filename
-    fname_part = '_'.join([monthS,dayS,yearS,hourS,minS])
-    fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
-
-    # check if file doesn't exist
-    if len(fpath) > 0:
-        fpath = fpath[0]
-    else:
-        print('***WARNING***: file {} does not exist.'.format(fname_part))
-        fpath = ''
+        errStr = 'Dataset {} is not coded.'.format(dataset)
+        raise ValueError(errStr)
     
     return fpath
 
@@ -2204,7 +2413,7 @@ def field2datfield(dataset,field,ht):
         elif (field == 'Sonic_v'):        datfield = 'Sonic_v_' + str(ht) + 'm'
         elif (field == 'Sonic_w'):        datfield = 'Sonic_w_' + str(ht) + 'm'
         elif (field == 'Sonic_T'):        datfield = 'Sonic_Temp_rotated_' + str(ht) + 'm'
-        elif (field == 'Temperature'):       datfield = 'Air_Temp_' + str(ht) + 'm'
+        elif (field == 'Temperature'):    datfield = 'Air_Temp_' + str(ht) + 'm'
         elif (field == 'Wind_Speed_Cup'): datfield = 'Cup_WS_' + str(ht) + 'm'
         elif (field == 'Wind_Direction'): datfield = 'Vane_WD_' + str(ht) + 'm'
         elif (field == 'Precipitation'):  datfield = 'PRECIP_INTEN'
@@ -2216,6 +2425,25 @@ def field2datfield(dataset,field,ht):
         if (not check_datfields(dataset,datfield)):
             raise ValueError('Invalid height {} for field {}'.format(\
                 ht,field))
+
+    elif dataset == 'fluela':
+
+        if   (field == 'Sonic_u'):         datfield = 'Sonic_u_' + str(ht) + 'm'
+        elif (field == 'Sonic_v'):         datfield = 'Sonic_v_' + str(ht) + 'm'
+        elif (field == 'Sonic_w'):         datfield = 'Sonic_w_' + str(ht) + 'm'
+        elif (field == 'Sonic_T'):         datfield = 'Sonic_Temp_rotated_' + str(ht) + 'm'
+        elif (field == 'Sonic_Cup'):       datfield = 'Sonic_CupEqHorizSpeed_' \
+                                                         + str(ht) + 'm'
+        elif (field == 'Sonic_Direction'): datfield = 'Sonic_direction_' \
+                                                         + str(ht) + 'm'
+        else:
+            errStr = 'Unknown custom field {} for dataset \"{}\"'.format(field,dataset)
+            raise AttributeError(errStr)
+            
+        # check that datafield is valid
+        if (not check_datfields(dataset,datfield)):
+            raise ValueError('Invalid height {} for field {}'\
+                             .format(ht,field))
 
     else:
         errStr = 'Dataset \"{}\" not coded.'.format(dataset)
