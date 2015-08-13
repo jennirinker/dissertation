@@ -15,7 +15,7 @@ if (__name__ == '__main__'):
     import JR_Library.main as jr
     
     # variables for later
-    dataset  = 'fluela'
+    dataset  = 'NREL'
     basedir  = jr.getBasedir(dataset)
     njobs    = 4
     fields   = jr.metadataFields(dataset)

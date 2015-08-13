@@ -673,13 +673,14 @@ def listmetadata(dataset,i,list_mats):
         in list_mats
     """
     import numpy as np
-    import sys
+    import sys, os
     import scipy.io as scio
 
     if (dataset in ['NREL','fluela']):
-        heights  = datasetSpecs(dataset)[2]          # sampling heights
-        fpath    = list_mats[i]                      # path to mat file
-        n_fields = len(metadataFields(dataset))      # list of metadata columns
+        heights  = datasetSpecs(dataset)[2]             # sampling heights
+        basedir  = getBasedir(dataset)                  # base directory
+        fpath    = os.path.join(basedir,list_mats[i])   # path to mat file
+        n_fields = len(metadataFields(dataset))         # list wind parameters
         
         # try to load the structure, return arrays of NaNs if failed
         try:
@@ -703,6 +704,7 @@ def listmetadata(dataset,i,list_mats):
             
     else:
         errStr = 'Dataset {} not coded'.format(dataset)
+        raise AttributeError(errStr)
                 
     return h_parms
 
@@ -1224,7 +1226,9 @@ def list_matfiles(basedir,save=0):
     for root, dirs, files in os.walk(basedir,topdown=False):
         for fname in files:
             if fname.endswith('.mat'):
-                list_mats.append(os.path.join(root,fname))
+                fpath     = os.path.join(root,fname)
+                loc_fpath = fpath[len(basedir):].lstrip(os.path.sep)
+                list_mats.append(loc_fpath)
     print('Completed')
 
     if save:
