@@ -76,7 +76,7 @@ def loadNRELmatlab():
     
     # path to matlab-processed metadata table
     matpath = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
-                  'processed_data\\NREL_metadata_mat.mat'
+                  'processed_data\\NREL-mat-metadata.mat'
 
     # load the structure
     struc = scio.loadmat(matpath)
@@ -98,6 +98,9 @@ def loadNRELmatlab():
     fields[fields.index('Wind_direction')] = 'Wind_Direction'
     fields[fields.index('Precip_intens')]  = 'Precipitation'
     fields[fields.index('rho_u')]          = 'Concentration_u'
+    fields[fields.index('U')]              = 'Mean_Wind_Speed'
+    fields[fields.index('sigma_u')]        = 'Sigma_u'
+    fields[fields.index('mu_u')]           = 'Location_u'
 
     return (fields, metadata)
 
@@ -1293,7 +1296,9 @@ def screenmetadata(fields,metadata,dataset):
         dirCol = fields.index('Wind_Direction')
         preCol = fields.index('Precipitation')
         
-        # filter out the rows with NaN values???        
+        # filter out the rows with NaN values
+        metadata = metadata[np.logical_not( \
+            np.any(np.isnan(metadata),axis=1)),:]
         
         # screen remaining data
         cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
