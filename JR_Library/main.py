@@ -132,7 +132,12 @@ def loadtimeseries(dataset,field,ht,data_in):
             struc = data_in
         elif (isinstance(data_in,(int,float,tuple))):    # timestamp given
             fpath = time2fpath(dataset,data_in)
-            struc = scio.loadmat(fpath)
+	    # try to load the structure
+	    try:
+		struc = scio.loadmat(fpath)
+	    except:
+		errStr = 'Corrupt or empty structure for {}'.format(fpath)
+		raise TypeError(errStr)
         else:
             errStr = 'Incorrect data type ' + \
                 '\"{}\" for input \"data_in\".'.format(type(data_in))
@@ -147,7 +152,7 @@ def loadtimeseries(dataset,field,ht,data_in):
             # flag 5003: data are all NaNs
             if (np.all(np.isnan(x_raw))):
                 flags.append(5003)                
-        except KeyError:
+        except:
             # flag 1006: data are not in 20-Hz structure
             x_raw = np.empty(N)
             x_raw[:] = np.nan
@@ -157,7 +162,7 @@ def loadtimeseries(dataset,field,ht,data_in):
         x_cl  = x_raw.astype(float)
 
         # flag 1005: data is not length N
-        if x_raw.size < N:
+        if (x_raw.size != N):
             flags.append(1005)
 
         # flag 1003: >1% are outside acceptable data range
@@ -223,7 +228,7 @@ def loadtimeseries(dataset,field,ht,data_in):
         x_cl  = x_raw.astype(float)
 
         # flag 1005: data is not length N
-        if x_raw.size < N:
+        if (x_raw.size != N):
             flags.append(1005)
 
         # flag 1003: >1% are outside acceptable data range
@@ -626,8 +631,8 @@ def getBasedir(dataset):
         if (platform.system() == 'Linux'):
             basedir = '/media/jrinker/JRinker SeaGate External/data/nrel-20Hz/'
         elif (platform.system() == 'Windows'):
-            basedir = 'G:\\data\\nrel-20Hz'
-#            basedir = 'E:\\data\\nrel-20Hz'
+#            basedir = 'G:\\data\\nrel-20Hz'
+            basedir = 'E:\\data\\nrel-20Hz'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -636,8 +641,8 @@ def getBasedir(dataset):
         if (platform.system() == 'Linux'):
             basedir = '/media/jrinker/JRinker SeaGate External/data/fluela-high_freq/'
         elif (platform.system() == 'Windows'):
-            basedir = 'G:\\data\\fluela-high_freq'
-#            basedir = 'E:\\data\\fluela-high_freq'
+#            basedir = 'G:\\data\\fluela-high_freq'
+            basedir = 'E:\\data\\fluela-high_freq'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -742,6 +747,7 @@ def struc2metadata(dataset,struc,height):
             
     else:
         errStr = 'Dataset {} is not coded'.format(dataset)
+        raise AttributeError(errStr)
 
     return parameters
 
@@ -960,17 +966,27 @@ def interpolateparameter(dataset,ht,lo_val,hi_val,field):
         # get heights for that measurement
         lo_ht, hi_ht = interpolationHeights(dataset,ht,field)
         
-        # force height to be in measurement range
-        ht = min(lo_ht,ht)
-        ht = max(hi_ht,ht)
-        
         # linearly interpolate linear variables
-        if ((field == 'Wind_Speed_Cup') or (field == 'Temperature')):
+        if (field == 'Wind_Speed_Cup'):
+            msmnt_hts = np.array([10,26,80,88,134])
+            ht = min(msmnt_hts[-1],ht)          # force height to be in 
+            ht = max(msmnt_hts[0],ht)           #   measurement range
+            val = (hi_val - lo_val) / float((hi_ht - lo_ht)) * \
+                (ht - lo_ht) + lo_val
+                
+        # linearly interpolate linear variables
+        elif (field == 'Temperature'):
+            msmnt_hts = np.array([3,26,88])
+            ht = min(msmnt_hts[-1],ht)          # force height to be in 
+            ht = max(msmnt_hts[0],ht)           #   measurement range
             val = (hi_val - lo_val) / float((hi_ht - lo_ht)) * \
                 (ht - lo_ht) + lo_val
             
         # special interpolate wrapping variables
         elif (field == 'Wind_Direction'):
+            msmnt_hts = np.array([10,26,88,134])
+            ht = min(msmnt_hts[-1],ht)          # force height to be in 
+            ht = max(msmnt_hts[0],ht)           #   measurement range
             dtheta = np.angle(np.exp(1j*hi_val*np.pi/180.)/\
                 np.exp(1j*lo_val*np.pi/180.),deg=1)
             val = (dtheta / (hi_ht - lo_ht) * (ht - lo_ht) + lo_val) % 360.
@@ -978,7 +994,7 @@ def interpolateparameter(dataset,ht,lo_val,hi_val,field):
         else:
             raise KeyError('Unknown field \"{}\" for '.format(field) + \
                 'dataset \"NREL\"')
-        
+                        
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -1066,16 +1082,17 @@ def calculatefield(dataset,struc20,ht):
             WSbar_hi  = np.nanmean(WS_hi)
             WDbar_lo  = np.angle(np.nanmean(np.exp(1j*WD_lo*np.pi/180.)),deg=1)
             WDbar_hi  = np.angle(np.nanmean(np.exp(1j*WD_hi*np.pi/180.)),deg=1)
+
             Tbar_in_K = interpolateparameter(dataset,ht,Tbar_lo_K,Tbar_hi_K,\
                                             'Temperature')
             WSbar_in  = interpolateparameter(dataset,ht,WSbar_lo,WSbar_hi,\
                                             'Wind_Speed_Cup')
             WDbar_in  = interpolateparameter(dataset,ht,WDbar_lo,WDbar_hi,\
                                             'Wind_Direction')
-    
+
             # initialize output dictionary
             outdict = {}
-    
+
             # save values
             outdict['Record_Time']     = rec_time
             outdict['Processed_Time']  = calendar.timegm(time.gmtime())   
@@ -2638,6 +2655,18 @@ def nandetrend(x,y):
             y_det (numpy array): detrended values with nans unchanged
     """
     import numpy as np
+    
+    # check that x and y are the same size
+    if (x.size != y.size):
+        errStr = 'Sizes for x and y are not equal ({} and {})' \
+            .format(x.size,y.size)
+        raise ValueError(errStr)
+
+    # remove singleton dimensions if any
+    if (len(x.shape) > 1):
+        x = np.squeeze(x)
+    if (len(y.shape) > 1):
+        y = np.squeeze(y)
 
     # initialize output
     y_det   = np.empty(y.shape)
@@ -2649,8 +2678,8 @@ def nandetrend(x,y):
     # linear detrend if 1+ non-nan values
     else:
 
-        # find NaN indices
-        nan_idx = np.isnan(y)                       
+        # find NaN indices of y
+        nan_idx = np.isnan(y)               
 
         # isolate non-NaN values
         xnew = x[np.logical_not(nan_idx)]                        
