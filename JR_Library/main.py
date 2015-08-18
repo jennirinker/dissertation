@@ -37,6 +37,7 @@ def loadmetadata(fname):
             metadata (numpy array): values for each field and each record
     """
     import numpy as np
+    import scipy.io as scio
 
     # if it is a text file
     if (fname.endswith('txt')):
@@ -51,8 +52,14 @@ def loadmetadata(fname):
     # if it is a .mat file
     elif (fname.endswith('mat')):
 
-        # code this later
-        print('***ERROR*** Have not yet coded loading a .mat file')
+        struc     = scio.loadmat(fname)         # load structure
+        fields    = [string.rstrip(' ') for \
+                  string in  struc['fields']]   # load fields, stripping spaces
+        metadata  = struc['metadata']
+
+    else:
+        errStr = 'Invalid file type \"{}\"'.format(fname)
+        raise TypeError(errStr)
     
     return (fields, metadata)
 
