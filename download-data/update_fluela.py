@@ -8,7 +8,8 @@ if (__name__ == '__main__'):
     #   *** NO TRAILING SLASHES ***
     baseURL = 'http://wind.nrel.gov/MetData/135mData/' + \
                 'FluelaTwr/20Hz/mat'
-    basedir = 'G:\\data\\fluela-high_freq'
+#    basedir = 'G:\\data\\fluela-high_freq'
+    basedir = 'C:\\Users\\jrinker\\Documents\\temp_data\\fluela-high_freq'
 
     # update the directory, return list of err'd files
     errList = updateDirectory(baseURL,basedir)
