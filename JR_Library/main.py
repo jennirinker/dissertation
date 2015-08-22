@@ -2428,7 +2428,7 @@ def signal2Sk(x):
     return Sk
 
 
-def samplePhaseCoherence(theta):
+def samplePhaseCoherence(theta,axis=None):
     """ Return concentration and location parameters for a sample of wrapping
         random variables.
         
@@ -2441,16 +2441,16 @@ def samplePhaseCoherence(theta):
     """
     import numpy as np
     
-    # if (2+)D array is fed in, halt with error
-    if ((len(theta.shape)>1) and (theta.shape[0] != 1 and theta.shape[1] != 1)):
-        print 'ERROR: samplePhaseCoherence only works on 1D arrays'
-        return []
+#    # if (2+)D array is fed in, halt with error
+#    if ((len(theta.shape)>1) and (theta.shape[0] != 1 and theta.shape[1] != 1)):
+#        print 'ERROR: samplePhaseCoherence only works on 1D arrays'
+#        return []
     
-    n_t = theta.size                        # number of elements in sample
-    V = np.sum(np.exp(1j*theta))/n_t        # mean resultant vector
-    rho = np.abs(V)                         # concentration parameter
-    mu  = np.angle(V)                       # location parameter
-    
+    z = np.exp(1j*theta)
+    V = np.mean(z,axis=axis)
+    rho = np.abs(V)
+    mu  = np.angle(V)
+        
     return (rho,mu)
 
 
