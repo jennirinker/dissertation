@@ -1305,6 +1305,29 @@ def screenmetadata(fields,metadata,dataset):
         cleandata = cleandata[np.where(cleandata[:,dirCol] >= dir1)]
         cleandata = cleandata[np.where(cleandata[:,dirCol] <= dir2)]
         cleandata = cleandata[np.where(cleandata[:,preCol] >= preLim)]
+
+    elif (dataset == 'fluela'):
+        CSLim = 3                           # lower cup speed limit
+        dir1  = -180                        # CCW edge for direction range
+        dir2  = 0                           # CW edge for direction range
+        T1    = timetup2flt((2010,1,1,0,0)) # start time
+        T2    = timetup2flt((2010,3,23,0,0))# end time
+        
+        # column indices for each value
+        CScol   = fields.index('Sonic_Cup')
+        dirCol  = fields.index('Sonic_Direction')
+        timeCol = fields.index('Record_Time')
+        
+        # filter out the rows with NaN values
+        metadata = metadata[np.logical_not( \
+            np.any(np.isnan(metadata),axis=1)),:]
+        
+        # screen remaining data
+        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
+        cleandata = cleandata[np.where(cleandata[:,dirCol] >= dir1)]
+        cleandata = cleandata[np.where(cleandata[:,dirCol] <= dir2)]
+        cleandata = cleandata[np.where(cleandata[:,timeCol] >= T1)]
+        cleandata = cleandata[np.where(cleandata[:,timeCol] <= T2)]
         
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -1897,7 +1920,7 @@ def IEC_PSDs(zhub,Vhub,turbc,f):
         Args:
             zhub (float): hub-height of turbine in meters
             Vhub (float): hub-height mean velocity in m/s
-            turbc (string): turbulence class from IEC 61400-1 Ed. 3
+            turbc (string): turbulence cass from IEC 61400-1 Ed. 3
             f (numpy array): frequencies in Hz
             
         Returns:
@@ -1920,6 +1943,150 @@ def IEC_PSDs(zhub,Vhub,turbc,f):
     Sw = KaimalSpectrum(f,L3/Vhub,sigma3);  # vertical spectrum
 
     return (Su,Sv,Sw)
+
+
+def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
+    """ Construct full turbulence field from set of discrete measurements
+    
+        Args:
+            y_data (numpy array): y-locations of measurements
+            z_data (numpy array): z-locations of measurements
+            t_data (numpy array): measurement time stamps
+            u_data (numpy array): (n_t x n_data) array of measurements
+            y_grid (numpy array): y-positions of grid points
+            z_grid (numpy array): z-positions of grid points
+            
+        Returns:
+            u_grid (numpy array): (n_z x n_y x n_t) array of wind velocity
+    """
+    import sys
+    libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+    if (libpath not in sys.path): sys.path.append(libpath)
+    
+    import JR_Library.main as jr
+    import numpy as np
+    from scipy import optimize
+    
+    # check array sizes
+    if (y_data.size != z_data.size):
+        raise ValueError('y_data and z_data must be the same size')
+    if (y_data.size != u_data.shape[1]):
+        raise ValueError('u_data must have the same number of columns as ' + \
+            'the size of y_data')
+
+    # define variables to be subsequently used          
+    n_data  = y_data.size                       # no. of data points
+    n_y     = y_grid.size                       # no. of y-points in grid
+    n_z     = z_grid.size                       # no. z-points in grid
+    n_grid  = n_y*n_z                           # total no. grid points
+    n_all   = n_data + n_grid                   # all points in total
+    n_t     = u_data.shape[0]                   # no. time steps
+    dt      = (t_data[10]-t_data[0])/float(10)  # time step
+    n_f     = jr.uniqueComponents(n_t)          # no. unique frequencies
+    df      = 1./(n_t*dt)                       # frequency resolution
+    fs      = np.arange(n_f)*df                 # array of frequencies
+    Y_grid, Z_grid = np.meshgrid(y_grid,z_grid) # arrays of grid points
+    y_all = np.concatenate((y_data,
+                    Y_grid.reshape(n_grid)))    # vector of all y coordinates
+    z_all = np.concatenate((z_data,
+                    Z_grid.reshape(n_grid)))    # vector of all z coordinates
+                    
+    # calculate matrix of distances for later spatial coherence
+    DR = np.empty((n_all,n_all))
+    for i in range(n_all):
+        for j in range(i,n_all):
+            dy  = y_all[i] - y_all[j]
+            dz  = z_all[i] - z_all[j]
+            DR[i,j] = np.sqrt(dy**2 + dz**2)
+            DR[j,i] = np.sqrt(dy**2 + dz**2)
+            if ((i != j) and np.abs(DR[i,j] < 1e-10)):
+                raise ValueError('Currently grid points and msmnt pts cannot be co-located.')
+            
+    # fit power law to measured wind
+    U_z = np.mean(u_data,axis=0)
+    fitfunc = lambda p, x: p[0] * x ** (p[1])
+    errfunc = lambda p, x, y: (y - fitfunc(p, x))
+    p_out = optimize.leastsq(errfunc, [10.,0.2],args=(z_data, U_z))[0]            
+            
+    # get spectral values of data
+    U_data     = np.fft.rfft(u_data,axis=0)/n_t
+    Umags_data = np.abs(U_data)
+    
+    # initialize array of spectral values, assign DC value from power law fit
+    Umags_grid      = np.empty((n_f,n_grid))
+    Umags_grid[0,:] = p_out[0]*np.power(z_all[n_data:],p_out[1])
+    
+    # set grid spectral values by finding/averaging values at closest height
+    for i in range(n_grid):
+        
+        # find closest measurement height
+        z_p = z_all[i]                          # grid point height
+        dzs = np.abs(z_data-z_p)                # height diff
+        i_closest = np.where(dzs == dzs.min())  # closest measurement index
+        
+        # average power of S(f)s at closest height to get grid S(f)
+        S_closest = np.power( \
+                    Umags_data[:,i_closest],2)   # S(f) of closest point(s)
+        U_p = np.squeeze(np.sqrt( \
+                    np.mean(S_closest,axis=1)))  # mean-power magnitude
+        Umags_grid[:,i] = U_p                    # save magnitude
+        
+    # initialize output spectral matrix for ALL points (measurements + grid)
+    U_all = np.empty((n_f,n_all),dtype='complex')
+    
+    # set DC values for data and grid points
+    U_all[0,:n_data] = U_z
+    U_all[0,n_data:] = p_out[0]*np.power(z_all[n_data:],p_out[1])
+    
+    # loop through frequencies, solving for phase pre-spatial correlation and
+    #   then spatially correlating to get result
+    for i in range(1,n_f):
+        
+        # get Cholesky decomposition
+        f = fs[i]
+        Coh = jr.IEC_SpatialCoherence(zhub,Vhub,DR,f)
+        C = np.linalg.cholesky(Coh)
+        
+        # solve for un-spatially correlated data Fourier coefficients
+        a = C[:n_data,:n_data]
+        b = U_data[i,:].reshape(n_data,1)
+        Xu_data = np.linalg.solve(a,b)
+        
+        # unspatially correlated Fourier component for grid
+        phis_grid  = np.random.rand(n_grid,1) * 2 * np.pi
+        Xu_grid    =  Umags_grid[i,:].reshape(n_grid,1) * \
+                        np.exp(1j*phis_grid)
+        
+        # create entire vector
+        Xu_all  = np.concatenate((Xu_data,Xu_grid),axis=0)
+        
+        # correlate
+        Xs_all = np.dot(C,Xu_all)
+        
+        # save in array
+        U_all[i,:] = np.squeeze(Xs_all)
+        
+        if (i == 1):
+            Xu_grid_out = Xu_grid
+    
+    # take IFT to get time series
+    u_all = np.fft.irfft(U_all,axis=0)*n_t
+    u_grid = np.empty((n_z,n_y,n_t))
+    i_tot = n_data
+    for i in range(n_z):
+        for j in range(n_y):
+            u_grid[i,j,:] = u_all[:,i_tot]
+            i_tot += 1
+    u_data_out = u_all[:,:n_data]                   # verif: should = u_data
+            
+    out_dict = {}
+    out_dict['u_grid']      = u_grid
+    out_dict['u_data_out']  = u_data_out
+    out_dict['p_out']       = p_out
+    out_dict['Xu_grid_out'] = Xu_grid_out
+            
+    return out_dict
+    
 
 # ==============================================================================
 # TURBSIM ANALYSIS

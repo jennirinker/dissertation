@@ -11,8 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # choose which dataset
-dataset = 'NREL'            # NREL, NREL-mat, fluela
-fignum  = 1
+#dataset, fignum = 'NREL-mat', 1
+dataset, fignum = 'NREL', 2
+#dataset, fignum = 'fluela', 3
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -27,9 +28,9 @@ else:
     fname = dataset + '-metadata.mat'
     fpath = os.path.join(basedir,fname)
     fields, raw_parms = jr.loadmetadata(fpath)
-    
+
 # screen metadata, get measurement heights
-clean = jr.screenmetadata(fields,raw_parms,'NREL')
+clean = jr.screenmetadata(fields,raw_parms,dataset)
 heights = jr.datasetSpecs(dataset)[2]
 
 # print sizes
@@ -51,8 +52,8 @@ muCol  = fields.index('Location_u')
 # initialize figure
 plt.figure(fignum,figsize=(10,10))
 plt.clf()
-ax11 = plt.axes([0.12,0.60,0.35,0.35])
-ax12 = plt.axes([0.62,0.60,0.35,0.35])
+ax11 = plt.axes([0.12,0.57,0.35,0.35])
+ax12 = plt.axes([0.62,0.57,0.35,0.35])
 ax21 = plt.axes([0.12,0.12,0.35,0.35])
 ax22 = plt.axes([0.62,0.12,0.35,0.35])
 
@@ -81,7 +82,7 @@ for iH in range(heights.size):
     mu  = parms_ht[:,muCol]
     
     # plot CDFs
-    ax11.plot(np.sort(U),F)
+    ax11.plot(np.sort(U),F,label=str(ht))
     ax12.plot(np.sort(sig),F)
     ax21.plot(np.sort(L),F)
     ax22.plot(np.sort(rho),F)
@@ -92,3 +93,5 @@ ax11.set_title('$U$')
 ax12.set_title('$\sigma_u$')
 ax21.set_title('$L$')
 ax22.set_title(r'$\rho$')
+ax11.legend(loc=4)
+plt.suptitle('Dataset: ' + dataset,fontsize='large')
