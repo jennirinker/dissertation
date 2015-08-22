@@ -2440,12 +2440,7 @@ def samplePhaseCoherence(theta,axis=None):
             mu (float): location parameter
     """
     import numpy as np
-    
-#    # if (2+)D array is fed in, halt with error
-#    if ((len(theta.shape)>1) and (theta.shape[0] != 1 and theta.shape[1] != 1)):
-#        print 'ERROR: samplePhaseCoherence only works on 1D arrays'
-#        return []
-    
+        
     z = np.exp(1j*theta)
     V = np.mean(z,axis=axis)
     rho = np.abs(V)
@@ -2454,7 +2449,7 @@ def samplePhaseCoherence(theta,axis=None):
     return (rho,mu)
 
 
-def signalPhaseDifferences(x):
+def signalPhaseDifferences(x,axis=None):
     """ Return phase differences for a time history.
     
         Args:
@@ -2467,17 +2462,13 @@ def signalPhaseDifferences(x):
     import numpy as np
     
     # if (2+)D array is fed in, halt with error
-    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
-        errStr = 'signalPhaseDifferences only works on 1D arrays'
-        raise AttributeError(errStr)
+#    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
+#        errStr = 'signalPhaseDifferences only works on 1D arrays'
+#        raise AttributeError(errStr)
     
-    n_t = x.shape[0]                        # no. of total components
-    n_f = uniqueComponents(n_t)             # no. of unique components
-
-    X = np.fft.fft(x)/n_t                   # Fourier vector
-    Xuniq = X[:n_f]                         # unique Fourier components
-    dtheta = np.angle(np.divide( \
-        Xuniq[1:],Xuniq[:-1]))              # phase differences
+    Xuniq = np.fft.rfft(x,axis=axis)            # Fourier vector
+    thetas = np.angle(Xuniq)                    # Fourier angles
+    dtheta = wrap(np.diff(thetas,axis=axis))    # phase differences
     
     return dtheta
 
@@ -2509,8 +2500,7 @@ def signalPhaseCoherence(x):
         nan_idx = np.isnan(x)                       # nan indices
         x_nonan = x[np.logical_not(nan_idx)]        # remove nanes
         dtheta  = signalPhaseDifferences(x_nonan)   # phase differences
-        rho, mu = samplePhaseCoherence( \
-            dtheta)                                 # temp coh parameters
+        rho, mu = samplePhaseCoherence( dtheta)     # temp coh parameters
     
     return (rho,mu)
 
@@ -2524,7 +2514,6 @@ def NRELfname2time(fname):
         Returns:
             timestamp (float): float representing timestamp
     """
-    import calendar
 
     # extract date information
     year     = int(fname[6:10])

@@ -1,36 +1,51 @@
 """
-testing routine to loop through M4 files, try to load them,
-save a list of unloadable files, then re-download those files and try again
+investigating KS test for rhoHat
 """
 import sys
 libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
 if (libpath not in sys.path): sys.path.append(libpath)
 
 import JR_Library.main as jr
-import os
-import scipy.io as scio
 import numpy as np
 
-# gat base directory for data
-basedir = jr.getBasedir('NREL')
+# calculate first CDF
+#n1  = 10000
+#n_f = 6000
+#rho = 0.11
+#mu  = np.pi
+#thetas1 = jr.wrappedCauchySample(n_f,n1,rho,mu)
+#rho_hats1 = jr.samplePhaseCoherence(thetas1,axis=0)[0]
 
-# define base URL
-baseURL = 'http://wind.nrel.gov/MetData/' + \
-    '135mData/M4Twr/20Hz/mat'
-    
-# walk through directory, try to load file, and save file path if can't
-bad_files = []
-i_files = 0
-for root, dirs, files in os.walk(basedir,topdown=True):
-    for f in files:
-        fpath = os.path.join(root,f)
-        if f.endswith('.mat'):
-            try:
-                struc = scio.loadmat(fpath)
-                test = np.squeeze(struc['Sonic_u_15m'][0,0][0])
-            except:
-                print('Error loading {}'.format(fpath))
-                bad_files.append(fpath)
-            i_files += 1
-            if (not i_files % 20):
-                print(f)
+#F_n1 = np.arange(1,n1+1)/(n1+1.)
+#rhos_1 = np.sort(rho_hats1)
+
+# calculate second CDF
+n2  = 500
+n_f = 6000
+rho = 0.11
+mu  = np.pi
+thetas2 = jr.wrappedCauchySample(n_f,n2,rho,mu)
+rho_hats2 = jr.samplePhaseCoherence(thetas2,axis=0)[0]
+
+F_n2 = np.arange(1,n2+1)/(n2+1.)
+rhos_2 = np.sort(rho_hats2)
+
+# get the maximum distance between the CDFs
+x_all = np.concatenate((rhos_1,rhos_2))
+x_int = np.sort(np.unique(x_all))
+F1_int = np.interp(x_all,rhos_1,F_n1)
+F2_int = np.interp(x_all,rhos_2,F_n2)
+D = np.abs(F1_int-F2_int).max()
+
+# calculate significance levels
+c = np.array([1.07,1.22,1.36,1.48,1.63,1.73,1.95])
+scale = np.sqrt((n1+n2)/float(n1*n2))
+
+print(D)
+print(c*scale)
+print(D < c*scale)
+
+plt.plot(rhos_2,F_n2)
+
+
+# IT WORKSSSSSSSSS    WHOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
