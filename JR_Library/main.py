@@ -1945,6 +1945,78 @@ def IEC_PSDs(zhub,Vhub,turbc,f):
     return (Su,Sv,Sw)
 
 
+def IEC_TC_simulation(turbc,zhub,Vhub,n_t,dt,rho,mu,y_grid,z_grid):
+    """ Stochastic simulation of KSEC model from IEC with temporal
+        coherence
+
+        Args:
+
+        Returns:
+            u_grid (numpy array): [n_z x n_y x n_t] array of u(t)
+    """
+    import numpy as np
+    
+    # define variables to be subsequently used          
+    n_y     = y_grid.size                       # no. of y-points in grid
+    n_z     = z_grid.size                       # no. z-points in grid
+    n_grid  = n_y*n_z                           # total no. grid points
+    n_f     = uniqueComponents(n_t)          # no. unique frequencies
+    df      = 1./(n_t*dt)                       # frequency resolution
+    fs      = np.arange(n_f)*df                 # array of frequencies
+    Y_grid, Z_grid = np.meshgrid(y_grid,z_grid) # 2D arrays of grid points
+    y_vec   = Y_grid.reshape(n_grid)            # 1D array of grid points
+    z_vec   = Z_grid.reshape(n_grid)            # 1D array of grid points
+
+    # calculate matrix of distances for later spatial coherence
+    DR = np.empty((n_grid,n_grid))
+    for i in range(n_grid):
+        for j in range(i,n_grid):
+            dy  = y_vec[i] - y_vec[j]
+            dz  = z_vec[i] - z_vec[j]
+            DR[i,j] = np.sqrt(dy**2 + dz**2)
+            DR[j,i] = np.sqrt(dy**2 + dz**2)
+            
+    # get array of magnitudes
+    U_z = IEC_VelProfile(z_vec,zhub,Vhub)               # velocity profile
+    Su = IEC_PSDs(zhub,Vhub,turbc,fs)[0]                # longitudinal PSD
+    Xu_mags = np.empty((n_f,n_grid),dtype='complex')    # Fourier magintudes
+    Xu_mags[:] = np.sqrt(Su*df/2).reshape(n_f,1)        # Fourier magnitudes
+            
+    # loop through frequencies, spatially correlating phases
+    Xu_out      = np.empty((n_f,n_grid),dtype='complex')
+    Xu_out[0,:] = U_z
+    dphis_grid = wrappedCauchySample(n_f,n_grid,rho,mu)
+    phis_grid  = wrap(np.cumsum(dphis_grid,axis=0))
+    for i in range(1,n_f):
+        
+        # get Cholesky decomposition
+        f = fs[i]
+        Coh = IEC_SpatialCoherence(zhub,Vhub,DR,f)
+        C = np.linalg.cholesky(Coh)
+        
+        # unspatially correlated Fourier component for grid
+        phis = phis_grid[i,:].reshape(n_grid,1)
+        Xu_noSC    =  Xu_mags[i,:].reshape(n_grid,1) * \
+                        np.exp(1j*phis)
+        
+        # correlate
+        Xu_SC      = np.dot(C,Xu_noSC)
+        
+        # save in array
+        Xu_out[i,:] = np.squeeze(Xu_SC)
+
+    # take IFT to get time series
+    u_2D = np.fft.irfft(Xu_out,axis=0)*n_t
+    u_grid = np.empty((n_z,n_y,n_t))
+    i_tot = 0
+    for i in range(n_z):
+        for j in range(n_y):
+            u_grid[i,j,:] = u_2D[:,i_tot]
+            i_tot += 1
+
+    return u_grid
+
+
 def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
     """ Construct full turbulence field from set of discrete measurements
     
