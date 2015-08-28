@@ -641,8 +641,8 @@ def getBasedir(dataset):
         if (platform.system() == 'Linux'):
             basedir = '/media/jrinker/JRinker SeaGate External/data/nrel-20Hz/'
         elif (platform.system() == 'Windows'):
-#            basedir = 'G:\\data\\nrel-20Hz'
-            basedir = 'E:\\data\\nrel-20Hz'
+            basedir = 'G:\\data\\nrel-20Hz'
+##            basedir = 'E:\\data\\nrel-20Hz'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -651,8 +651,8 @@ def getBasedir(dataset):
         if (platform.system() == 'Linux'):
             basedir = '/media/jrinker/JRinker SeaGate External/data/fluela-high_freq/'
         elif (platform.system() == 'Windows'):
-#            basedir = 'G:\\data\\fluela-high_freq'
-            basedir = 'E:\\data\\fluela-high_freq'
+            basedir = 'G:\\data\\fluela-high_freq'
+##            basedir = 'E:\\data\\fluela-high_freq'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -762,106 +762,6 @@ def struc2metadata(dataset,struc,height):
     return parameters
 
 
-##def makeNRELmetadata(basedir):
-##    """ Construct (unscreened) metadata table for NREL dataset.
-##        Loops through basedir, loading time series, performing QC
-##        checks, then (if QC okay) calculating metadata parameters.
-##
-##        Args:
-##            basedir (string): path to base directory
-##
-##        Returns:
-##            metadata (numpy array): array of metadata parameters
-##    """
-##    import numpy as np
-##    import scipy.io as scio
-##    import os, sys
-##
-##    heights = np.array([15,30,50,76,100,131]) # sampling heights
-##    fields = metadataFields('NREL')           # list of metadata columns
-##    
-##    # count number of records in directory
-##    n_years = len(next(os.walk(basedir))[1])
-##    max_files = n_years * 365 * 24 * 6
-##    max_recs = max_files * heights.size
-##
-##    print('Beginning NREL metadata processing...')
-##    print('Initializing metadata array...')
-##    sys.stdout.flush()
-##
-##    # initialize array at max possible size
-##    metadata = np.empty((max_recs,len(fields)))
-##
-##    print('Recursing through data directory...')
-##
-##    # recursively loop through all .mat files in 20 Hz directory
-##    i_rec = 0
-##    for root, dirs, files in os.walk(basedir,topdown=False):
-##        print ' Procesing ' + root
-##        for fname in files:
-##            if fname.endswith('.mat'):
-##
-##                # get path to 20-Hz structure
-##                fpath = os.path.join(root,fname)
-##
-##                # load structure
-##                struc = scio.loadmat(fpath)
-##
-##                # loop through heights
-##                for height in heights:
-##                    
-##                    # calculate parameters
-##                    row = extractNRELparameters(struc,height)
-##
-##                    # check if QC okay
-##                    flagNaN  = not np.isnan(row[6])
-##
-##                    # if QC good, save data in array
-##                    if (flagNaN):
-##                        metadata[i_rec,:] = row.reshape(1,len(fields))
-##                        i_rec += 1
-##
-##    # remove unused entries of array
-##    metadata = metadata[:i_rec,:]
-##                
-##    return metadata
-##
-##
-##def extractNRELparameters(struc,height):
-##    """ Return row of metadata parameters
-##
-##        Args:
-##            struc (dictionary): 20-Hz structure
-##            height (int): measurement height
-##
-##        Returns:
-##            parameters (numpy array): 1D array of metadata parameters
-##    """
-##    import numpy as np
-##
-##    # define dataset
-##    dataset = 'NREL'
-##
-##    # get list of metadata fieldnames
-##    md_fields = metadataFields(dataset)
-##
-##    # intialize array of metadata parameters
-##    parameters = np.empty(len(md_fields))
-##
-##    # calculate all fields
-##    outdict = calculatefield(dataset,struc,height)
-##
-##    # assign fields to location in output array if dictionary is non-empty
-##    if (len(outdict) > 0):
-##        for i in range(len(md_fields)):
-##            field = md_fields[i]
-##            parameters[i] = outdict[field]
-##    else:
-##        parameters[:] = np.nan
-##            
-##    return parameters
-
-
 def calculateKaimal(x,dt):
     """ Return the optimal Kaimal time scale tau found using a grid search. 
         Can be converted to length scale using L = tau * U.
@@ -877,38 +777,47 @@ def calculateKaimal(x,dt):
     
     # if (2+)D array is fed in, halt with error
     if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
-        print 'ERROR: calculateKaimal only works on 1D arrays'
-        return []
+        errStr = 'calculateKaimal only works on 1D arrays'
+        raise ValueError(errStr)
+
+    # squeeze to 1D, interpolate NaN values
+    x_1D = np.squeeze(x)
+    t    = np.arange(x.size)*dt
+    notnan_idx = np.logical_not(np.isnan(x_1D))
+    t_int = t[notnan_idx]
+    x_int = x_1D[notnan_idx]
+    x_1D  = np.interp(t,t_int,x_int)
 
     # grid search parameters
     n_m = 200;                                  # number of points in grid
     tau_l = -1;                                 # left tau coefficient
-    tau_r = 3;                                  # right tau coefficient
+    tau_r = 4;                                  # right tau coefficient
+    taugrid = np.logspace(tau_l,tau_r,n_m). \
+        reshape(1,n_m)                          # tau search grid (row)
 
     # intermediate parameters
-    n_t  = x.shape[0]                           # no. of time steps
+    n_t  = x_1D.size                            # no. of time steps
     T    = n_t*dt                               # total time
     n_f  = uniqueComponents(n_t)                # no. unique components
     df   = 1/T                                  # frequency resolution
-    f    = df*np.arange(0,n_f). \
-        reshape(n_f,1)                          # frequency vector
-    sig  = np.std(x,ddof=1)                     # std. deviation
+    f    = df*np.arange(1,n_f). \
+        reshape(n_f-1,1)                        # frequency vector (col)
+    sig  = np.nanstd(x_1D)                      # std. deviation
 
-    X_dat  = np.fft.fft(x,axis=0). \
-        reshape(n_t,1)/n_t                      # Fourier vector of data
+    # get discrete spectrum from data
+    X_dat  = np.fft.fft(x_1D). \
+        reshape(n_t,1)/n_t                      # Fourier vector (row)
     Sk_dat = X2Sk(X_dat)[1:]* \
         np.ones((1,n_m))                        # data discrete PSD from f1 up
 
-    taugrid = np.logspace(tau_l,tau_r,n_m). \
-        reshape(1,n_m)                          # grid of tau for search
-    
+    # get n_f x n_m array of continuous spectra
     S_kaim = KaimalSpectrum(f,taugrid,sig)      # continuous Kaimal spectrum
     Sk_kaim = S_kaim * df                       # discrete Kaimal spectrum
     Sk_theo = np.empty(Sk_kaim.shape)
     for i in range(n_m):
         alpha = spectralScale(Sk_kaim[:,i],sig,n_t)
+##        alpha = 1
         Sk_theo[:,i] = (alpha**2)*Sk_kaim[:,i]
-    Sk_theo = Sk_theo[1:]                       # strip off DC component
     
     J = np.sum(np.power(Sk_dat-Sk_theo, \
         2),axis=0)                              # array of squared errors
@@ -1125,7 +1034,7 @@ def calculatefield(dataset,struc20,ht):
             outdict['wp_Tp']           = wpTp_bar
             outdict['up_vp']           = upvp_bar
             outdict['tau_u']           = calculateKaimal(up + \
-                                                np.mean(u),dt)
+                                                np.nanmean(u),dt)
             outdict['tau_v']           = calculateKaimal(vp,dt)
             outdict['tau_w']           = calculateKaimal(wp,dt)
             outdict['MO_Length_interp'] = -(Tbar_in_K * ustar**3) \
@@ -1218,7 +1127,7 @@ def calculatefield(dataset,struc20,ht):
             outdict['wp_Tp']           = wpTp_bar
             outdict['up_vp']           = upvp_bar
             outdict['tau_u']           = calculateKaimal(up + \
-                                                np.mean(u),dt)
+                                                np.nanmean(u),dt)
             outdict['tau_v']           = calculateKaimal(vp,dt)
             outdict['tau_w']           = calculateKaimal(wp,dt)
             outdict['MO_Length']       = -(Tbar_K * ustar**3) \

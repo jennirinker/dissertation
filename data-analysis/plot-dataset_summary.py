@@ -11,9 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # choose which dataset
-#dataset, fignum = 'NREL-mat', 1
+dataset, fignum = 'NREL-mat', 1
 #dataset, fignum = 'NREL', 2
-dataset, fignum = 'fluela', 3
+#dataset, fignum = 'fluela', 3
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \

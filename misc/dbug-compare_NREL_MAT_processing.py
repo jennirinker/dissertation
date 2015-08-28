@@ -27,8 +27,9 @@ import calendar, time
 # %% ====================== compare metadata values ===========================
 
 # get python and matlab indices
-idx_py = 1                                      # python index
-#idx_py = metadata[:,8].argmax()
+#idx_py = 1                                      # python index
+idx_py = clean_py[:,
+                  flds_py.index('tau_u')].argmin()
 time_flt = clean_py[idx_py,0]                   # float of timestamp
 time_tup = jr.timeflt2tup(time_flt)             # tuple of timestamp
 ht       = int(clean_py[idx_py,2])             # measurment height
@@ -60,15 +61,18 @@ if (idx_mat.size > 0):
 #    prms_mdpy2 = np.append(dat_py2[3:16],dat_py2[20:-2])
     
     # extract parameters manually
-#    fpath20 = jr.NRELtime2fpath(time_flt)
-#    struc20 = scio.loadmat(fpath20)
-#    row     = jr.extractNRELparameters(struc20,ht)
-#    prms_manpy = np.append(row[3:16],row[20:-2])
+    fpath20 = jr.time2fpath('NREL',time_flt)
+    struc20 = scio.loadmat(fpath20)
+    row     = jr.struc2metadata('NREL',struc20,ht)
+    prms_manpy = np.append(row[3:16],row[20:-2])
 
 
     print('   '.join(parms))
     print('----------------------------------------------------------------------')
     print('   '.join(['{:.3f}'.format(i) for i in prms_mdmat]))
     print('   '.join(['{:.3f}'.format(i) for i in prms_mdpy]))
+    print('   '.join(['{:.3f}'.format(i) for i in prms_manpy]))
 
 
+else:
+    print('Record does not exist in Matlab metadata')
