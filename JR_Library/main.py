@@ -2428,7 +2428,7 @@ def signal2Sk(x):
     return Sk
 
 
-def samplePhaseCoherence(theta,axis=None):
+def samplePhaseCoherence(theta,axis=-1):
     """ Return concentration and location parameters for a sample of wrapping
         random variables.
         
@@ -2449,7 +2449,7 @@ def samplePhaseCoherence(theta,axis=None):
     return (rho,mu)
 
 
-def signalPhaseDifferences(x,axis=None):
+def signalPhaseDifferences(x,axis=-1):
     """ Return phase differences for a time history.
     
         Args:
