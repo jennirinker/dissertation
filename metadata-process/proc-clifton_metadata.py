@@ -9,15 +9,15 @@ import numpy as np
 import scipy.io as scio
 
 if (__name__ == '__main__'):
-#    libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+    libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
 #    libpath = 'E:\\NREL-metadata-process'
-#    if (libpath not in sys.path): sys.path.append(libpath)
+    if (libpath not in sys.path): sys.path.append(libpath)
     import JR_Library.main as jr
     
     # variables for later
-    dataset  = 'fluela'
+    dataset  = 'NREL'
     basedir  = jr.getBasedir(dataset)
-    njobs    = 60
+    njobs    = 30
     fields   = jr.metadataFields(dataset)
     
     # load saved list of mat files

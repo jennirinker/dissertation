@@ -18,10 +18,10 @@ import calendar, time
 #clean_mat = jr.screenmetadata(flds_mat,raw_mat,'NREL')
 #
 ## load python-processed metadata
-#fname = 'C:\\Users\\jrinker\\Dropbox\\research' + \
-#    '\\processed_data\\NREL-metadata.mat'
-#flds_py,raw_py = jr.loadmetadata(fname)
-#clean_py =  jr.screenmetadata(flds_py,raw_py,'NREL')
+fname = 'C:\\Users\\jrinker\\Dropbox\\research' + \
+    '\\processed_data\\NREL-metadata.mat'
+flds_py,raw_py = jr.loadmetadata(fname)
+clean_py =  jr.screenmetadata(flds_py,raw_py,'NREL')
 #del raw_mat, raw_py
 
 # %% ====================== compare metadata values ===========================

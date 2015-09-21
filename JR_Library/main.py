@@ -129,6 +129,9 @@ def loadtimeseries(dataset,field,ht,data_in):
 
     # turn off warnings about invalid entries
     np.seterr(invalid='ignore')
+    
+    # define max number of spikes
+    n_spikes_max = 20
 
     if (dataset == 'NREL'):
 
@@ -192,7 +195,11 @@ def loadtimeseries(dataset,field,ht,data_in):
 
         # clean/detrend healthy data if no flags and it's a sonic time series
         if ((len(flags) == 0) and ('Sonic' in datfield)):
-            x_cl = cleantimeseries(t,x_cl)
+            x_cl, n_spikes = cleantimeseries(t,x_cl)
+            
+            # flag 1008: too many spikes in sonic
+            if (n_spikes >= n_spikes_max):
+                flags.append(1008)
 
         # save results in dictionary
         outdict          = {}
@@ -1650,7 +1657,7 @@ def generateKaimal1D(n_t,n_m,dt,U,sig,tau,rho,mu):
         return []
         
     elif (sig==0):
-        x = np.ones(n_t,n_m)*U;
+        x = np.ones((n_t,n_m))*U;
         return [t,x]
         
     else:
@@ -2919,7 +2926,7 @@ def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
         # continue looping through extremal values
         i += 1        
         
-    return x_cl
+    return x_cl, n_spikes
 
 
 def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
@@ -2936,12 +2943,12 @@ def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
     import numpy as np
 
     # remove spikes
-    x_nospike = remove_spikes(x,spikeWidth,P,beta)
+    x_nospike, n_spikes = remove_spikes(x,spikeWidth,P,beta)
 
     # remove linear trend
     x_cl = nandetrend(t,x_nospike) + np.nanmean(x_nospike)
 
-    return x_cl
+    return x_cl, n_spikes
 
 
 def is_quantized(x):
