@@ -193,13 +193,18 @@ def loadtimeseries(dataset,field,ht,data_in):
         # sort flags
         flags = sorted(flags)
 
-        # clean/detrend healthy data if no flags and it's a sonic time series
-        if ((len(flags) == 0) and ('Sonic' in datfield)):
-            x_cl, n_spikes = cleantimeseries(t,x_cl)
-            
-            # flag 1008: too many spikes in sonic
-            if (n_spikes >= n_spikes_max):
-                flags.append(1008)
+        # remove spikes/detrend sonics, detrend everything else
+        if (len(flags) == 0):
+            if ('Sonic' in datfield):
+                # remove spikes, linear detrend
+                x_cl, n_spikes = cleantimeseries(t,x_cl)
+                
+                # flag 1008: too many spikes in sonic
+                if (n_spikes >= n_spikes_max):
+                    flags.append(1008)
+                    
+            else:
+                x_cl = nandetrend(t,x_cl) + np.mean(x_cl)
 
         # save results in dictionary
         outdict          = {}
@@ -530,7 +535,9 @@ def check_datfields(dataset,datfield):
             'Sonic_Temp_rotated_131m','Air_Temp_3m','Air_Temp_26m',\
             'Air_Temp_88m','Cup_WS_10m','Cup_WS_26m','Cup_WS_80m',\
             'Cup_WS_88m','Cup_WS_134m','Vane_WD_10m','Vane_WD_26m',\
-            'Vane_WD_88m','Vane_WD_134m','PRECIP_INTEN']
+            'Vane_WD_88m','Vane_WD_134m','PRECIP_INTEN','Dewpt_Temp_3m',\
+            'Dewpt_Temp_26m','Dewpt_Temp_88m','Dewpt_Temp_134m',\
+            'Baro_Presr_3m']
     elif (dataset == 'fluela'):
         fields = ['Sonic_u_36m','Sonic_u_54m','Sonic_u_75m',\
                   'Sonic_v_36m','Sonic_v_54m','Sonic_v_75m',\
@@ -609,6 +616,10 @@ def dataRanges(dataset,datfield):
             dataRng = [0.,360.]
         elif ('PRECIP' in datfield):
             dataRng = [0.,4.]
+        elif ('Dewpt' in datfield):
+            dataRng = [-50.,50.]
+        elif ('Presr' in datfield):
+            dataRng = [740.,1000.]
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
     elif (dataset == 'fluela'):
@@ -720,7 +731,7 @@ def listmetadata(dataset,i,list_mats):
             parms[:] = np.nan
             return [parms for _ in range(heights.size)]
 
-        # loop through heights
+        # loop through sonic heights
         h_parms = []
         for height in heights:
             
@@ -867,6 +878,9 @@ def interpolationHeights(dataset,ht,field):
             
         elif (field == 'Wind_Direction'):
             msmnt_hts = np.array([10,26,88,134])
+            
+        elif (field == 'Dewpt_Temp'):
+            msmnt_hts = np.array([3,26,88,134])
 
         else:
             errStr = 'Field \"{}\" is not coded '.format(field) + \
@@ -914,6 +928,14 @@ def interpolateparameter(dataset,ht,lo_val,hi_val,field):
             val = (hi_val - lo_val) / float((hi_ht - lo_ht)) * \
                 (ht - lo_ht) + lo_val
             
+        # linearly interpolate linear variables
+        elif (field == 'Dewpt_Temp'):
+            msmnt_hts = np.array([3,26,88,134])
+            ht = min(msmnt_hts[-1],ht)          # force height to be in 
+            ht = max(msmnt_hts[0],ht)           #   measurement range
+            val = (hi_val - lo_val) / float((hi_ht - lo_ht)) * \
+                (ht - lo_ht) + lo_val
+            
         # special interpolate wrapping variables
         elif (field == 'Wind_Direction'):
             msmnt_hts = np.array([10,26,88,134])
@@ -922,7 +944,7 @@ def interpolateparameter(dataset,ht,lo_val,hi_val,field):
             dtheta = np.angle(np.exp(1j*hi_val*np.pi/180.)/\
                 np.exp(1j*lo_val*np.pi/180.),deg=1)
             val = (dtheta / (hi_ht - lo_ht) * (ht - lo_ht) + lo_val) % 360.
-            
+                        
         else:
             raise KeyError('Unknown field \"{}\" for '.format(field) + \
                 'dataset \"NREL\"')
@@ -940,10 +962,14 @@ def calculatefield(dataset,struc20,ht):
     """
     import calendar, time
     import numpy as np
+    
+    # meteorological constants
+    g, R, kappa = 9.81, 287, 0.41
 
     if (dataset == 'NREL'):
 
         dt, N = 0.05, 12000
+        refht = 3
         
         # get interpolation/closest heights
         T_hts = interpolationHeights(dataset,ht,'Temperature')
@@ -951,14 +977,18 @@ def calculatefield(dataset,struc20,ht):
         clht_T = T_hts[np.abs(np.array(T_hts)-ht).argmin()]
         loht_WS, hiht_WS = interpolationHeights(dataset,ht,'Wind_Speed_Cup')
         loht_WD, hiht_WD = interpolationHeights(dataset,ht,'Wind_Direction')
+        loht_DP, hiht_DP = interpolationHeights(dataset,ht,'Dewpt_Temp')
         
         # load all necessary time series, incrementally checking flags
         clean  = 1
         fields = ['Sonic_u','Sonic_v','Sonic_w','Sonic_T','Temperature',\
             'Temperature','Temperature','Wind_Speed_Cup','Wind_Speed_Cup',\
-            'Wind_Direction','Wind_Direction','Precipitation']
+            'Wind_Direction','Wind_Direction','Precipitation',\
+            'Dewpt_Temp','Dewpt_Temp','Dewpt_Temp','Pressure',\
+            'Temperature']
         ts_hts = [ht, ht, ht, ht, loht_T, hiht_T, clht_T, loht_WS, hiht_WS,\
-                loht_WD, hiht_WD, ht]
+                loht_WD, hiht_WD, ht, loht_DP, hiht_DP, refht, refht,\
+                refht]
         time_series = np.empty((len(fields),N))
         for i in range(len(fields)):
             
@@ -990,37 +1020,65 @@ def calculatefield(dataset,struc20,ht):
             WD_lo = time_series[9,:]                # lower ht wind dir
             WD_hi = time_series[10,:]               # upper ht wind dir
             P     = time_series[11,:]               # precipitation
+            DP_lo = time_series[12,:]               # lower ht dewpoint temp
+            DP_hi = time_series[13,:]               # upper ht dewpoint temp
+            DP_0  = time_series[14,:]               # ref ht dewpoint temp 
+            P_0   = time_series[15,:]               # ref ht pressure
+            T_0   = time_series[16,:]               # ref ht temperature
             
-            # get variables necessary for later calculations
+            # get mean values for later calculations
             fname     = struc20['tower'][0,0][23][0,0][0][0,0][8][0]
             rec_time  = NRELfname2time(fname)
-            T_sonic_K = T_s + 298.15
             up        = nandetrend(t,u)
             vp        = nandetrend(t,v)
             wp        = nandetrend(t,w)
-            Tp        = nandetrend(t,T_sonic_K)
+            Tp        = nandetrend(t,T_s)
             upwp_bar  = np.nanmean(up*wp)
             upvp_bar  = np.nanmean(up*vp)
             vpwp_bar  = np.nanmean(vp*wp)
             wpTp_bar  = np.nanmean(wp*Tp)
-            ustar     = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
-            rhou,muu  = signalPhaseCoherence(up)
-            rhov,muv  = signalPhaseCoherence(vp)
-            rhow,muw  = signalPhaseCoherence(wp)
-            Tbar_lo_K = np.nanmean(T_lo) + 298.15
-            Tbar_hi_K = np.nanmean(T_hi) + 298.15
-            Tbar_cl_K = np.nanmean(T_cl) + 298.15
             WSbar_lo  = np.nanmean(WS_lo)
             WSbar_hi  = np.nanmean(WS_hi)
             WDbar_lo  = np.angle(np.nanmean(np.exp(1j*WD_lo*np.pi/180.)),deg=1)
             WDbar_hi  = np.angle(np.nanmean(np.exp(1j*WD_hi*np.pi/180.)),deg=1)
+            DPbar_lo  = np.nanmean(DP_lo)
+            DPbar_hi  = np.nanmean(DP_hi)
+            Pbar_0    = np.nanmean(P_0)
+            Tbar_0    = np.nanmean(T_0)
+            DPbar_0   = np.nanmean(DP_0)
 
+            # calculate derived intermediate values
+            ustar     = ( (upwp_bar)**2 + (vpwp_bar)**2 ) ** 0.25
+            rhou,muu  = signalPhaseCoherence(up)
+            rhov,muv  = signalPhaseCoherence(vp)
+            rhow,muw  = signalPhaseCoherence(wp)
+            Tbar_lo_K = C2K(np.nanmean(T_lo))
+            Tbar_hi_K = C2K(np.nanmean(T_hi))
+            Tbar_cl_K = C2K(np.nanmean(T_cl))
             Tbar_in_K = interpolateparameter(dataset,ht,Tbar_lo_K,Tbar_hi_K,\
                                             'Temperature')
             WSbar_in  = interpolateparameter(dataset,ht,WSbar_lo,WSbar_hi,\
                                             'Wind_Speed_Cup')
             WDbar_in  = interpolateparameter(dataset,ht,WDbar_lo,WDbar_hi,\
                                             'Wind_Direction')
+            Tbar_0_K  = C2K(Tbar_0)
+            if (DPbar_0 > 0): A, B = 7.5, 237.3
+            else:            A, B = 9.5, 265.5
+            e0        = 6.11 * 10 ** ((DPbar_0*A)/(DPbar_0 + B))
+            q0        = e0 / Pbar_0
+            Tv0       = (Tbar_0_K)*(1 + 0.61*q0)
+            dPdz      = - (g * Pbar_0) / (R * Tv0)
+            DPbar_z   = interpolateparameter(dataset,ht,DPbar_lo,
+                                             DPbar_hi,'Dewpt_Temp')
+            Tbar_z_K  = interpolateparameter(dataset,ht,Tbar_lo_K,
+                                             Tbar_hi_K,'Temperature')
+
+            if (DPbar_z > 0): A, B = 7.5, 237.3
+            else:            A, B = 9.5, 265.5
+            ez        = 6.11 * 10 ** ((DPbar_z*A)/(DPbar_z + B))
+            Pz        = Pbar_0 + (ht - refht)*dPdz
+            qz        = ez / Pz
+            Tvbar_z_K = (Tbar_z_K)*(1 + 0.61*qz)
 
             # initialize output dictionary
             outdict = {}
@@ -1051,9 +1109,11 @@ def calculatefield(dataset,struc20,ht):
             outdict['tau_v']           = calculateKaimal(vp,dt)
             outdict['tau_w']           = calculateKaimal(wp,dt)
             outdict['MO_Length_interp'] = -(Tbar_in_K * ustar**3) \
-                                         /(0.41 * 9.81 * wpTp_bar)
+                                         /(kappa * g * wpTp_bar)
             outdict['MO_Length_near']  = - (Tbar_cl_K * ustar**3)/ \
-                                         (0.41 * 9.81 * wpTp_bar)
+                                         (kappa * g * wpTp_bar)
+            outdict['MO_Length_virt']  = - (Tvbar_z_K * ustar**3)/ \
+                                         (kappa * g * wpTp_bar)
             
         else:
             outdict = {}
@@ -1099,11 +1159,11 @@ def calculatefield(dataset,struc20,ht):
             # get variables necessary for later calculations
             fname     = struc20['tower'][0,0][23][0,0][0][0,0][3][0]
             rec_time  = NRELfname2time(fname)
-            T_sonic_K = T_s + 298.15
+            T_s_K     = C2K(T_s)
             up        = nandetrend(t,u)
             vp        = nandetrend(t,v)
             wp        = nandetrend(t,w)
-            Tp        = nandetrend(t,T_sonic_K)
+            Tp        = nandetrend(t,T_s_K)
             upwp_bar  = np.nanmean(up*wp)
             upvp_bar  = np.nanmean(up*vp)
             vpwp_bar  = np.nanmean(vp*wp)
@@ -1112,7 +1172,7 @@ def calculatefield(dataset,struc20,ht):
             rhou,muu  = signalPhaseCoherence(up)
             rhov,muv  = signalPhaseCoherence(vp)
             rhow,muw  = signalPhaseCoherence(wp)
-            Tbar_K    = np.nanmean(T_sonic_K) + 298.15
+            Tbar_K    = np.nanmean(T_s_K)
             WSbar     = np.nanmean(WS)
             WDbar     = np.angle(np.nanmean(np.exp(1j*WD*np.pi/180.)),deg=1)
     
@@ -2660,6 +2720,8 @@ def field2datfield(dataset,field,ht):
         elif (field == 'Wind_Speed_Cup'): datfield = 'Cup_WS_' + str(ht) + 'm'
         elif (field == 'Wind_Direction'): datfield = 'Vane_WD_' + str(ht) + 'm'
         elif (field == 'Precipitation'):  datfield = 'PRECIP_INTEN'
+        elif (field == 'Dewpt_Temp'):     datfield = 'Dewpt_Temp_' + str(ht) + 'm'
+        elif (field == 'Pressure'):       datfield = 'Baro_Presr_3m'
         else:
             errStr = 'Unknown custom field {} for dataset \"{}\"'.format(field,dataset)
             raise AttributeError(errStr)
@@ -2717,6 +2779,30 @@ def grid2ticklist(grid_locs):
 
     return ticks
 
+
+
+def C2K(T_c):
+    """ Celsius to Kelvin
+    
+        Args:
+            T_c (float,numpy array): temperature in Celsius
+            
+        Returns:
+            T_k (float, numpy array): temperature in Kelvin
+    """
+    return T_c + 273.15
+    
+
+def K2C(T_k):
+    """ Kelvin to Celsius
+    
+        Args:
+            T_k (float, numpy array): temperature in Kelvin
+            
+        Returns:
+            T_c (float,numpy array): temperature in Celsius
+    """
+    return T_k - 273.15
 
 
 # ==============================================================================

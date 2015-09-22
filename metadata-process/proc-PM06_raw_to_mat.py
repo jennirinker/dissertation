@@ -53,7 +53,7 @@ baseraw = 'H:\\data\\plaine-morte_raw\\' + \
     'CM 2006\\Data'
 basepro = 'H:\\data\\plaine-morte'
 # get list of folders
-#folders = [fold for fold in os.listdir(baseraw) if '-' in fold]
+folders = [fold for fold in os.listdir(baseraw) if '-' in fold]
 
 # loop through list of folders, processing each raw file
 for i_fold in range(len(folders)):
@@ -117,7 +117,8 @@ for i_fold in range(len(folders)):
                             dpath = os.path.join(basepro,
                                                  time_0.strftime('%Y\\%m\\%d'))
                             if (not os.path.isdir(dpath)): os.makedirs(dpath)
-                            fname  = time_0.strftime('%m_%d_%Y_%H%M')
+                            fname  = time_0.strftime('%m_%d_%Y_%H%M') + \
+                                    '_' + os.path.splitext(raws[i_file])[0]
                             fpath  = os.path.join(dpath,fname)
                             values = data[:i_t,:]
                             
