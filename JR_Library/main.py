@@ -568,6 +568,10 @@ def datasetSpecs(dataset):
         n_t     = 6000
         dt      = 0.10
         heights = np.array([36,54,75])
+    elif (dataset == 'PM06'):
+        n_t     = 12000
+        dt      = 0.05
+        heights = []
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -648,8 +652,9 @@ def getBasedir(dataset):
         if (platform.system() == 'Linux'):
             basedir = '/media/jrinker/JRinker SeaGate External/data/nrel-20Hz/'
         elif (platform.system() == 'Windows'):
-            basedir = 'G:\\data\\nrel-20Hz'
+#            basedir = 'G:\\data\\nrel-20Hz'
 ##            basedir = 'E:\\data\\nrel-20Hz'
+            basedir = 'H:\\data\\nrel-20Hz'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -658,8 +663,9 @@ def getBasedir(dataset):
         if (platform.system() == 'Linux'):
             basedir = '/media/jrinker/JRinker SeaGate External/data/fluela-high_freq/'
         elif (platform.system() == 'Windows'):
-            basedir = 'G:\\data\\fluela-high_freq'
+#            basedir = 'G:\\data\\fluela-high_freq'
 ##            basedir = 'E:\\data\\fluela-high_freq'
+            basedir = 'H:\\data\\fluela-high_freq'
         if not os.path.exists(basedir):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
@@ -1187,6 +1193,24 @@ def list_matfiles(basedir,save=0):
 # %%============================================================================
 # METADATA ANALYSIS
 # ==============================================================================
+
+
+def metadataFpath(dataset):
+    """ Filepath to metadata table
+    
+        Args:
+            dataset (string): toggle for dataset choice
+            
+        Returns:
+            fpath (string): filepath to metadata file
+    """
+    import os
+    
+    base  =  'C:\\Users\\jrinker\\Dropbox\\research\\processed_data'
+    fpath = os.path.join(base,dataset + '-metadata.mat')
+        
+    return fpath
+
 
 def screenmetadata(fields,metadata,dataset):
     """ Screen the metadata for data quality
