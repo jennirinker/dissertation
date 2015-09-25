@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import sys
-libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+##libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+libpath = '/home/jrinker/git/dissertation/'
 if (libpath not in sys.path): sys.path.append(libpath)
     
 import JR_Library.main as jr
@@ -48,7 +49,7 @@ U  = jr.TurbSimVelProfile(outname);
 Ti = tsout.Ti;
 		
 # calculate spatial coherence
-f, Coh = jr.calculateTurbSimSC(outname,rsep);
+f, Coh = jr.TurbSimSpatCoh(outname,rsep);
 
 # calculate hub-height spectra
 Suk, Svk, Swk = jr.TurbSimHHPSDs(outname);
@@ -62,10 +63,10 @@ zhub = tsout.grid.zhub
 Vhub = tsout.UHUB
 turbc = tsin.turbc
 df = 1./(n_t*tsout.dt)
-U_IEC  = jr.VelProfile(z,zhub,Vhub);
-TI_IEC = jr.TiProfile(z,zhub,Vhub,turbc);
-Coh_IEC = jr.SpatialCoherence(zhub,Vhub,rsep,f);
-Su_IEC, Sv_IEC, Sw_IEC = jr.PSDs(zhub,Vhub,turbc,f);
+U_IEC  = jr.IEC_VelProfile(z,zhub,Vhub);
+TI_IEC = jr.IEC_TiProfile(z,zhub,Vhub,turbc);
+Coh_IEC = jr.IEC_SpatialCoherence(zhub,Vhub,rsep,f);
+Su_IEC, Sv_IEC, Sw_IEC = jr.IEC_PSDs(zhub,Vhub,turbc,f);
 Suk_IEC = Su_IEC*df
 Svk_IEC = Sv_IEC*df
 Swk_IEC = Sw_IEC*df
