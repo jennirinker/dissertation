@@ -495,7 +495,7 @@ def metadataFields(dataset):
               'Sigma_v','Concentration_v','Location_v', \
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
-              'MO_Length_interp','MO_Length_near']
+              'MO_Length_interp','MO_Length_near','MO_Length_virt']
     elif (dataset == 'fluela'):
         fields = ['Record_Time','Processed_Time','Height','Sonic_Cup', \
               'Sonic_Direction', 'Mean_Wind_Speed', \
@@ -503,7 +503,7 @@ def metadataFields(dataset):
               'Sigma_v','Concentration_v','Location_v', \
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
-              'MO_Length']
+              'MO_Length','MO_Length_virt']
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -689,22 +689,22 @@ def getBasedir(dataset):
     return basedir
 
 
-def makemetadata(dataset):
-    """ Construct metadata table
-    """
-
-    # get base directory, check it exists
-    basedir = getBasedir(dataset)
-
-    # process NREL dataset
-    if (dataset == 'NREL'):
-        metadata = makeNRELmetadata(basedir)
-
-    else:
-        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-        raise AttributeError(errStr)
-
-    return metadata
+#def makemetadata(dataset):
+#    """ Construct metadata table
+#    """
+#
+#    # get base directory, check it exists
+#    basedir = getBasedir(dataset)
+#
+#    # process NREL dataset
+#    if (dataset == 'NREL'):
+#        metadata = makeNRELmetadata(basedir)
+#
+#    else:
+#        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
+#        raise AttributeError(errStr)
+#
+#    return metadata
 
 
 def listmetadata(dataset,i,list_mats):
@@ -712,7 +712,7 @@ def listmetadata(dataset,i,list_mats):
         in list_mats
     """
     import numpy as np
-    import sys, os
+    import os
     import scipy.io as scio
 
     if (dataset in ['NREL','fluela']):
@@ -1175,6 +1175,7 @@ def calculatefield(dataset,struc20,ht):
             Tbar_K    = np.nanmean(T_s_K)
             WSbar     = np.nanmean(WS)
             WDbar     = np.angle(np.nanmean(np.exp(1j*WD*np.pi/180.)),deg=1)
+            Tvbar_K   = Tbar_K
     
             # initialize output dictionary
             outdict = {}
@@ -1204,7 +1205,9 @@ def calculatefield(dataset,struc20,ht):
             outdict['tau_v']           = calculateKaimal(vp,dt)
             outdict['tau_w']           = calculateKaimal(wp,dt)
             outdict['MO_Length']       = -(Tbar_K * ustar**3) \
-                                         /(0.41 * 9.81 * wpTp_bar)
+                                         /(kappa * g * wpTp_bar)
+            outdict['MO_Length_virt']  = - (Tvbar_K * ustar**3)/ \
+                                         (kappa * g * wpTp_bar)
             
         else:
             outdict = {}
