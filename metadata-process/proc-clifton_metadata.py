@@ -17,7 +17,7 @@ if (__name__ == '__main__'):
     # variables for later
     dataset  = 'NREL'
     basedir  = jr.getBasedir(dataset)
-    njobs    = 1
+    njobs    = 60
     fields   = jr.metadataFields(dataset)
     
     # load saved list of mat files
@@ -28,7 +28,7 @@ if (__name__ == '__main__'):
     n_files = len(list_mats)
         
     # process files in parallel
-    n_proc = 3                            # no. files to process
+    n_proc = n_files                            # no. files to process
     md_list = Parallel(n_jobs=njobs,verbose=9) \
         (delayed(jr.listmetadata)(dataset,i,list_mats) for i in range(n_proc))
 #    md_list = []

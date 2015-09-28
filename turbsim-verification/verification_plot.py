@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import sys
-libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+##libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+libpath = '/home/jrinker/git/dissertation/'
 if (libpath not in sys.path): sys.path.append(libpath)
     
 import JR_Library.main as jr
@@ -14,7 +15,8 @@ import JR_Library.main as jr
 
 # name of file to load
 dname   = '3-PDDs/TS/'
-fname   = '5pts_NoSc';
+fname,fignum   = '5pts_NoSc',1
+##fname,fignum   = '5pts_Usr',2
 
 # hard-coded temporal coherence parameters
 rho = 0.2           # concentration parameter
@@ -44,28 +46,30 @@ rsep = min(tsout.grid.dy,\
 # ============== TurbSim ==============
 
 # calculate velocity and turb intesn profiles
-U  = jr.TurbSimVelProfile(outname);
-Ti = tsout.Ti;
+U  = jr.TurbSimVelProfile(outname)
+Ti = tsout.Ti
+sig = U*Ti
 		
 # calculate spatial coherence
-f, Coh = jr.calculateTurbSimSC(outname,rsep);
+f, Coh = jr.TurbSimSpatCoh(outname,rsep)
 
 # calculate hub-height spectra
-Suk, Svk, Swk = jr.TurbSimHHPSDs(outname);
+Suk, Svk, Swk = jr.TurbSimHHPSDs(outname)
 
 # phase differences
 dthetau, dthetav, dthetaw = \
-    jr.TurbSimHHPDDs(outname);
+    jr.TurbSimHHPDDs(outname)
 
 # ============== Theory ==============
 zhub = tsout.grid.zhub
 Vhub = tsout.UHUB
 turbc = tsin.turbc
 df = 1./(n_t*tsout.dt)
-U_IEC  = jr.VelProfile(z,zhub,Vhub);
-TI_IEC = jr.TiProfile(z,zhub,Vhub,turbc);
-Coh_IEC = jr.SpatialCoherence(zhub,Vhub,rsep,f);
-Su_IEC, Sv_IEC, Sw_IEC = jr.PSDs(zhub,Vhub,turbc,f);
+U_IEC  = jr.IEC_VelProfile(z,zhub,Vhub)
+Ti_IEC = jr.IEC_TiProfile(z,zhub,Vhub,turbc)
+sig_IEC = U_IEC*Ti_IEC
+Coh_IEC = jr.IEC_SpatialCoherence(zhub,Vhub,rsep,f);
+Su_IEC, Sv_IEC, Sw_IEC = jr.IEC_PSDs(zhub,Vhub,turbc,f);
 Suk_IEC = Su_IEC*df
 Svk_IEC = Sv_IEC*df
 Swk_IEC = Sw_IEC*df
@@ -78,7 +82,7 @@ axheight = 0.23;
 xedge = [0.08, 0.41, 0.74];
 yedge = [0.09, 0.405, 0.72];
 
-fig = plt.figure(1,figsize=(9.05,7.14));
+fig = plt.figure(fignum,figsize=(9.05,7.14));
 fig.clf();
 plt.ion()
 
@@ -90,10 +94,13 @@ plt.xlabel('Velocity (m/s)')
 plt.ylabel('Height (m)')
 
 # turbulence intensity profile
-ax4 = plt.axes([xedge[0], yedge[1], axwidth, axheight]);
-ax4.scatter( Ti, Z )
-ax4.plot( TI_IEC, z, 'r')
+ax4 = plt.axes([xedge[0], yedge[1], axwidth, axheight])
+ax4.scatter( sig, Z )
+ax4.plot( sig_IEC, z, 'r')
 plt.xlabel('Turb. Intens (-)')
+##ax4.scatter( Ti, Z )
+##ax4.plot( Ti_IEC, z, 'r')
+##plt.xlabel('Turb. Intens (-)')
 plt.ylabel('Height (m)')
 
 # spatial coherence

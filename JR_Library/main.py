@@ -1847,11 +1847,11 @@ def IEC_TiProfile(z,zhub,Vhub,turbc):
             Ti (numpy array): turbulence intensity at heights in z
     """
 
-    
-    Iref = IrefFromClass(turbc);                # reference hub-height TI  
-    sigma1 = calcSigma1(Iref,Vhub)              # reference standard deviation
-    V = VelProfile(z,zhub,Vhub);                # mean wind profile
-    Ti = sigma1 / V;                            # TI profile
+      
+    Iref = IEC_Iref(turbc)                      # reference hub-height TI  
+    sigma1 = IEC_Sigma1(Iref,Vhub)              # reference standard deviation
+    V = IEC_VelProfile(z,zhub,Vhub)             # mean wind profile
+    Ti = sigma1 / V                             # TI profile
     
     return Ti
 
@@ -2261,7 +2261,7 @@ def TurbSimSpatCoh(fname,rsep):
     Xj_all = Xj_all[:,1:];
 
     # calculate spatial coherence of arrays
-    f, Cohij = spatialCoherence(Xi_all,Xj_all,df);
+    f, Cohij = vectorSpatCoh(Xi_all,Xj_all,df);
 
     return (f, Cohij)
 
