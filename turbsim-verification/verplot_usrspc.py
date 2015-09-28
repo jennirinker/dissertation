@@ -4,6 +4,7 @@
 import pyts.io.main as io
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 
 import sys
 ##libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
@@ -15,8 +16,8 @@ import JR_Library.main as jr
 
 # name of file to load
 dname   = '3-PDDs/TS/'
-fname,fignum   = '5pts_NoSc',1
-##fname,fignum   = '5pts_Usr',2
+##fname,fignum   = '5pts_NoSc',1
+fname,fignum   = '5pts_Usr',2
 
 # hard-coded temporal coherence parameters
 rho = 0.2           # concentration parameter
@@ -26,12 +27,45 @@ mu = 0.        # location parameter
 saveimg = 0
 
 # construct total file path
-inpname = dname + fname + '.inp';
-outname = dname + fname + '.wnd';
+inpname = dname + fname + '.inp'
+outname = dname + fname + '.wnd'
+spcname = dname + fname + '.spc'
 
-# read file
-tsout = io.readModel(outname);
-tsin  = jr.readInput_v2(inpname);
+# read files
+tsout = io.readModel(outname)
+tsin  = jr.readInput_v2(inpname)
+with open(spcname,'r') as f_obj:
+    stop, i_line, i_f, NumF = 0, 0, 0, 1e6
+    while not stop:
+        line = f_obj.readline()
+        if i_line == 1:
+            contents = line.split(';')
+            contents[0]  = contents[0].split(':')[-1]
+            contents[-1] = contents[-1].split()[0]
+            parms = [float(x.split('=')[-1]) for x in contents]
+            Uhub,sig_u,sig_v,sig_w,L_u,L_v,L_w,rho_u,rho_v,rho_w = parms
+        elif i_line == 3:
+            contents = line.split()
+            NumF = int(contents[0])
+            S_theo = np.empty((NumF,4))
+        elif i_line == 4:
+            contents = line.split()
+            Scale1 = float(contents[0])
+        elif i_line == 5:
+            contents = line.split()
+            Scale2 = float(contents[0])
+        elif i_line == 6:
+            contents = line.split()
+            Scale3 = float(contents[0])
+        elif i_f >= NumF:
+            stop = 1
+        elif i_line > 10:
+            S_unsc = np.asarray([float(x) for \
+                                        x in line.split()])
+            S_theo[i_f,:] = [S_unsc[0],S_unsc[1]*Scale1,
+                             S_unsc[2]*Scale2,S_unsc[3]*Scale3]
+            i_f += 1
+        i_line += 1
 
 # useful values
 y = tsout.grid.y;               # y-grid vector
@@ -62,28 +96,25 @@ dthetau, dthetav, dthetaw = \
 
 # ============== Theory ==============
 zhub = tsout.grid.zhub
-Vhub = tsout.UHUB
-turbc = tsin.turbc
 df = 1./(n_t*tsout.dt)
-U_IEC  = jr.IEC_VelProfile(z,zhub,Vhub)
-Ti_IEC = jr.IEC_TiProfile(z,zhub,Vhub,turbc)
-sig_IEC = U_IEC*Ti_IEC
-Coh_IEC = jr.IEC_SpatialCoherence(zhub,Vhub,rsep,f);
-Su_IEC, Sv_IEC, Sw_IEC = jr.IEC_PSDs(zhub,Vhub,turbc,f);
-Suk_IEC = Su_IEC*df
-Svk_IEC = Sv_IEC*df
-Swk_IEC = Sw_IEC*df
+U_theo  = jr.IEC_VelProfile(z,zhub,Uhub)
+sig_theo = sig_u*np.ones(z.shape)
+Coh_theo = jr.IEC_SpatialCoherence(zhub,Uhub,rsep,f)
+f_theo = S_theo[:,0]
+Su_theo = S_theo[:,1]
+Sv_theo = S_theo[:,2]
+Sw_theo = S_theo[:,3]
 thetaPlot = np.linspace(-np.pi,np.pi,100)
 fWC = jr.wrappedCauchyPDF(thetaPlot,rho,mu)
 
 # print standard deviations
-sigHH_IEC = jr.IEC_VelProfile(zhub,zhub,Vhub)* \
-         jr.IEC_TiProfile(zhub,zhub,Vhub,turbc)
+sigHH_theo = sig_theo[0]
 sigHH_TS  = np.std(tsout.uhub)
-perc_diff = (sigHH_TS-sigHH_IEC)/sigHH_IEC*100
-print('IEC hub-height sigma:     {:.3f}'.format(sigHH_IEC))
+perc_diff = (sigHH_TS-sigHH_theo)/sigHH_theo*100
+print('IEC hub-height sigma:     {:.3f}'.format(sigHH_theo))
 print('TurbSim hub-height sigma: {:.3f}'.format(sigHH_TS))
 print('Percent difference:       {:.1f}%'.format(perc_diff))
+print(np.std(tsout.vhub)/sig_v)
 
 # ============== Plot ==============
 axwidth = 0.23;
@@ -98,48 +129,51 @@ plt.ion()
 # velocity profile
 ax1 = plt.axes([xedge[0], yedge[-1], axwidth, axheight])
 ax1.scatter( U, Z )
-ax1.plot( U_IEC, z, 'r')
+ax1.plot( U_theo, z, 'r')
 plt.xlabel('Velocity (m/s)')
 plt.ylabel('Height (m)')
 
 # turbulence intensity profile
 ax4 = plt.axes([xedge[0], yedge[1], axwidth, axheight])
 ax4.scatter( sig, Z )
-ax4.plot( sig_IEC, z, 'r')
+ax4.plot( sig_theo, z, 'r')
 plt.xlabel('Turb. Intens (-)')
 ##ax4.scatter( Ti, Z )
-##ax4.plot( Ti_IEC, z, 'r')
+##ax4.plot( Ti_theo, z, 'r')
 ##plt.xlabel('Turb. Intens (-)')
 plt.ylabel('Height (m)')
 
 # spatial coherence
 ax7 = plt.axes([xedge[0], yedge[0], axwidth, axheight]);
 ax7.semilogx(f,Coh);
-ax7.semilogx(f,Coh_IEC,'r')
+ax7.semilogx(f,Coh_theo,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('Spatial Coherence (-)')
 
 # u-spectrum
 ax2 = plt.axes([xedge[1], yedge[-1], axwidth, axheight]);
-ax2.loglog(f[1:],Suk[1:-1])
-ax2.loglog(f,Suk_IEC,'r')
+ax2.loglog(f[1:],Suk[1:-1]/df)
+ax2.loglog(f_theo,Su_theo,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.xlim([1e-3,1e1])
 plt.title(fname)
 
 # v-spectrum
 ax5 =  plt.axes([xedge[1], yedge[1], axwidth, axheight]);
-ax5.loglog(f[1:],Svk[1:-1])
-ax5.loglog(f,Svk_IEC,'r')
+ax5.loglog(f[1:],Svk[1:-1]/df)
+ax5.loglog(f_theo,Sv_theo,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.xlim([1e-3,1e1])
 
 # w-spectrum
 ax8 =  plt.axes([xedge[1], yedge[0], axwidth, axheight]);
-ax8.loglog(f[1:],Swk[1:-1])
-ax8.loglog(f,Swk_IEC,'r')
+ax8.loglog(f[1:],Swk[1:-1]/df)
+ax8.loglog(f_theo,Sw_theo,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.xlim([1e-3,1e1])
 
 # u-dtheta
 nbins = 20
@@ -155,7 +189,7 @@ ax6 =  plt.axes([xedge[2], yedge[1], axwidth, axheight]);
 ax6.hist(dthetav,bins=nbins,normed=True)
 ax6.plot(thetaPlot, fWC, 'r')
 plt.xlabel('Phase Difference/pi')
-plt.ylabel('vhub Phase Differences')
+plt.ylabel('Uhub Phase Differences')
 plt.xlim([-np.pi,np.pi])
 
 # w-dtheta

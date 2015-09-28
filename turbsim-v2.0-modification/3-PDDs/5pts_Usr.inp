@@ -29,7 +29,7 @@ True          Clockwise       - Clockwise rotation looking downwind? (used only 
 
 --------Meteorological Boundary Conditions-------------------
 "USRINP"      TurbModel       - Turbulence model ("IECKAI","IECVKM","GP_LLJ","NWTCUP","SMOOTH","WF_UPW","WF_07D","WF_14D","TIDAL","API","USRINP","TIMESR", or "NONE")
-"UsrSpec.inp" UserFile        - Name of the file that contains inputs for user-defined spectra or time series inputs (used only for "USRINP" and "TIMESR" models)
+"5pts_Usr.spc" UserFile        - Name of the file that contains inputs for user-defined spectra or time series inputs (used only for "USRINP" and "TIMESR" models)
  "1-ED3"      IECstandard     - Number of IEC 61400-x standard (x=1,2, or 3 with optional 61400-1 edition number (i.e. "1-Ed2") )
 "C"           IECturbc        - IEC turbulence characteristic ("A", "B", "C" or the turbulence intensity in percent) ("KHTEST" option with NWTCUP model, not used for other models)
 "NTM"         IEC_WindType    - IEC turbulence type ("NTM"=normal, "xETM"=extreme turbulence, "xEWM1"=extreme 1-year wind, "xEWM50"=extreme 50-year wind, where x=wind turbine class 1, 2, or 3)
@@ -47,17 +47,17 @@ True          Clockwise       - Clockwise rotation looking downwind? (used only 
        0.05   RICH_NO         - Gradient Richardson number [-]
 "default"     UStar           - Friction or shear velocity [m/s] (or "default")
 "default"     ZI              - Mixing layer depth [m] (or "default")
-"default"     PC_UW           - Hub mean u'w' Reynolds stress [m^2/s^2] (or "default" or "none")
-"default"     PC_UV           - Hub mean u'v' Reynolds stress [m^2/s^2] (or "default" or "none")
-"default"     PC_VW           - Hub mean v'w' Reynolds stress [m^2/s^2] (or "default" or "none")
+none          PC_UW           - Hub mean u'w' Reynolds stress [m^2/s^2] (or "default" or "none")
+none          PC_UV           - Hub mean u'v' Reynolds stress [m^2/s^2] (or "default" or "none")
+none          PC_VW           - Hub mean v'w' Reynolds stress [m^2/s^2] (or "default" or "none")
 
 --------Spatial Coherence Parameters----------------------------
-default       SCMod1           - u-component coherence model ("GENERAL","IEC","API","NONE", or "default")
-default       SCMod2           - v-component coherence model ("GENERAL","NONE", or "default")
-default       SCMod3           - w-component coherence model ("GENERAL","NONE", or "default")
-"default"     InCDec1          - u-component coherence parameters for general or IEC models [-, m^-1] (e.g. "10.0  0.3e-3" in quotes) (or "default")
-"default"     InCDec2          - v-component coherence parameters for general or IEC models [-, m^-1] (e.g. "10.0  0.3e-3" in quotes) (or "default")
-"default"     InCDec3          - w-component coherence parameters for general or IEC models [-, m^-1] (e.g. "10.0  0.3e-3" in quotes) (or "default")
+IEC           SCMod1           - u-component coherence model ("GENERAL","IEC","API","NONE", or "default")
+none          SCMod2           - v-component coherence model ("GENERAL","NONE", or "default")
+none          SCMod3           - w-component coherence model ("GENERAL","NONE", or "default")
+"12 3.527e-4" InCDec1          - u-component coherence parameters for general or IEC models [-, m^-1] (e.g. "10.0  0.3e-3" in quotes) (or "default")
+9999999       InCDec2          - v-component coherence parameters for general or IEC models [-, m^-1] (e.g. "10.0  0.3e-3" in quotes) (or "default")
+9999999       InCDec3          - w-component coherence parameters for general or IEC models [-, m^-1] (e.g. "10.0  0.3e-3" in quotes) (or "default")
 "default"     CohExp           - Coherence exponent for general model [-] (or "default")
 
 --------Temporal Coherence Parameters----------------------------
