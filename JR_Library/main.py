@@ -133,11 +133,11 @@ def loadtimeseries(dataset,field,ht,data_in):
     # define max number of spikes
     n_spikes_max = 20
 
-    if (dataset == 'NREL'):
+    if (dataset in ['NREL','fluela']):
 
         # set data ranges, desired length of time series
         dataRng = dataRanges(dataset,datfield)
-        dt, N   = 0.05, 12000
+        N, dt   = datasetSpecs(dataset)[:2]
         t       = np.arange(N)*dt
                     
         # determine what kind of data was provided
@@ -205,72 +205,6 @@ def loadtimeseries(dataset,field,ht,data_in):
                     
             else:
                 x_cl = nandetrend(t,x_cl) + np.mean(x_cl)
-
-        # save results in dictionary
-        outdict          = {}
-        outdict['time']  = t
-        outdict['raw']   = x_raw
-        outdict['clean'] = x_cl
-        outdict['flags'] = flags
-
-    elif (dataset == 'fluela'):
-
-        # set data ranges, desired length of time series
-        dataRng = dataRanges(dataset,datfield)
-        dt, N   = 0.10, 6000
-        t       = np.arange(N)*dt
-                    
-        # determine what kind of data was provided
-        if (isinstance(data_in,dict)):                   # data structure given
-            struc = data_in
-        elif (isinstance(data_in,(int,float,tuple))):    # timestamp given
-            fpath = time2fpath(dataset,data_in)
-            struc = scio.loadmat(fpath)
-        else:
-            errStr = 'Incorrect data type ' + \
-                '\"{}\" for input \"data_in\".'.format(type(data_in))
-            raise TypeError(errStr)
-
-        # initialize list of flags
-        flags = []
-
-        # try to load time series
-        try:
-            x_raw = np.squeeze(struc[datfield][0,0][0])            
-            # flag 5003: data are all NaNs
-            if (np.all(np.isnan(x_raw))):
-                flags.append(5003)                
-        except KeyError:
-            # flag 1006: data are not in 20-Hz structure
-            x_raw = np.empty(N)
-            x_raw[:] = np.nan
-            flags.append(1006)
-                
-        # copy raw data for analysis, make sure is float for NaN values
-        x_cl  = x_raw.astype(float)
-
-        # flag 1005: data is not length N
-        if (x_raw.size != N):
-            flags.append(1005)
-
-        # flag 1003: >1% are outside acceptable data range
-        x_cl[np.where(x_raw < dataRng[0])] = np.nan
-        x_cl[np.where(x_raw > dataRng[1])] = np.nan
-        percOut = np.sum(np.isnan(x_cl))/float(N)
-        if (percOut > 0.01):
-              flags.append(1003)
-
-        # flag 1007: sonic wind velocities are quantized
-        if (is_quantized(x_raw) and any(x in datfield for \
-                x in ['Sonic_u','Sonic_v','Sonic_w'])):
-            flags.append(1007)
-
-        # sort flags
-        flags = sorted(flags)
-
-        # clean/detrend healthy data if no flags and it's a sonic time series
-        if ((len(flags) == 0) and ('Sonic' in datfield)):
-            x_cl = cleantimeseries(t,x_cl)
 
         # save results in dictionary
         outdict          = {}
