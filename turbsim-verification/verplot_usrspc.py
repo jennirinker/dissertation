@@ -15,7 +15,8 @@ import JR_Library.main as jr
 
 
 # name of file to load
-dname   = '3-PDDs/TS/'
+##dname   = '3-PDDs/TS/'
+dname   = '5-specify_allvals/TS/'
 ##fname,fignum   = '5pts_NoSc',1
 fname,fignum   = '5pts_Usr',2
 

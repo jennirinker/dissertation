@@ -122,7 +122,6 @@ TurbSim_SOURCES =        \
 	Root_Searching.f90    \
 	RandNum.f90           \
 	Profiles.f90          \
-	TemporalCoherence.f90 \
 	BlankModVKM.f90       \
 	CohStructures.f90     \
 	TS_FileIO.f90         \
