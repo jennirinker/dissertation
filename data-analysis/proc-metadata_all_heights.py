@@ -30,7 +30,7 @@ sigCol = fields.index('Sigma_u')
 tauCol = fields.index('tau_u')
 rhoCol = fields.index('Concentration_u')
 muCol  = fields.index('Location_u')
-LMOCol = fields.index('MO_Length_interp')
+LMOCol = fields.index('MO_Length_virt')
 
 # screen metadata, get measurement heights
 clean   = jr.screenmetadata(fields,raw_parms,dataset)
