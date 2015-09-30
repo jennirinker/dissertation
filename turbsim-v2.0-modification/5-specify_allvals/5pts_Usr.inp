@@ -62,8 +62,8 @@ none          SCMod3           - w-component coherence model ("GENERAL","NONE", 
 
 --------Temporal Coherence Parameters----------------------------
 "0.2 3.152"   TCMod1           - u-component temporal coherence parameters [-, rad] (e.g., "0.0 3.142")
-"0.2 3.152"   TCMod2           - v-component temporal coherence parameters [-, rad] (e.g., "0.0 3.142")
-"0.2 3.152"   TCMod3           - w-component temporal coherence parameters [-, rad] (e.g., "0.0 3.142")
+"0.1 3.152"   TCMod2           - v-component temporal coherence parameters [-, rad] (e.g., "0.0 3.142")
+"0.0 3.152"   TCMod3           - w-component temporal coherence parameters [-, rad] (e.g., "0.0 3.142")
 
 --------Coherent Turbulence Scaling Parameters-------------------
 ".\EventData"    CTEventPath     - Name of the path where event data files are located

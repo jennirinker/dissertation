@@ -20,10 +20,6 @@ dname   = '5-specify_allvals/TS/'
 ##fname,fignum   = '5pts_NoSc',1
 fname,fignum   = '5pts_Usr',2
 
-# hard-coded temporal coherence parameters
-rho = 0.2           # concentration parameter
-mu = 0.        # location parameter
-
 # save image in directory?
 saveimg = 0
 
@@ -41,10 +37,10 @@ with open(spcname,'r') as f_obj:
         line = f_obj.readline()
         if i_line == 1:
             contents = line.split(';')
-            contents[0]  = contents[0].split(':')[-1]
             contents[-1] = contents[-1].split()[0]
             parms = [float(x.split('=')[-1]) for x in contents]
-            Uhub,sig_u,sig_v,sig_w,L_u,L_v,L_w,rho_u,rho_v,rho_w = parms
+            Uhub,sig_u,sig_v,sig_w,L_u,L_v,L_w,\
+                rho_u,rho_v,rho_w,mu_u,mu_v,mu_w = parms
         elif i_line == 3:
             contents = line.split()
             NumF = int(contents[0])
@@ -106,7 +102,9 @@ Su_theo = S_theo[:,1]
 Sv_theo = S_theo[:,2]
 Sw_theo = S_theo[:,3]
 thetaPlot = np.linspace(-np.pi,np.pi,100)
-fWC = jr.wrappedCauchyPDF(thetaPlot,rho,mu)
+fWC_u = jr.wrappedCauchyPDF(thetaPlot,rho_u,mu_u)
+fWC_v = jr.wrappedCauchyPDF(thetaPlot,rho_v,mu_v)
+fWC_w = jr.wrappedCauchyPDF(thetaPlot,rho_w,mu_w)
 
 # print standard deviations
 sigHH_theo = sig_theo[0]
@@ -180,7 +178,7 @@ plt.xlim([1e-3,1e1])
 nbins = 20
 ax3 =  plt.axes([xedge[2], yedge[-1], axwidth, axheight]);
 ax3.hist(dthetau,bins=nbins,normed=True)
-ax3.plot(thetaPlot, fWC, 'r')
+ax3.plot(thetaPlot, fWC_u, 'r')
 plt.xlabel('Phase Difference/pi')
 plt.ylabel('uhub Phase Differences')
 plt.xlim([-np.pi,np.pi])
@@ -188,7 +186,7 @@ plt.xlim([-np.pi,np.pi])
 # v-dtheta
 ax6 =  plt.axes([xedge[2], yedge[1], axwidth, axheight]);
 ax6.hist(dthetav,bins=nbins,normed=True)
-ax6.plot(thetaPlot, fWC, 'r')
+ax6.plot(thetaPlot, fWC_v, 'r')
 plt.xlabel('Phase Difference/pi')
 plt.ylabel('Uhub Phase Differences')
 plt.xlim([-np.pi,np.pi])
@@ -196,7 +194,7 @@ plt.xlim([-np.pi,np.pi])
 # w-dtheta
 ax9 =  plt.axes([xedge[2], yedge[0], axwidth, axheight]);
 ax9.hist(dthetaw,bins=nbins,normed=True)
-ax9.plot(thetaPlot, fWC, 'r')
+ax9.plot(thetaPlot, fWC_w, 'r')
 plt.xlabel('Phase Difference/pi')
 plt.ylabel('whub Phase Differences')
 plt.xlim([-np.pi,np.pi])
