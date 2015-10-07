@@ -10,6 +10,7 @@ Notes
 - DFORT.DLL is necessary to run code on Windows
 - DISCON.dll is compiled controller (necessary to run on Windows)
 - FAST_v7...exe is Windows executable compiled to run with Bladed DLL interface
+	* downloaded from http://wind.nrel.gov/public/jjonkman/FAST/
 
 Reference
 ---------
