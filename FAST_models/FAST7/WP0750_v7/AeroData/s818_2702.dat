@@ -1,11 +1,13 @@
 s818_2702.dat Re=4,000,000
 FROM Dayton Griffin, sept28 '00, post stall blended with flat plate
+        1               Number of airfoil tables in this file                                           
+       0.00             Table ID parameter       
        12.00            Stall angle (deg)
-        0.0             Gormont dynamic stall parameter (upper loop)
-        0.7             Gormont dynamic stall parameter (lower loop)
-        0.27            Airfoil Thickness ratio, Thickness/Chord
-       -2.00            zero lift angle
-       6.308            Cn slope
+        0.0             No longer used, enter zero
+        0.0             No longer used, enter zero
+        0.0             No longer used, enter zero
+       -2.00            Zero lift angle angle of attach (deg)
+       6.308            Cn slope for zero lift (dimensionless)
        1.32             Cn at stall
       -1.1              Cn at negative stall
        0.01             Alpha for Cd min

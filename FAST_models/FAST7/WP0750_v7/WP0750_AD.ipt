@@ -19,7 +19,7 @@ PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [P
 "AeroData/cylinder.dat"    FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
 "AeroData/s818_2702.dat"
 "AeroData/s825_2102.dat"
-"AeroData/s826_2102.dat"
+"AeroData/s826_1602.dat"
   15                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes    AeroTwst  DRNodes  Chord  NFoil  PrnElm
  2.04167  11.10     1.58333  1.392  1      NOPRINT

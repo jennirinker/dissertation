@@ -1,5 +1,7 @@
 s826_1601.dat Re=3,000,000
 FROM Dayton Griffin, Sept 28'00, post stall combined with flat plate
+        1               Number of airfoil tables in this file                                           
+       0.00             Table ID parameter   
        12.00            Stall angle (deg)
         0.0             Gormont dynamic stall parameter (upper loop)
         0.7             Gormont dynamic stall parameter (lower loop)
