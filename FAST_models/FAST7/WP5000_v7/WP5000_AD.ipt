@@ -1,4 +1,4 @@
-1.5 MW baseline aerodynamic parameters for WindPACT 1.5 MW (1.5A08V03)
+5.0 MW baseline aerodynamic parameters for WindPACT 5.0 MW (5.0A04V00)
 SI                                     SysUnits - System of units for used for input and output [must be SI for FAST] (unquoted string)
 BEDDOES                                StallMod - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
 NO_CM                                  UseCm    - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
@@ -22,21 +22,18 @@ PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [P
 "AeroData/s826_2102.dat"
   15                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes    AeroTwst  DRNodes  Chord  NFoil  PrnElm
- 2.85833  11.10     2.21667  1.949  1      NOPRINT
- 5.07500  11.10     2.21667  2.269  2      NOPRINT
- 7.29167  11.10     2.21667  2.589  2      NOPRINT
- 9.50833  10.41     2.21667  2.743  2      NOPRINT
-11.72500   8.38     2.21667  2.578  2      NOPRINT
-13.94167   6.35     2.21667  2.412  2      NOPRINT
-16.15833   4.33     2.21667  2.247  2      NOPRINT
-18.37500   2.85     2.21667  2.082  2      NOPRINT
-20.59167   2.22     2.21667  1.916  3      NOPRINT
-22.80833   1.58     2.21667  1.751  3      NOPRINT
-25.02500   0.95     2.21667  1.585  3      NOPRINT
-27.24167   0.53     2.21667  1.427  3      NOPRINT
-29.45833   0.38     2.21667  1.278  3      NOPRINT
-31.67500   0.23     2.21667  1.129  4      NOPRINT
-33.89167   0.08     2.21667  0.980  4      NOPRINT
-
-
-
+ 5.22667  11.10     4.05333  3.564  1      NOPRINT
+ 9.28000  11.10     4.05333  4.150  2      NOPRINT
+13.33333  11.10     4.05333  4.735  2      NOPRINT
+17.38667  10.41     4.05333  5.016  2      NOPRINT
+21.44000   8.38     4.05333  4.714  2      NOPRINT
+25.49333   6.35     4.05333  4.411  2      NOPRINT
+29.54667   4.33     4.05333  4.109  2      NOPRINT
+33.60000   2.85     4.05333  3.806  2      NOPRINT
+37.65333   2.22     4.05333  3.504  3      NOPRINT
+41.70667   1.58     4.05333  3.201  3      NOPRINT
+45.76000   0.95     4.05333  2.898  3      NOPRINT
+49.81333   0.53     4.05333  2.609  3      NOPRINT
+53.86667   0.38     4.05333  2.337  3      NOPRINT
+57.92000   0.23     4.05333  2.065  4      NOPRINT
+61.97333   0.08     4.05333  1.793  4      NOPRINT
