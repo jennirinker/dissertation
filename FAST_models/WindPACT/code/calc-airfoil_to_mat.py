@@ -6,6 +6,8 @@ import scipy.io as scio
 import csv
 import numpy as np
 
+# *** NEED TO UPDATE TO WORK WITH CHANGED DIRECTORY ***
+
 #AFNames = ['cylinder','s818_2702','s825_2102','s826_1602']
 AFNames = ['cylinder']
 
