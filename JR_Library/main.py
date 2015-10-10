@@ -2405,9 +2405,6 @@ def InterpolateRotorParams(TurbDict):
     ADInterp[:,2] = BladeLen/(ADEdges.size - 1)
     ADInterp[:,3] = ChordInt
     ADInterp[:,4] = AFInt
-    print(ENodes)
-    print(BlFract)
-    print(Chord)
     
     return BldInterp, ADInterp
 
