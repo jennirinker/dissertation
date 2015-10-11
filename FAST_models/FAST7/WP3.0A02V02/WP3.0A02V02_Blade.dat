@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 ---------------------- FAST INDIVIDUAL BLADE FILE ------------------------------
-3.0 MW baseline blade model properties from "InputData3.0A02V02.xls" (found in Archive folder)
+FAST 7 blade file for turbine WP3.0A02V02
 ---------------------- BLADE PARAMETERS ----------------------------------------
   21        NBlInpSt    - Number of blade input stations (-)
 False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode shapes from below, F: use mode shapes from below} [CURRENTLY IGNORED] (flag)
@@ -22,13 +22,13 @@ BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EA
 0.10526  0.201     11.10      390.46   3.4226E+09   4.5115E+09   9.9797E+08   5.5030E+09
 0.15789  0.179     11.10      397.96   2.4394E+09   4.2088E+09   5.3064E+08   5.4204E+09
 0.21053  0.160     11.10      405.46   1.4562E+09   3.9062E+09   6.3313E+07   5.3378E+09
-0.26316  0.165      9.50      388.30   1.2374E+09   3.3225E+09   5.5747E+07   5.1154E+09
-0.31579  0.170      7.90      371.13   1.0187E+09   2.7389E+09   4.8181E+07   4.8931E+09
+0.26316  0.165      9.50      388.29   1.2374E+09   3.3225E+09   5.5747E+07   5.1154E+09
+0.31579  0.170      7.90      371.12   1.0187E+09   2.7389E+09   4.8181E+07   4.8931E+09
 0.36842  0.176      6.30      353.96   7.9990E+08   2.1553E+09   4.0614E+07   4.6707E+09
 0.42105  0.183      4.70      336.79   5.8113E+08   1.5716E+09   3.3048E+07   4.4484E+09
 0.47368  0.190      3.10      319.62   3.6236E+08   9.8801E+08   2.5482E+07   4.2261E+09
 0.52632  0.194      2.60      283.57   3.0106E+08   8.3897E+08   2.1407E+07   3.7374E+09
-0.57895  0.200      2.10      247.51   2.3977E+08   6.8994E+08   1.7332E+07   3.2487E+09
+0.57895  0.199      2.10      247.52   2.3977E+08   6.8994E+08   1.7332E+07   3.2487E+09
 0.63158  0.205      1.60      211.46   1.7847E+08   5.4090E+08   1.3258E+07   2.7600E+09
 0.68421  0.212      1.10      175.41   1.1717E+08   3.9187E+08   9.1831E+06   2.2713E+09
 0.73684  0.220      0.60      139.36   5.5877E+07   2.4283E+08   5.1085E+06   1.7826E+09
@@ -38,20 +38,20 @@ BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EA
 0.94737  0.241      0.12       41.22   1.1729E+07   6.7518E+07   1.4567E+06   4.9720E+08
 1.00000  0.250      0.00       16.68   6.9195E+05   2.3690E+07   5.4377E+05   1.7586E+08
 ---------------------- BLADE MODE SHAPES ---------------------------------------
-  -x.xxxx   BldFl1Sh(2) - Flap mode 1, coeff of x^2
-  -x.xxxx   BldFl1Sh(3) -            , coeff of x^3
-  -x.xxxx   BldFl1Sh(4) -            , coeff of x^4
-  -x.xxxx   BldFl1Sh(5) -            , coeff of x^5
-  -x.xxxx   BldFl1Sh(6) -            , coeff of x^6
-  -x.xxxx   BldFl2Sh(2) - Flap mode 2, coeff of x^2
-  -x.xxxx   BldFl2Sh(3) -            , coeff of x^3
-  -x.xxxx   BldFl2Sh(4) -            , coeff of x^4
-  -x.xxxx   BldFl2Sh(5) -            , coeff of x^5
-  -x.xxxx   BldFl2Sh(6) -            , coeff of x^6
-  -x.xxxx   BldEdgSh(2) - Edge mode 1, coeff of x^2
-  -x.xxxx   BldEdgSh(3) -            , coeff of x^3
-  -x.xxxx   BldEdgSh(4) -            , coeff of x^4
-  -x.xxxx   BldEdgSh(5) -            , coeff of x^5
-  -x.xxxx   BldEdgSh(6) -            , coeff of x^6
+   0.1408   BldFl1Sh(2) - Flap mode 1, coeff of x^2
+   1.7234   BldFl1Sh(3) -            , coeff of x^3
+  -2.2825   BldFl1Sh(4) -            , coeff of x^4
+   2.7443   BldFl1Sh(5) -            , coeff of x^5
+  -1.3260   BldFl1Sh(6) -            , coeff of x^6
+  -0.4348   BldFl2Sh(2) - Flap mode 2, coeff of x^2
+  -1.6487   BldFl2Sh(3) -            , coeff of x^3
+  -4.1359   BldFl2Sh(4) -            , coeff of x^4
+  15.6836   BldFl2Sh(5) -            , coeff of x^5
+  -8.4641   BldFl2Sh(6) -            , coeff of x^6
+   0.4826   BldEdgSh(2) - Edge mode 1, coeff of x^2
+   2.2785   BldEdgSh(3) -            , coeff of x^3
+  -5.1705   BldEdgSh(4) -            , coeff of x^4
+   5.8240   BldEdgSh(5) -            , coeff of x^5
+  -2.4146   BldEdgSh(6) -            , coeff of x^6
 
 

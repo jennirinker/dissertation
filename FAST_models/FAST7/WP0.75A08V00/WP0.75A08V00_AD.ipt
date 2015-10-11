@@ -1,4 +1,4 @@
-3.0 MW baseline aerodynamic parameters for WindPACT 3.0 MW (3.0A02V02)
+FAST 7 AeroDyn file for turbine WP0.75A08V00
 SI                                     SysUnits - System of units for used for input and output [must be SI for FAST] (unquoted string)
 BEDDOES                                StallMod - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
 NO_CM                                  UseCm    - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
@@ -7,8 +7,8 @@ SWIRL                                  IndModel - Induction-factor model [NONE o
    0.005                               AToler   - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl                                TLModel  - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"testwind.bts"           WindFile - Name of file containing wind data (quoted string)
-  xx.xxxx                              HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
+"{:s}"           WindFile - Name of file containing wind data (quoted string)
+{:9.4f}                              HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.0                                 TwrShad  - Tower-shadow velocity deficit (-)
 9999.9                                 ShadHWid - Tower-shadow half width (m)
 9999.9                                 T_Shad_Refpt - Tower-shadow reference point (m)
@@ -19,21 +19,22 @@ PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [P
 "AeroData/cylinder.dat"    FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
 "AeroData/s818_2702.dat"
 "AeroData/s825_2102.dat"
-"AeroData/s826_2102.dat"
+"AeroData/s826_1602.dat"
   15                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes    AeroTwst  DRNodes  Chord  NFoil  PrnElm
- 4.04250  11.10     3.13500  2.756  1      NOPRINT
- 7.17750  11.10     3.13500  3.209  2      NOPRINT
-10.31250  11.10     3.13500  3.662  2      NOPRINT
-13.44750  10.41     3.13500  3.880  2      NOPRINT
-16.58250   8.38     3.13500  3.646  2      NOPRINT
-19.71750   6.35     3.13500  3.412  2      NOPRINT
-22.85250   4.33     3.13500  3.178  2      NOPRINT
-25.98750   2.85     3.13500  2.944  2      NOPRINT
-29.12250   2.22     3.13500  2.710  3      NOPRINT
-32.25750   1.58     3.13500  2.476  3      NOPRINT
-35.39250   0.95     3.13500  2.242  3      NOPRINT
-38.52750   0.53     3.13500  2.018  3      NOPRINT
-41.66250   0.38     3.13500  1.808  3      NOPRINT
-44.79750   0.23     3.13500  1.597  4      NOPRINT
-47.93250   0.08     3.13500  1.386  4      NOPRINT
+ 2.04167  11.10     1.58333  1.392  1      NOPRINT
+ 3.62500  11.10     1.58333  1.621  2      NOPRINT
+ 5.20833  11.10     1.58333  1.850  2      NOPRINT
+ 6.79167  10.41     1.58333  1.959  2      NOPRINT
+ 8.37500   8.38     1.58333  1.840  2      NOPRINT
+ 9.95833   6.35     1.58333  1.721  2      NOPRINT
+11.54167   4.33     1.58333  1.602  2      NOPRINT
+13.12500   2.85     1.58333  1.484  3      NOPRINT
+14.70833   2.22     1.58333  1.367  3      NOPRINT
+16.29167   1.58     1.58333  1.251  3      NOPRINT
+17.87500   0.95     1.58333  1.134  3      NOPRINT
+19.45833   0.53     1.58333  1.022  3      NOPRINT
+21.04167   0.38     1.58333  0.916  3      NOPRINT
+22.62500   0.23     1.58333  0.810  4      NOPRINT
+24.20833   0.08     1.58333  0.703  4      NOPRINT
+

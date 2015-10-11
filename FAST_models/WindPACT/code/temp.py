@@ -11,23 +11,21 @@ import json
 #import numpy as np
 
 
-
 # define turbine name
-TName = '0.75A08V00'
+#TName = 'WP0.75A08V00'
+TName = 'WP1.5A08V03'
+#TName = 'WP3.0A02V02'
+#TName = 'WP5.0A04V00'
 
 # load turbine model
 fTDictName = TName + '_Dict.txt'
 with open(fTDictName,'r') as f:
     TurbDict = json.load(f)
 
-BldInterp, ADInterp = jr.InterpolateRotorParams(TurbDict)
+TowerInterp = jr.InterpolateTowerParams(TurbDict)
 
-for i in range(len(BldInterp)):
-    print('{:8.4f}{:8.3f}{:8.2f}{:8.2f}{:12.4g}{:12.4g}{:12.4g}{:12.4g}'\
-            .format(*BldInterp[i,:]))
+  
     
-print('\n')    
-    
-for i in range(len(ADInterp)):
-    print('{:8.4f}{:8.2f}{:12.5f}{:8.3f}{:8.1f}'\
-            .format(*ADInterp[i,:]))
+for i in range(len(TowerInterp)):
+    print('{:6.4f}{:12.2f}{:14.5E}{:14.3E}{:14.3E}{:14.3E}'\
+            .format(*TowerInterp[i,:]))

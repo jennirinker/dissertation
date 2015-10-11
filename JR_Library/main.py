@@ -2409,6 +2409,57 @@ def InterpolateRotorParams(TurbDict):
     return BldInterp, ADInterp
 
 
+def InterpolateTowerParams(TurbDict): 
+    """ Interpolate tower structural properties
+    
+        Args:
+            TurbDict (dictionary): turbine properties
+            
+        Returns:
+            TowerInterp (numpy array): interpolated tpwer properties
+    """
+    import numpy as np
+    
+    # extract information from turbine dictionary
+    HHtoTop    = TurbDict['Tower']['HHtoTop']
+    TopDiam    = TurbDict['Tower']['TopDiam']
+    TopThick   = TurbDict['Tower']['TopThick'] 
+    BaseDiam   = TurbDict['Tower']['BaseDiam']  
+    BaseThick  = TurbDict['Tower']['BaseThick']
+    ParaMass   = TurbDict['Tower']['ParaMass']
+    TowerDens  = TurbDict['Tower']['TowerDens']
+    TowerE     = TurbDict['Tower']['TowerE']
+    TowerG     = TurbDict['Tower']['TowerG']
+    TowerEdges = TurbDict['Tower']['TowerEdges']
+    HubHeight  = TurbDict['Nacelle']['HubHeight']
+        
+    # interpolate parameters
+    Diam      = np.interp(TowerEdges,[0,1],
+                           [BaseDiam,TopDiam])
+    Thickness = np.interp(TowerEdges,[0,1],
+                           [BaseThick,TopThick])
+    
+    # calculate intermediate parameters
+    Area         = np.pi * Diam * Thickness
+    TowerMassDen = Area * TowerDens * (1.0 + ParaMass)
+    EA           = Area * TowerE
+    Izz          = Area * (Diam **2) / 4.
+    GJ           = Izz * TowerG
+    Iyy          = Izz/2
+    EI           = Iyy * TowerE
+    
+    # place parameters in array
+    TowerInterp = np.empty((len(TowerEdges),6))
+    TowerInterp[:,0] =  TowerEdges
+    TowerInterp[:,1] =  TowerMassDen
+    TowerInterp[:,2] =  EI
+    TowerInterp[:,3] =  EI
+    TowerInterp[:,4] =  GJ
+    TowerInterp[:,5] =  EA
+
+    return TowerInterp
+
+
 # ==============================================================================
 # MAPPINGS
 # ==============================================================================

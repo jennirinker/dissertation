@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 ---------------------- FAST INDIVIDUAL BLADE FILE ------------------------------
-1.5 MW baseline blade model properties from "InputData1.5A08V03.xls" (found in Archive folder)
+FAST 7 blade file for turbine WP1.5A08V03
 ---------------------- BLADE PARAMETERS ----------------------------------------
   21        NBlInpSt    - Number of blade input stations (-)
 False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode shapes from below, F: use mode shapes from below} [CURRENTLY IGNORED] (flag)
@@ -17,18 +17,18 @@ False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode
 BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EAStff       Alpha  FlpIner  EdgIner  PrecrvRef  PreswpRef  FlpcgOf  EdgcgOf  FlpEAOf  EdgEAOf
 (-)      (-)       (deg)     (kg/m)    (Nm^2)       (Nm^2)       (Nm^2)       (N)            (-)  (kg m)   (kg m)   (m)        (m)        (m)      (m)      (m)      (m)
 0.00000  0.250     11.10     1447.61   7.6815E+09   7.6815E+09   2.6552E+09   1.7153E+10
-0.02105  0.250     11.10      180.33   1.1699E+09   1.1699E+09   4.0880E+08   2.6408E+09
-0.05263  0.229     11.10      181.67   1.0206E+09   1.0923E+09   3.4381E+08   2.6113E+09
-0.10526  0.201     11.10      183.91   7.7188E+08   9.6297E+08   2.3550E+08   2.5620E+09
-0.15789  0.179     11.10      186.14   5.2314E+08   8.3366E+08   1.2718E+08   2.5128E+09
-0.21053  0.160     11.10      188.37   2.7440E+08   7.0435E+08   1.8870E+07   2.4636E+09
-0.26316  0.165      9.50      178.32   2.3457E+08   6.1465E+08   1.6791E+07   2.3328E+09
-0.31579  0.170      7.90      168.27   1.9473E+08   5.2496E+08   1.4713E+07   2.2020E+09
-0.36842  0.176      6.30      158.22   1.5490E+08   4.3526E+08   1.2634E+07   2.0712E+09
-0.42105  0.183      4.70      148.17   1.1507E+08   3.4557E+08   1.0556E+07   1.9404E+09
+0.02105  0.250     11.10      175.10   1.1359E+09   1.1359E+09   3.9692E+08   2.5641E+09
+0.05263  0.229     11.10      177.07   9.9187E+08   1.0638E+09   3.3391E+08   2.5439E+09
+0.10526  0.201     11.10      180.35   7.5183E+08   9.4364E+08   2.2889E+08   2.5103E+09
+0.15789  0.179     11.10      183.63   5.1180E+08   8.2349E+08   1.2387E+08   2.4767E+09
+0.21053  0.160     11.10      186.91   2.7176E+08   7.0333E+08   1.8843E+07   2.4431E+09
+0.26316  0.165      9.50      177.15   2.3246E+08   6.1384E+08   1.6770E+07   2.3164E+09
+0.31579  0.170      7.90      167.39   1.9315E+08   5.2435E+08   1.4697E+07   2.1897E+09
+0.36842  0.176      6.30      157.64   1.5385E+08   4.3486E+08   1.2624E+07   2.0630E+09
+0.42105  0.183      4.70      147.88   1.1454E+08   3.4536E+08   1.0550E+07   1.9363E+09
 0.47368  0.190      3.10      138.12   7.5235E+07   2.5587E+08   8.4773E+06   1.8096E+09
-0.52632  0.194      2.60      122.90   6.2495E+07   2.1787E+08   7.1175E+06   1.6053E+09
-0.57895  0.200      2.10      107.67   4.9755E+07   1.7986E+08   5.7576E+06   1.4011E+09
+0.52632  0.194      2.60      122.89   6.2495E+07   2.1787E+08   7.1175E+06   1.6053E+09
+0.57895  0.199      2.10      107.67   4.9755E+07   1.7986E+08   5.7576E+06   1.4011E+09
 0.63158  0.205      1.60       92.44   3.7015E+07   1.4186E+08   4.3978E+06   1.1968E+09
 0.68421  0.212      1.10       77.22   2.4275E+07   1.0385E+08   3.0379E+06   9.9256E+08
 0.73684  0.220      0.60       61.99   1.1534E+07   6.5849E+07   1.6780E+06   7.8831E+08
@@ -38,20 +38,20 @@ BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EA
 0.94737  0.241      0.12       21.48   2.4919E+06   1.9469E+07   4.7916E+05   2.5244E+08
 1.00000  0.250      0.00       11.35   2.3129E+05   7.8741E+06   1.7943E+05   1.1847E+08
 ---------------------- BLADE MODE SHAPES ---------------------------------------
-  -x.xxxx   BldFl1Sh(2) - Flap mode 1, coeff of x^2
-  -x.xxxx   BldFl1Sh(3) -            , coeff of x^3
-  -x.xxxx   BldFl1Sh(4) -            , coeff of x^4
-  -x.xxxx   BldFl1Sh(5) -            , coeff of x^5
-  -x.xxxx   BldFl1Sh(6) -            , coeff of x^6
-  -x.xxxx   BldFl2Sh(2) - Flap mode 2, coeff of x^2
-  -x.xxxx   BldFl2Sh(3) -            , coeff of x^3
-  -x.xxxx   BldFl2Sh(4) -            , coeff of x^4
-  -x.xxxx   BldFl2Sh(5) -            , coeff of x^5
-  -x.xxxx   BldFl2Sh(6) -            , coeff of x^6
-  -x.xxxx   BldEdgSh(2) - Edge mode 1, coeff of x^2
-  -x.xxxx   BldEdgSh(3) -            , coeff of x^3
-  -x.xxxx   BldEdgSh(4) -            , coeff of x^4
-  -x.xxxx   BldEdgSh(5) -            , coeff of x^5
-  -x.xxxx   BldEdgSh(6) -            , coeff of x^6
+   0.0917   BldFl1Sh(2) - Flap mode 1, coeff of x^2
+   1.6437   BldFl1Sh(3) -            , coeff of x^3
+  -1.5849   BldFl1Sh(4) -            , coeff of x^4
+   1.7225   BldFl1Sh(5) -            , coeff of x^5
+  -0.8730   BldFl1Sh(6) -            , coeff of x^6
+  -0.3186   BldFl2Sh(2) - Flap mode 2, coeff of x^2
+  -1.9402   BldFl2Sh(3) -            , coeff of x^3
+  -4.6477   BldFl2Sh(4) -            , coeff of x^4
+  16.8372   BldFl2Sh(5) -            , coeff of x^5
+  -8.9307   BldFl2Sh(6) -            , coeff of x^6
+   0.3384   BldEdgSh(2) - Edge mode 1, coeff of x^2
+   3.2245   BldEdgSh(3) -            , coeff of x^3
+  -6.4186   BldEdgSh(4) -            , coeff of x^4
+   6.0995   BldEdgSh(5) -            , coeff of x^5
+  -2.2438   BldEdgSh(6) -            , coeff of x^6
 
 
