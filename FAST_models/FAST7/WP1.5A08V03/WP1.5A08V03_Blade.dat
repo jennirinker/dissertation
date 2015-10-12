@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 ---------------------- FAST INDIVIDUAL BLADE FILE ------------------------------
-FAST 7 blade file for turbine WP1.5A08V03
+FAST v7.02 blade file for turbine "WP1.5A08V03" (JRinker, Duke University)
 ---------------------- BLADE PARAMETERS ----------------------------------------
   21        NBlInpSt    - Number of blade input stations (-)
 False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode shapes from below, F: use mode shapes from below} [CURRENTLY IGNORED] (flag)
@@ -38,20 +38,20 @@ BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EA
 0.94737  0.241      0.12       21.48   2.4919E+06   1.9469E+07   4.7916E+05   2.5244E+08
 1.00000  0.250      0.00       11.35   2.3129E+05   7.8741E+06   1.7943E+05   1.1847E+08
 ---------------------- BLADE MODE SHAPES ---------------------------------------
-   0.0917   BldFl1Sh(2) - Flap mode 1, coeff of x^2
-   1.6437   BldFl1Sh(3) -            , coeff of x^3
-  -1.5849   BldFl1Sh(4) -            , coeff of x^4
-   1.7225   BldFl1Sh(5) -            , coeff of x^5
-  -0.8730   BldFl1Sh(6) -            , coeff of x^6
-  -0.3186   BldFl2Sh(2) - Flap mode 2, coeff of x^2
-  -1.9402   BldFl2Sh(3) -            , coeff of x^3
-  -4.6477   BldFl2Sh(4) -            , coeff of x^4
-  16.8372   BldFl2Sh(5) -            , coeff of x^5
-  -8.9307   BldFl2Sh(6) -            , coeff of x^6
-   0.3384   BldEdgSh(2) - Edge mode 1, coeff of x^2
-   3.2245   BldEdgSh(3) -            , coeff of x^3
-  -6.4186   BldEdgSh(4) -            , coeff of x^4
-   6.0995   BldEdgSh(5) -            , coeff of x^5
-  -2.2438   BldEdgSh(6) -            , coeff of x^6
+   0.0836   BldFl1Sh(2) - Flap mode 1, coeff of x^2
+   1.7116   BldFl1Sh(3) -            , coeff of x^3
+  -1.7172   BldFl1Sh(4) -            , coeff of x^4
+   1.8252   BldFl1Sh(5) -            , coeff of x^5
+  -0.9031   BldFl1Sh(6) -            , coeff of x^6
+  -0.2983   BldFl2Sh(2) - Flap mode 2, coeff of x^2
+  -2.1187   BldFl2Sh(3) -            , coeff of x^3
+  -4.2140   BldFl2Sh(4) -            , coeff of x^4
+  16.4481   BldFl2Sh(5) -            , coeff of x^5
+  -8.8172   BldFl2Sh(6) -            , coeff of x^6
+   0.3199   BldEdgSh(2) - Edge mode 1, coeff of x^2
+   3.3166   BldEdgSh(3) -            , coeff of x^3
+  -6.5890   BldEdgSh(4) -            , coeff of x^4
+   6.2413   BldEdgSh(5) -            , coeff of x^5
+  -2.2889   BldEdgSh(6) -            , coeff of x^6
 
 

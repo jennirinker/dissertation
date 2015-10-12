@@ -19,7 +19,7 @@ False       CalcTMode   - Calculate tower mode shapes internally {T: ignore mode
 ---------------------- DISTRIBUTED TOWER PROPERTIES ----------------------------
 HtFract  TMassDen  TwFAStif    TwSSStif    TwGJStif    TwEAStif   TwFAIner  TwSSIner  TwFAcgOf  TwSScgOf
 (-)      (kg/m)    (Nm^2)      (Nm^2)      (Nm^2)      (N)        (kg m)    (kg m)    (m)       (m)
-{:7.5f}{:10.3f}{:12.3E}{:12.3E}{:12.3E}{:12.3E}
+{:7.5f}{:10.3f}{:12.3e}{:12.3e}{:12.3e}{:12.3e}
 ---------------------- TOWER FORE-AFT MODE SHAPES ------------------------------
 {:9.4f}   TwFAM1Sh(2) - Mode 1, coefficient of x^2 term
 {:9.4f}   TwFAM1Sh(3) -       , coefficient of x^3 term

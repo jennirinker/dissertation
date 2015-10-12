@@ -1,31 +1,48 @@
 """
-testing function to load turbine dictionary and interpolate blade and 
-aerodyn parameters
+compare 1.5 MW responses
 """
 import sys
 libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
 if (libpath not in sys.path): sys.path.append(libpath)
 
 import JR_Library.main as jr
-import json
-#import numpy as np
+import os
+import matplotlib.pyplot as plt
+import numpy as np
 
-
-# define turbine name
-#TName = 'WP0.75A08V00'
-TName = 'WP1.5A08V03'
-#TName = 'WP3.0A02V02'
-#TName = 'WP5.0A04V00'
-
-# load turbine model
-fTDictName = TName + '_Dict.txt'
-with open(fTDictName,'r') as f:
-    TurbDict = json.load(f)
-
-TowerInterp = jr.InterpolateTowerParams(TurbDict)
-
-  
+fileID = '_00000'
+turb_ID = ['C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500', \
+        'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03']
     
-for i in range(len(TowerInterp)):
-    print('{:6.4f}{:12.2f}{:14.5E}{:14.3E}{:14.3E}{:14.3E}'\
-            .format(*TowerInterp[i,:]))
+plt.figure(1)
+plt.clf()    
+    
+for i in range(2):
+    turb_dir = turb_ID[2*i]
+    TName   = turb_ID[2*i+1]
+    leg_str = ['FASTCert 1.5','JRink 1.5'][i]
+
+    fname = os.path.join(turb_dir,TName+fileID+'.out')
+
+    FAST = jr.ReadFASTFile(fname)
+
+    Data   = FAST['Data']
+    Fields = FAST['Fields']
+    
+    PlotFields = ['Time','WindVxi','GenSpeed','GenPwr','BldPitch2',
+                   'TSR','GenTq']
+    
+    nplots = len(PlotFields) - 1
+    for i_plot in range(nplots):
+        
+        t = Data[:,Fields.index('Time')]
+        y = Data[:,Fields.index(PlotFields[i_plot+1])]
+        
+        ax = plt.subplot(nplots,1,i_plot+1)
+        ax.plot(t,y,label=leg_str)
+        ax.set_title(PlotFields[i_plot+1])
+        ax.legend()
+        
+plt.tight_layout()

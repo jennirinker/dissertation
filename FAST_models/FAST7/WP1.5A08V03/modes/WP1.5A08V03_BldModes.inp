@@ -1,0 +1,46 @@
+True     Blade Switch:  True = Blade, False = Tower
+  20.463  Steady state angular velocity of rotor (rpm)  [Ignored for towers]
+   0.0    Pitch angle for blades (degrees)  [Ignored for towers]
+  35.00   Total beam length (m)
+   1.75   Rigid beam length (m)
+   0.00   End mass (kg)
+   5      Number of modes shapes or coefficients
+   2      Order of first coefficient
+  21      Number of input stations for distributed parameters
+   1.0    Factor to adjust mass
+   1.0    Factor to adjust out-of-plane or tower stiffness
+   1.0    Factor to adjust in-plane stiffness  [Ignored for towers]
+0.000       0.00     1447.61    7681455581    7681455581
+0.021       0.00      175.10    1135890134    1135890134
+0.053       0.00      177.07     991868968    1063797342
+0.105       0.00      180.35     751833691     943642690
+0.158       0.00      183.63     511798415     823488037
+0.211       0.00      186.91     271763138     703333384
+0.263       0.00      177.15     232457473     613840726
+0.316       0.00      167.39     193151808     524348068
+0.368       0.00      157.64     153846143     434855410
+0.421       0.00      147.88     114540478     345362752
+0.474       0.00      138.12      75234814     255870093
+0.526       0.00      122.89      62494738     217865845
+0.579       0.00      107.67      49754661     179861596
+0.632       0.00       92.44      37014585     141857347
+0.684       0.00       77.22      24274509     103853098
+0.737       0.00       61.99      11534433      65848849
+0.789       0.00       51.86       9273805      54253893
+0.842       0.00       41.73       7013177      42658938
+0.895       0.00       31.61       4752549      31063982
+0.947       0.00       21.48       2491921      19469026
+1.000       0.00       11.35        231293       7874070
+
+
+For the lines of distributed parameters, the first column is the
+fractional distance along the flexible portion of the blade.  It must go
+from 0 to 1. The second and third columns are the structural twist in
+degrees and mass/length in kg/m.  The third and fourth columns are the
+flatwise and edgewise stiffnesses in N m^2.
+
+Note: If you intend to export results from Modes to FAST_AD, you must
+set both the structural twist and pitch to zero.  FAST_AD needs the mode
+shapes in the local principal reference system.  It will convert the
+shapes to in-plane and out-of-plane coordinates itself.
+

@@ -1,13 +1,13 @@
 --------------------------------------------------------------------------------
 ------- FAST INPUT FILE --------------------------------------------------------
-{:s}
-{:s}
+FAST certification Test #13: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and FF turbulence.
+Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.  Compatible with FAST v7.02.00.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False       Echo        - Echo input data to "echo.out" (flag)
    1        ADAMSPrep   - ADAMS preprocessor mode {1: Run FAST, 2: use FAST as a preprocessor to create an ADAMS model, 3: do both} (switch)
    1        AnalMode    - Analysis mode {1: Run a time-marching simulation, 2: create a periodic linearized model} (switch)
    3        NumBl       - Number of blades (-)
-{:6.1f}      TMax        - Total run time (s)
+ 120.0      TMax        - Total run time (s)
    0.005    DT          - Integration time step (s)
 ---------------------- TURBINE CONTROL -----------------------------------------
    0        YCMode      - Yaw control mode {0: none, 1: user-defined from routine UserYawCont, 2: user-defined from Simulink/Labview} (switch)
@@ -15,9 +15,9 @@ False       Echo        - Echo input data to "echo.out" (flag)
    1        PCMode      - Pitch control mode {0: none, 1: user-defined from routine PitchCntrl, 2: user-defined from Simulink/Labview} (switch)
    5.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
-{:6.1f}      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
-{:7.2f}     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
-{:10.6f}  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
+1800.0      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
+8376.58     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
+   0.002585 VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
 9999.9E-9   VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
    1        GenModel    - Generator model {1: simple, 2: Thevenin, 3: user-defined from routine UserGen} (switch) [used only when VSContrl=0]
 True        GenTiStr    - Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} (flag)
@@ -46,9 +46,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
 {:6.1f}      BlPitch(1)  - Blade 1 initial pitch (degrees)
 {:6.1f}      BlPitch(2)  - Blade 2 initial pitch (degrees)
 {:6.1f}      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
-{:6.1f}      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
-{:6.1f}      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
-{:6.1f}      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
+   2.6      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
+   2.6      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
+   2.6      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
    9.80665  Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- FEATURE FLAGS -------------------------------------------
@@ -75,44 +75,44 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      TTDspFA     - Initial fore-aft tower-top displacement (meters)
    0.0      TTDspSS     - Initial side-to-side tower-top displacement (meters)
 ---------------------- TURBINE CONFIGURATION -----------------------------------
-{:6.1f}      TipRad      - The distance from the rotor apex to the blade tip (meters)
-{:7.2f}     HubRad      - The distance from the rotor apex to the blade root (meters)
+  35.0      TipRad      - The distance from the rotor apex to the blade tip (meters)
+   1.75     HubRad      - The distance from the rotor apex to the blade root (meters)
    1        PSpnElN     - Number of the innermost blade element which is still part of the pitchable portion of the blade for partial-span pitch control [1 to BldNodes] [CURRENTLY IGNORED] (-)
    0.0      UndSling    - Undersling length [distance from teeter pin to the rotor apex] (meters) [unused for 3 blades]
    0.0      HubCM       - Distance from rotor apex to hub mass [positive downwind] (meters)
-{:6.1f}      OverHang    - Distance from yaw axis to rotor apex [3 blades] or teeter pin [2 blades] (meters)
-{:9.4f}   NacCMxn     - Downwind distance from the tower-top to the nacelle CM (meters)
-{:6.1f}      NacCMyn     - Lateral  distance from the tower-top to the nacelle CM (meters)
-{:9.4f}   NacCMzn     - Vertical distance from the tower-top to the nacelle CM (meters)
-{:7.2f}     TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
-{:7.2f}     Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
+  -3.3      OverHang    - Distance from yaw axis to rotor apex [3 blades] or teeter pin [2 blades] (meters)
+  -0.1449   NacCMxn     - Downwind distance from the tower-top to the nacelle CM (meters)
+   0.0      NacCMyn     - Lateral  distance from the tower-top to the nacelle CM (meters)
+   1.3890   NacCMzn     - Vertical distance from the tower-top to the nacelle CM (meters)
+  82.39     TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
+   1.61     Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
    0.0      TwrRBHt     - Tower rigid base height (meters)
-{:6.1f}      ShftTilt    - Rotor shaft tilt angle (degrees)
+  -5.0      ShftTilt    - Rotor shaft tilt angle (degrees)
    0.0      Delta3      - Delta-3 angle for teetering rotors (degrees) [unused for 3 blades]
-{:6.1f}      PreCone(1)  - Blade 1 cone angle (degrees)
-{:6.1f}      PreCone(2)  - Blade 2 cone angle (degrees)
-{:6.1f}      PreCone(3)  - Blade 3 cone angle (degrees) [unused for 2 blades]
+   0.0      PreCone(1)  - Blade 1 cone angle (degrees)
+   0.0      PreCone(2)  - Blade 2 cone angle (degrees)
+   0.0      PreCone(3)  - Blade 3 cone angle (degrees) [unused for 2 blades]
    0.0      AzimB1Up    - Azimuth value to use for I/O when blade 1 points up (degrees)
 ---------------------- MASS AND INERTIA ----------------------------------------
    0.0      YawBrMass   - Yaw bearing mass (kg)
-{:10.4e}  NacMass     - Nacelle mass (kg)
-{:10.4e}  HubMass     - Hub mass (kg)
+  51.170E3  NacMass     - Nacelle mass (kg)
+  15.148E3  HubMass     - Hub mass (kg)
    0.0      TipMass(1)  - Tip-brake mass, blade 1 (kg)
    0.0      TipMass(2)  - Tip-brake mass, blade 2 (kg)
    0.0      TipMass(3)  - Tip-brake mass, blade 3 (kg) [unused for 2 blades]
-{:10.3g}  NacYIner    - Nacelle inertia about yaw axis (kg m^2)
-{:10.3f}    GenIner     - Generator inertia about HSS (kg m^2)
-{:10.3e}  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
+  49.130E3  NacYIner    - Nacelle inertia about yaw axis (kg m^2)
+  53.036    GenIner     - Generator inertia about HSS (kg m^2)
+  34.600E3  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
 ---------------------- DRIVETRAIN ----------------------------------------------
  100.0      GBoxEff     - Gearbox efficiency (%)
-{:6.1f}      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
-{:8.3f}    GBRatio     - Gearbox ratio (-)
+  95.0      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
+  87.965    GBRatio     - Gearbox ratio (-)
 False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in opposite directions} (flag)
 9999.9      HSSBrTqF    - Fully deployed HSS-brake torque (N-m)
 9999.9      HSSBrDT     - Time for HSS-brake to reach full deployment once initiated (sec) [used only when HSSBrMode=1]
 "unused"    DynBrkFi    - File containing a mech-gen-torque vs HSS-speed curve for a dynamic brake [CURRENTLY IGNORED] (quoted string)
-{:8.1e}    DTTorSpr    - Drivetrain torsional spring (N-m/rad)
-{:8.1e}    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
+   5.6E9    DTTorSpr    - Drivetrain torsional spring (N-m/rad)
+   1.0E7    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
 ---------------------- SIMPLE INDUCTION GENERATOR ------------------------------
 9999.9      SIG_SlPc    - Rated generator slip percentage (%) [used only when VSContrl=0 and GenModel=1]
 9999.9      SIG_SySp    - Synchronous (zero-torque) generator speed (rpm) [used only when VSContrl=0 and GenModel=1]
@@ -132,7 +132,7 @@ False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in 
 "unused"    PtfmFile    - Name of file containing platform properties (quoted string) [unused when PtfmModel=0]
 ---------------------- TOWER ---------------------------------------------------
   10        TwrNodes    - Number of tower nodes used for analysis (-)
-"{:s}"    TwrFile - Name of file containing tower properties (quoted string)
+"WP1500_Tower.dat"    TwrFile - Name of file containing tower properties (quoted string)
 ---------------------- NACELLE-YAW ---------------------------------------------
    0.0      YawSpr      - Nacelle-yaw spring constant (N-m/rad)
    0.0      YawDamp     - Nacelle-yaw damping constant (N-m/(rad/s))
@@ -154,19 +154,19 @@ False       Furling     - Read in additional model properties for furling turbin
    0.0      TBDrConD    - Tip-brake drag constant during fully-deployed operation, Cd*Area (m^2)
    0.0      TpBrDT      - Time for tip-brake to reach full deployment once released (sec)
 ---------------------- BLADE ---------------------------------------------------
-"{:s}"    BldFile(1) - Name of file containing properties for blade 1 (quoted string)
-"{:s}"    BldFile(2) - Name of file containing properties for blade 2 (quoted string)
-"{:s}"    BldFile(3) - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
+"WP1500_Blade.dat"    BldFile(1) - Name of file containing properties for blade 1 (quoted string)
+"WP1500_Blade.dat"    BldFile(2) - Name of file containing properties for blade 2 (quoted string)
+"WP1500_Blade.dat"    BldFile(3) - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
 ---------------------- AERODYN -------------------------------------------------
 "{:s}"         ADFile     - Name of file containing AeroDyn input parameters (quoted string)
 ---------------------- NOISE ---------------------------------------------------
 "unused"    NoiseFile   - Name of file containing aerodynamic noise input parameters (quoted string) [used only when CompNoise=True]
 ---------------------- ADAMS ---------------------------------------------------
-"{:s}"    ADAMSFile  - Name of file containing ADAMS-specific input parameters (quoted string) [unused when ADAMSPrep=1]
+"WP1500_ADAMS.dat"    ADAMSFile  - Name of file containing ADAMS-specific input parameters (quoted string) [unused when ADAMSPrep=1]
 ---------------------- LINEARIZATION CONTROL -----------------------------------
-"{:s}"   LinFile    - Name of file containing FAST linearization parameters (quoted string) [unused when AnalMode=1]
+"WP1500_Linear.dat"   LinFile    - Name of file containing FAST linearization parameters (quoted string) [unused when AnalMode=1]
 ---------------------- OUTPUT --------------------------------------------------
-False        SumPrint    - Print summary data to "<RootName>.fsm" (flag)
+False       SumPrint    - Print summary data to "<RootName>.fsm" (flag)
 1           OutFileFmt  - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
 True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "ES10.3E2"  OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!]
@@ -176,9 +176,9 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
    0.0      NcIMUxn     - Downwind distance from the tower-top to the nacelle IMU (meters)
    0.0      NcIMUyn     - Lateral  distance from the tower-top to the nacelle IMU (meters)
    0.0      NcIMUzn     - Vertical distance from the tower-top to the nacelle IMU (meters)
-   0.0      ShftGagL    - Distance from rotor apex [3 blades] or teeter pin [2 blades] to shaft strain gages [positive for upwind rotors] (meters)
-   0        NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
-   0        TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
+   0.99     ShftGagL    - Distance from rotor apex [3 blades] or teeter pin [2 blades] to shaft strain gages [positive for upwind rotors] (meters)
+   2        NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
+  4,7       TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
    0        NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
    0        BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
             OutList     - The next line(s) contains a list of output parameters.  See OutList.xlsx for a listing of available output channels, (-)

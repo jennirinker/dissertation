@@ -454,6 +454,29 @@ def mygenfromtxt(fname,header=True,units=False,delimiter='\t'):
         return data, header_text, units_text
 
 
+def ReadFASTFile(fname):
+    """ Read FAST data into numpy array (v7.02)
+    """
+    import numpy as np
+    
+    n_skip = 8
+    FASTDict = {}
+    
+    with open(fname,'r') as f:
+        for i in range(6):
+            f.readline()
+        Fields = f.readline().strip('\n').split()
+        Units  = f.readline().strip('\n').split()
+    Data = np.genfromtxt(fname,skip_header=n_skip,delimiter='\t')
+    
+    # save everything in the dictionary
+    FASTDict['Data']   = Data
+    FASTDict['Fields'] = Fields
+    FASTDict['Units']  = Units
+    
+    return FASTDict
+
+
 # %%============================================================================
 # METADATA PROCESSING
 # ==============================================================================
@@ -2332,6 +2355,189 @@ def TurbSimHHPDDs(fname):
 # FAST ANALYSIS
 # =============================================================================
 
+def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
+    """ Convert information in text files to dictionary containing all of the
+        turbine parameters necessary to create all FAST files for a WindPACT 
+        turbine
+        
+        Args:
+            TName (string): turbine name
+            turb_dir (string): path to turbine directory
+            BModes (Boolean): whether to get blade modes from 
+                              Modes v22 output, opt.
+            TModes (Boolean): whether to get tower modes from 
+                              Modes v22 output, opt.
+            
+        Returns:
+            TurbDict (dictionary): turbine parameters in dictionary
+    """
+    import os
+    import numpy as np
+
+    print('\nWriting turbine dictionary' + \
+        ' for {:s} to {:s}'.format(TName,turb_dir))
+    
+    # ===================== Initialize turbine dictionary =====================
+    TurbDict = {}
+    TurbDict['TName'] = TName
+    
+    # ==================== Create and add rotor dictionary ====================
+    RotorDict = {}
+    
+    # load rotor data from text file
+    n_skip = 9                              # specific for text file
+    fRotName = os.path.join(turb_dir,'parameters\\'+TName+'_Rotor.txt')
+    with open(fRotName,'r') as f:
+        RotDiam        = [float(x) for x in f.readline().strip('\n').split()][0]
+        HubDiam        = [float(x) for x in f.readline().strip('\n').split()][0]
+        Airfoils       = [s.split('.')[0] for s in f.readline().strip('\n').split()]
+        Damping        = [float(x) for x in f.readline().strip('\n').split()]
+        BldStats       = [float(x) for x in f.readline().strip('\n').split()]
+        ADStats        = [float(x) for x in f.readline().strip('\n').split()]
+        MinPitchAng    = [float(x) for x in f.readline().strip('\n').split()][0]
+        MaxPitchAng    = [float(x) for x in f.readline().strip('\n').split()][0]
+        BldSchedFields = f.readline().strip('\n').strip('\t').split('\t')
+    BldSched = np.genfromtxt(fRotName,skip_header=n_skip).tolist()
+    
+    # convert stations in %R to x/L
+    BldStats = np.array(BldStats)
+    ADStats  = np.array(ADStats)
+    BldEdges = ((BldStats-(HubDiam/RotDiam))/(1-(HubDiam/RotDiam))).tolist()
+    ADEdges  = ((ADStats-(HubDiam/RotDiam))/(1-(HubDiam/RotDiam))).tolist()
+    
+    # load mode shape data from Modes output if available
+    fModesName = os.path.join(turb_dir,'modes\\'+TName+'_BldModes.mod')
+    RotModes = np.empty((3,5))
+    if BModes:
+        with open(fModesName,'r') as f:
+            i_line = 0
+            for line in f:
+                if ((i_line >= 20) and (i_line <= 24)):
+                    RotModes[0,i_line-20] = float(line.split()[1])
+                    RotModes[1,i_line-20] = float(line.split()[2])
+                elif ((i_line >= 33) and (i_line <= 37)):
+                    RotModes[2,i_line-33] = float(line.split()[1])
+                i_line += 1
+    RotModes = RotModes.tolist()
+    
+    # save values in blade dictionary
+    RotorDict['Airfoils']       = Airfoils
+    RotorDict['BldSched']       = BldSched
+    RotorDict['BldSchedFields'] = BldSchedFields
+    RotorDict['Damping']        = Damping
+    RotorDict['RotDiam']        = RotDiam
+    RotorDict['HubDiam']        = HubDiam
+    RotorDict['RotModes']       = RotModes
+    RotorDict['BldEdges']       = BldEdges
+    RotorDict['ADEdges']        = ADEdges
+    RotorDict['MinPitchAng']    = MinPitchAng
+    RotorDict['MaxPitchAng']    = MaxPitchAng
+    
+    # add blade dictionary to turbine dictionary
+    TurbDict['Rotor'] = RotorDict
+    
+    # ====================== Create and add nacelle dictionary ======================
+    NacDict = {}
+    
+    # load nacelle data from text file
+    fNacName = os.path.join(turb_dir,'parameters\\'+TName+'_Nacelle.txt')
+    with open(fNacName,'r') as f:
+        RatedTipSpeed = [float(x) for x in f.readline().strip('\n').split()][0]
+        HubHeight     = [float(x) for x in f.readline().strip('\n').split()][0]
+        Overhang      = [float(x) for x in f.readline().strip('\n').split()][0]
+        MainFrameCG   = [float(x) for x in f.readline().strip('\n').split()]
+        GenShaftCG    = [float(x) for x in f.readline().strip('\n').split()]
+        RotShaftCG    = [float(x) for x in f.readline().strip('\n').split()]
+        RotShaftTilt  = [float(x) for x in f.readline().strip('\n').split()][0]
+        MainFrameMass = [float(x) for x in f.readline().strip('\n').split()][0]
+        GenShaftMass  = [float(x) for x in f.readline().strip('\n').split()][0]
+        RotShaftMass  = [float(x) for x in f.readline().strip('\n').split()][0]
+        ConingAngle   = [float(x) for x in f.readline().strip('\n').split()][0]
+        HubMass       = [float(x) for x in f.readline().strip('\n').split()][0]
+        NacYIner      = [float(x) for x in f.readline().strip('\n').split()][0]
+        HubIner       = [float(x) for x in f.readline().strip('\n').split()][0]
+        RatedGenRPM   = [float(x) for x in f.readline().strip('\n').split()][0]
+        GenTorsSprng  = [float(x) for x in f.readline().strip('\n').split()][0]
+        GenEff        = [float(x) for x in f.readline().strip('\n').split()][0]
+        GenNatFreq    = [float(x) for x in f.readline().strip('\n').split()][0]
+        GenInerY      = [float(x) for x in f.readline().strip('\n').split()][0]
+        RatedGenTrq   = [float(x) for x in f.readline().strip('\n').split()][0]
+    
+    # save values in blade dictionary
+    NacDict['RatedTipSpeed'] = RatedTipSpeed
+    NacDict['HubHeight']     = HubHeight
+    NacDict['Overhang']      = Overhang
+    NacDict['MainFrameCG']   = MainFrameCG
+    NacDict['GenShaftCG']    = GenShaftCG
+    NacDict['RotShaftCG']    = RotShaftCG
+    NacDict['MainFrameMass'] = MainFrameMass
+    NacDict['GenShaftMass']  = GenShaftMass
+    NacDict['RotShaftMass']  = RotShaftMass
+    NacDict['RotShaftTilt']  = RotShaftTilt
+    NacDict['ConingAngle']   = ConingAngle
+    NacDict['HubMass']       = HubMass
+    NacDict['NacYIner']      = NacYIner
+    NacDict['HubIner']       = HubIner
+    NacDict['RatedGenRPM']   = RatedGenRPM
+    NacDict['GenTorsSprng']  = GenTorsSprng
+    NacDict['GenNatFreq']    = GenNatFreq
+    NacDict['GenEff']        = GenEff
+    NacDict['GenInerY']      = GenInerY
+    NacDict['RatedGenTrq']   = RatedGenTrq
+    
+    # add blade dictionary to turbine dictionary
+    TurbDict['Nacelle'] = NacDict
+    
+    # ====================== Create and add tower dictionary ======================
+    TowerDict = {}
+    
+    # load nacelle data from text file
+    fRotName = os.path.join(turb_dir,'parameters\\'+TName+'_Tower.txt')
+    with open(fRotName,'r') as f:
+        HHtoTop    = [float(x) for x in f.readline().strip('\n').split()][0]
+        TopDiam    = [float(x) for x in f.readline().strip('\n').split()][0]
+        TopThick   = [float(x) for x in f.readline().strip('\n').split()][0]
+        BaseDiam   = [float(x) for x in f.readline().strip('\n').split()][0]
+        BaseThick  = [float(x) for x in f.readline().strip('\n').split()][0]
+        ParaMass   = [float(x) for x in f.readline().strip('\n').split()][0]
+        TowerDens  = [float(x) for x in f.readline().strip('\n').split()][0]
+        TowerE     = [float(x) for x in f.readline().strip('\n').split()][0]
+        TowerG     = [float(x) for x in f.readline().strip('\n').split()][0]
+        TowerEdges = [float(x) for x in f.readline().strip('\n').split()]
+        TowerDamping = [float(x) for x in f.readline().strip('\n').split()]
+    
+    # load mode shape data from Modes output if available
+    fModesName = os.path.join(turb_dir,'modes\\'+TName+'_TwrModes.mod')
+    TwrModes = np.empty((2,5))
+    if BModes:
+        with open(fModesName,'r') as f:
+            i_line = 0
+            for line in f:
+                if ((i_line >= 14) and (i_line <= 18)):
+                    TwrModes[0,i_line-14] = float(line.split()[1])
+                    TwrModes[1,i_line-14] = float(line.split()[2])
+                i_line += 1
+    TwrModes = TwrModes.tolist()
+    
+    # save values in blade dictionary
+    TowerDict['HHtoTop']    = HHtoTop
+    TowerDict['TopDiam']    = TopDiam
+    TowerDict['TopThick']   = TopThick
+    TowerDict['BaseDiam']   = BaseDiam
+    TowerDict['BaseThick']  = BaseThick
+    TowerDict['ParaMass']   = ParaMass
+    TowerDict['TowerDens']  = TowerDens
+    TowerDict['TowerE']     = TowerE
+    TowerDict['TowerG']     = TowerG
+    TowerDict['TowerEdges'] = TowerEdges
+    TowerDict['TwrModes']   = TwrModes
+    TowerDict['TowerDamping'] = TowerDamping
+    
+    # add blade dictionary to turbine dictionary
+    TurbDict['Tower'] = TowerDict
+    
+    return TurbDict
+
 def InterpolateRotorParams(TurbDict): 
     """ Interpolate blade structural properties and aerodynamic properties
     
@@ -2421,7 +2627,6 @@ def InterpolateTowerParams(TurbDict):
     import numpy as np
     
     # extract information from turbine dictionary
-    HHtoTop    = TurbDict['Tower']['HHtoTop']
     TopDiam    = TurbDict['Tower']['TopDiam']
     TopThick   = TurbDict['Tower']['TopThick'] 
     BaseDiam   = TurbDict['Tower']['BaseDiam']  
@@ -2431,7 +2636,6 @@ def InterpolateTowerParams(TurbDict):
     TowerE     = TurbDict['Tower']['TowerE']
     TowerG     = TurbDict['Tower']['TowerG']
     TowerEdges = TurbDict['Tower']['TowerEdges']
-    HubHeight  = TurbDict['Nacelle']['HubHeight']
         
     # interpolate parameters
     Diam      = np.interp(TowerEdges,[0,1],
@@ -2460,6 +2664,375 @@ def InterpolateTowerParams(TurbDict):
     return TowerInterp
 
 
+def writeBldModes(fpath_temp,fpath_out,TurbDict):
+    """ Blade input file for Modes v22
+    """
+    import numpy as np
+    
+    # get interpolated blade structural parameters
+    BldInterp = InterpolateRotorParams(TurbDict)[0]
+    
+    # calculate modes-specific vales
+    RotorRad = TurbDict['Rotor']['RotDiam']/2.
+    SSAngVel = TurbDict['Nacelle']['RatedTipSpeed']/2/np.pi/RotorRad*60.
+    HubRad   = TurbDict['Rotor']['HubDiam']/2
+    
+    # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 1:
+                    f_write.write(line.format(SSAngVel))
+                elif i_line == 3:
+                    f_write.write(line.format(RotorRad))
+                elif i_line == 4:
+                    f_write.write(line.format(HubRad))
+                elif i_line == 5:
+                    f_write.write(line.format(0.0))
+                elif i_line == 8:
+                    f_write.write(line.format(len(BldInterp)))
+                elif i_line == 12:
+                    for i_BlNode in range(len(BldInterp)):
+                        row = [BldInterp[i_BlNode,0],0.,
+                               BldInterp[i_BlNode,3],
+                               BldInterp[i_BlNode,4],BldInterp[i_BlNode,5]]
+                        f_write.write(line.format(*row))
+                else:
+                    f_write.write(line)
+                i_line += 1
+    
+    return
+    
+
+def writeTwrModes(fpath_temp,fpath_out,TurbDict):
+    """ Tower input file for Modes v22
+    """
+    
+    # calulate interpolated tower structural properties
+    TowerInterp   = InterpolateTowerParams(TurbDict)
+    
+    # load/calculate tower-modes-specific vales
+    MainframeMass = TurbDict['Nacelle']['MainFrameMass']
+    GenShaftMass  = TurbDict['Nacelle']['GenShaftMass']
+    RotShaftMass  = TurbDict['Nacelle']['RotShaftMass']
+    HubMass       = TurbDict['Nacelle']['HubMass']
+    HubHeight     = TurbDict['Nacelle']['HubHeight']
+    HHtoTT        = TurbDict['Tower']['HHtoTop']
+    TowerHeight   = HubHeight - HHtoTT
+    TowerTopMass  = MainframeMass + GenShaftMass + RotShaftMass + HubMass
+    
+    # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 3:
+                    f_write.write(line.format(TowerHeight))
+                elif i_line == 5:
+                    f_write.write(line.format(TowerTopMass))
+                elif i_line == 8:
+                    f_write.write(line.format(len(TowerInterp)))
+                elif i_line == 12:
+                    for i_BlNode in range(len(TowerInterp)):
+                        row = [TowerInterp[i_BlNode,0],
+                               TowerInterp[i_BlNode,1],
+                               TowerInterp[i_BlNode,2],TowerInterp[i_BlNode,3]]
+                        f_write.write(line.format(*row))
+                else:
+                    f_write.write(line)
+                i_line += 1
+    
+    return
+
+def writeBlade(fpath_temp,fpath_out,TurbDict):
+    """ Blade input file for FAST v7.02
+    """
+    import numpy as np
+    
+    # calculate blade-specific vales
+    TName     = TurbDict['TName']
+    title_str = 'FAST v7.02 blade file for turbine \"{:s}\" (JRinker, Duke University)'.format(TName)
+    Damping   = TurbDict['Rotor']['Damping']
+    RotModes  = np.array(TurbDict['Rotor']['RotModes'])
+    BldInterp = InterpolateRotorParams(TurbDict)[0]
+    
+    # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 2:
+                    f_write.write(line.format(title_str))
+                elif i_line == 4:
+                    f_write.write(line.format(len(BldInterp)))
+                elif i_line == 6:
+                    f_write.write(line.format(Damping[0]*100.))
+                elif i_line == 7:
+                    f_write.write(line.format(Damping[1]*100.))
+                elif i_line == 8:
+                    f_write.write(line.format(Damping[2]*100.))
+                elif i_line == 18:
+                    for i_BlNode in range(len(BldInterp)):
+                        f_write.write(line.format(*BldInterp[i_BlNode,:]))
+                elif ((i_line >= 20) and (i_line <= 34)):
+                    f_write.write(line.format(
+                        RotModes.reshape(RotModes.size)[i_line-20]))
+                else:
+                    f_write.write(line)
+                i_line += 1
+    
+    return
+    
+    
+def writeTower(fpath_temp,fpath_out,TurbDict):
+    """ Tower input file for FAST v7.02
+    """
+    import numpy as np
+    
+    # calculate tower-specific vales
+    TName       = TurbDict['TName']
+    title_str   = 'FAST v7.02 tower file for turbine \"{:s}\" (JRinker, Duke University)'.format(TName)
+    Damping     = TurbDict['Tower']['TowerDamping']
+    TwrModes    = np.array(TurbDict['Tower']['TwrModes'])
+    
+    # interpolate tower structural properties
+    TowerInterp = InterpolateTowerParams(TurbDict)
+    
+    # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 2:
+                    f_write.write(line.format(title_str))
+                elif i_line == 4:
+                    f_write.write(line.format(len(TowerInterp)))
+                elif i_line == 6:
+                    f_write.write(line.format(Damping[0]*100.))
+                elif i_line == 7:
+                    f_write.write(line.format(Damping[1]*100.))
+                elif i_line == 8:
+                    f_write.write(line.format(Damping[2]*100.))
+                elif i_line == 9:
+                    f_write.write(line.format(Damping[3]*100.))
+                elif i_line == 21:
+                    for i_TwrNode in range(len(TowerInterp)):
+                        f_write.write(line.format(*TowerInterp[i_TwrNode,:]))
+                elif ((i_line >= 23) and (i_line <= 32)):
+                    f_write.write(line.format(
+                        TwrModes.reshape(TwrModes.size)[i_line-23]))
+                elif ((i_line >= 34) and (i_line <= 43)):
+                    f_write.write(line.format(
+                        TwrModes.reshape(TwrModes.size)[i_line-34]))
+                else:
+                    f_write.write(line)
+                i_line += 1  
+    
+    return
+    
+    
+def writeAeroDyn(fpath_temp,fpath_out,TurbDict):
+    """ AeroDyn input file for FAST v7.02
+    """
+    import numpy as np
+    
+    # calculate file-specific vales
+    TName          = TurbDict['TName']
+    title_str      = 'FAST v7.02 AeroDyn file for turbine \"{:s}\" (JRinker, Duke University)'.format(TName)
+    Airfoils       = TurbDict['Rotor']['Airfoils']
+    HubHeight      = TurbDict['Nacelle']['HubHeight']
+    RotShaftTilt   = TurbDict['Nacelle']['RotShaftTilt']
+    Overhang       = TurbDict['Nacelle']['Overhang']
+    WindHH         = HubHeight - np.abs(Overhang)* \
+                                        np.sin(RotShaftTilt*np.pi/180.)
+    
+    # get interpolated aerodynamic properties
+    ADInterp = InterpolateRotorParams(TurbDict)[1]
+    
+    # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 0:
+                    f_write.write(line.format(title_str))
+                elif i_line == 10:
+                    f_write.write(line.format(WindHH))
+                elif i_line == 17:
+                    f_write.write(line.format(len(Airfoils)))
+                elif i_line == 18:
+                    AFPath = 'AeroData/' + Airfoils[0] + '.dat'
+                    f_write.write(line.format(AFPath))
+                elif i_line == 19:
+                    for i_AF in range(1,len(Airfoils)):
+                        AFPath = 'AeroData/' + Airfoils[i_AF] + '.dat'
+                        f_write.write(line.format(AFPath))
+                elif i_line == 20:
+                    f_write.write(line.format(len(ADInterp)))
+                elif i_line == 22:
+                    for i_AD in range(len(ADInterp)):
+                        f_write.write(line.format(*ADInterp[i_AD,:]))
+                else:
+                    f_write.write(line)
+                i_line += 1 
+    
+    return
+    
+def writeFAST(fpath_temp,fpath_out,TurbDict):
+    """ FAST input file for FAST v7.02
+    """
+    import numpy as np
+    
+    # load needed values
+    TName         = TurbDict['TName']
+    GenRatedRPM   = TurbDict['Nacelle']['RatedGenRPM']
+    RotorRad      = TurbDict['Rotor']['RotDiam']/2
+    HubRad        = TurbDict['Rotor']['HubDiam']/2
+    Overhang      = TurbDict['Nacelle']['Overhang']
+    MainFrameCG   = TurbDict['Nacelle']['MainFrameCG']
+    GenShaftCG    = TurbDict['Nacelle']['GenShaftCG']
+    RotShaftCG    = TurbDict['Nacelle']['RotShaftCG']
+    MainFrameMass = TurbDict['Nacelle']['MainFrameMass']
+    GenShaftMass  = TurbDict['Nacelle']['GenShaftMass']
+    RotShaftMass  = TurbDict['Nacelle']['RotShaftMass']
+    HHtoTT        = TurbDict['Tower']['HHtoTop']
+    HubHeight     = TurbDict['Nacelle']['HubHeight']
+    RotShaftTilt  = TurbDict['Nacelle']['RotShaftTilt']
+    ConingAngle   = TurbDict['Nacelle']['ConingAngle']
+    HubMass       = TurbDict['Nacelle']['HubMass']
+    NacYIner      = TurbDict['Nacelle']['NacYIner']
+    GenInerY      = TurbDict['Nacelle']['GenInerY']
+    HubIner       = TurbDict['Nacelle']['HubIner']
+    GenEff        = TurbDict['Nacelle']['GenEff']*100
+    RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
+    GenTorsSprng  = TurbDict['Nacelle']['GenTorsSprng']
+    GenNatFreq    = TurbDict['Nacelle']['GenNatFreq']
+    RatedGenTrq   = TurbDict['Nacelle']['RatedGenTrq']
+    MinPitchAng   = TurbDict['Rotor']['MinPitchAng']
+    
+    # calculate input parameters
+    title_str1 = 'FAST v7.02 input file for turbine \"{:s}\"'.format(TName)
+    title_str2 = 'Generated by Jennifer Rinker (Duke University) based on WindPACT Excel input files'.format(TName)
+    NacCMxn = (MainFrameCG[0]*MainFrameMass + GenShaftCG[0]*GenShaftMass + \
+                RotShaftCG[0]*RotShaftMass)/(MainFrameMass + GenShaftMass + \
+                RotShaftMass)
+    NacCMyn = (MainFrameCG[1]*MainFrameMass + GenShaftCG[1]*GenShaftMass + \
+                RotShaftCG[1]*RotShaftMass)/(MainFrameMass + GenShaftMass + \
+                RotShaftMass)
+    NacCMzn = (MainFrameCG[2]*MainFrameMass + GenShaftCG[2]*GenShaftMass + \
+                RotShaftCG[2]*RotShaftMass)/(MainFrameMass + GenShaftMass + \
+                RotShaftMass) + HHtoTT
+    TowerHt = HubHeight - HHtoTT
+    NacMass = MainFrameMass + GenShaftMass +  RotShaftMass
+    ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
+    GearboxRatio = GenRatedRPM/ShaftRatedRPM
+    GenTorsDamp = GenTorsSprng*2*0.05/GenNatFreq
+    GenTrqAlpha = RatedGenTrq / (GenRatedRPM**2)
+    
+    # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 2:
+                    f_write.write(line.format(title_str1))
+                elif i_line == 3:
+                    f_write.write(line.format(title_str2))
+                elif i_line == 17:
+                    f_write.write(line.format(GenRatedRPM))
+                elif i_line == 18:
+                    f_write.write(line.format(RatedGenTrq))
+                elif i_line == 19:
+                    f_write.write(line.format(GenTrqAlpha))
+                elif i_line == 48:
+                    f_write.write(line.format(MinPitchAng))
+                elif i_line == 49:
+                    f_write.write(line.format(MinPitchAng))
+                elif i_line == 50:
+                    f_write.write(line.format(MinPitchAng))
+                elif i_line == 77:
+                    f_write.write(line.format(RotorRad))
+                elif i_line == 78:
+                    f_write.write(line.format(HubRad))  
+                elif i_line == 82:
+                    f_write.write(line.format(Overhang)) 
+                elif i_line == 83:
+                    f_write.write(line.format(NacCMxn)) 
+                elif i_line == 84:
+                    f_write.write(line.format(NacCMyn)) 
+                elif i_line == 85:
+                    f_write.write(line.format(NacCMzn)) 
+                elif i_line == 86:
+                    f_write.write(line.format(TowerHt)) 
+                elif i_line == 87:
+                    f_write.write(line.format(HHtoTT)) 
+                elif i_line == 89:
+                    f_write.write(line.format(RotShaftTilt)) 
+                elif ((i_line >= 91) and (i_line <= 93)):
+                    f_write.write(line.format(ConingAngle)) 
+                elif i_line == 97:
+                    f_write.write(line.format(NacMass))   
+                elif i_line == 98:
+                    f_write.write(line.format(HubMass))  
+                elif i_line == 102:
+                    f_write.write(line.format(NacYIner))  
+                elif i_line == 103:
+                    f_write.write(line.format(GenInerY))  
+                elif i_line == 104:
+                    f_write.write(line.format(HubIner))
+                elif i_line == 107:
+                    f_write.write(line.format(GenEff))  
+                elif i_line == 108:
+                    f_write.write(line.format(GearboxRatio))  
+                elif i_line == 113:
+                    f_write.write(line.format(GenTorsSprng))  
+                elif i_line == 114:
+                    f_write.write(line.format(GenTorsDamp))  
+                elif i_line == 134:
+                    f_write.write(line.format(TName + '_Tower.dat')) 
+                elif ((i_line >= 156) and (i_line <= 158)):
+                    f_write.write(line.format(TName + '_Blade.dat')) 
+                elif i_line == 164:
+                    f_write.write(line.format(TName + '_ADAMS.dat')) 
+                elif i_line == 166:
+                    f_write.write(line.format(TName + '_Linear.dat')) 
+                else:
+                    f_write.write(line)
+                i_line += 1   
+    
+    return
+
+def writePitch(fpath_temp,fpath_out,TurbDict):
+    """ Pitch controller input file for UserVSControl by ACH (FAST v7.02)
+    """
+    import numpy as np
+    
+    # load/calculate needed values
+    RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
+    RotorRad      = TurbDict['Rotor']['RotDiam']/2
+    MaxPitchAng   = TurbDict['Rotor']['MaxPitchAng']
+    MinPitchAng   = TurbDict['Rotor']['MinPitchAng']
+    RatedRotorRPM =  RatedTipSpeed/2/np.pi/RotorRad*60.
+                
+   # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 4:
+                    f_write.write(line.format(RatedRotorRPM))
+                elif i_line == 6:
+                    f_write.write(line.format(MinPitchAng))
+                elif i_line == 7:
+                    f_write.write(line.format(MaxPitchAng))
+                else:
+                    f_write.write(line)
+                i_line += 1
+    
+    return
+    
+    
 # ==============================================================================
 # MAPPINGS
 # ==============================================================================

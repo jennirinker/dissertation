@@ -1,16 +1,16 @@
-True      Blade Switch:  True = Blade, False = Tower
+True     Blade Switch:  True = Blade, False = Tower
 {:8.3f}  Steady state angular velocity of rotor (rpm)  [Ignored for towers]
    0.0    Pitch angle for blades (degrees)  [Ignored for towers]
 {:7.2f}   Total beam length (m)
 {:7.2f}   Rigid beam length (m)
-   0.00   End mass (kg)
+{:7.2f}   End mass (kg)
    5      Number of modes shapes or coefficients
    2      Order of first coefficient
 {:4.0f}      Number of input stations for distributed parameters
    1.0    Factor to adjust mass
    1.0    Factor to adjust out-of-plane or tower stiffness
    1.0    Factor to adjust in-plane stiffness  [Ignored for towers]
-{:4.2f}{:12.2f}{:12.2f}{:14.0f}{:14.0f}
+{:5.3f}{:11.2f}{:12.2f}{:14.0f}{:14.0f}
 
 
 For the lines of distributed parameters, the first column is the
