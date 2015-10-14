@@ -2385,7 +2385,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     RotorDict = {}
     
     # load rotor data from text file
-    n_skip = 9                              # specific for text file
+    n_skip = 12                              # specific for text file
     fRotName = os.path.join(turb_dir,'parameters\\'+TName+'_Rotor.txt')
     with open(fRotName,'r') as f:
         RotDiam        = [float(x) for x in f.readline().strip('\n').split()][0]
@@ -2396,6 +2396,9 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
         ADStats        = [float(x) for x in f.readline().strip('\n').split()]
         MinPitchAng    = [float(x) for x in f.readline().strip('\n').split()][0]
         MaxPitchAng    = [float(x) for x in f.readline().strip('\n').split()][0]
+        AirDens        = [float(x) for x in f.readline().strip('\n').split()][0]
+        CpMax          = [float(x) for x in f.readline().strip('\n').split()][0]
+        TSROpt        = [float(x) for x in f.readline().strip('\n').split()][0]
         BldSchedFields = f.readline().strip('\n').strip('\t').split('\t')
     BldSched = np.genfromtxt(fRotName,skip_header=n_skip).tolist()
     
@@ -2408,6 +2411,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     # load mode shape data from Modes output if available
     fModesName = os.path.join(turb_dir,'modes\\'+TName+'_BldModes.mod')
     RotModes = np.empty((3,5))
+    RotModes[:] = np.nan
     if BModes:
         with open(fModesName,'r') as f:
             i_line = 0
@@ -2432,6 +2436,9 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     RotorDict['ADEdges']        = ADEdges
     RotorDict['MinPitchAng']    = MinPitchAng
     RotorDict['MaxPitchAng']    = MaxPitchAng
+    RotorDict['AirDens']        = AirDens
+    RotorDict['CpMax']          = CpMax
+    RotorDict['TSROpt']         = TSROpt
     
     # add blade dictionary to turbine dictionary
     TurbDict['Rotor'] = RotorDict
@@ -2462,6 +2469,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
         GenNatFreq    = [float(x) for x in f.readline().strip('\n').split()][0]
         GenInerY      = [float(x) for x in f.readline().strip('\n').split()][0]
         RatedGenTrq   = [float(x) for x in f.readline().strip('\n').split()][0]
+        VSSlipPerc    = [float(x) for x in f.readline().strip('\n').split()][0]
     
     # save values in blade dictionary
     NacDict['RatedTipSpeed'] = RatedTipSpeed
@@ -2484,6 +2492,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     NacDict['GenEff']        = GenEff
     NacDict['GenInerY']      = GenInerY
     NacDict['RatedGenTrq']   = RatedGenTrq
+    NacDict['VSSlipPerc']    = VSSlipPerc
     
     # add blade dictionary to turbine dictionary
     TurbDict['Nacelle'] = NacDict
@@ -2508,7 +2517,8 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     
     # load mode shape data from Modes output if available
     fModesName = os.path.join(turb_dir,'modes\\'+TName+'_TwrModes.mod')
-    TwrModes = np.empty((2,5))
+    TwrModes  = np.empty((2,5))
+    TwrModes[:] = np.nan
     if BModes:
         with open(fModesName,'r') as f:
             i_line = 0
@@ -2832,7 +2842,7 @@ def writeTower(fpath_temp,fpath_out,TurbDict):
     return
     
     
-def writeAeroDyn(fpath_temp,fpath_out,TurbDict):
+def writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict):
     """ AeroDyn input file for FAST v7.02
     """
     import numpy as np
@@ -2879,7 +2889,7 @@ def writeAeroDyn(fpath_temp,fpath_out,TurbDict):
     
     return
     
-def writeFAST(fpath_temp,fpath_out,TurbDict):
+def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     """ FAST input file for FAST v7.02
     """
     import numpy as np
@@ -2910,6 +2920,10 @@ def writeFAST(fpath_temp,fpath_out,TurbDict):
     GenNatFreq    = TurbDict['Nacelle']['GenNatFreq']
     RatedGenTrq   = TurbDict['Nacelle']['RatedGenTrq']
     MinPitchAng   = TurbDict['Rotor']['MinPitchAng']
+    AirDens       = TurbDict['Rotor']['AirDens']
+    CpMax         = TurbDict['Rotor']['CpMax']
+    TSROpt        = TurbDict['Rotor']['TSROpt']
+    VSSlipPerc    = TurbDict['Nacelle']['VSSlipPerc']
     
     # calculate input parameters
     title_str1 = 'FAST v7.02 input file for turbine \"{:s}\"'.format(TName)
@@ -2928,7 +2942,9 @@ def writeFAST(fpath_temp,fpath_out,TurbDict):
     ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
     GearboxRatio = GenRatedRPM/ShaftRatedRPM
     GenTorsDamp = GenTorsSprng*2*0.05/GenNatFreq
-    GenTrqAlpha = RatedGenTrq / (GenRatedRPM**2)
+    GenTrqAlpha = (AirDens * np.pi**3 * RotorRad**5 * CpMax)/ \
+                    (1800*GearboxRatio**3*TSROpt**3)
+    print(AirDens,RotorRad,CpMax,GearboxRatio,TSROpt)
     
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
@@ -2945,6 +2961,8 @@ def writeFAST(fpath_temp,fpath_out,TurbDict):
                     f_write.write(line.format(RatedGenTrq))
                 elif i_line == 19:
                     f_write.write(line.format(GenTrqAlpha))
+                elif i_line == 20:
+                    f_write.write(line.format(VSSlipPerc))
                 elif i_line == 48:
                     f_write.write(line.format(MinPitchAng))
                 elif i_line == 49:
@@ -3003,7 +3021,7 @@ def writeFAST(fpath_temp,fpath_out,TurbDict):
     
     return
 
-def writePitch(fpath_temp,fpath_out,TurbDict):
+def writePitchTemplate(fpath_temp,fpath_out,TurbDict):
     """ Pitch controller input file for UserVSControl by ACH (FAST v7.02)
     """
     import numpy as np
@@ -3030,6 +3048,87 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
                     f_write.write(line)
                 i_line += 1
     
+    return
+    
+    
+def writeFASTFiles(turb_dir,TName,wind_fname,u0,
+                   BlPitch0=None,RotSpeed0=None,
+                   wind_dir=None,fileID='',TMax=630.0,
+                   GenDOF='True'):
+    """ Copy FAST template files from subfolder ``templates'' in turb_dir and
+        place into turb_dir, pasting in nessecary initial conditions and
+        simulation values as necessary.
+        
+        Args:
+            turb_dir (string): path to turbine FAST directory
+            wind_dir (string): optional path to directory with wind files
+            TName (string): turbine name
+            BlPitch0 (list/numpy array): optional initial blade pitch angles
+            RotSpee0 (float): optional initial rotor speed
+            fileID (string): optional file identifier
+            TMax (float): maximum simulation time
+            
+    """
+    import os
+    import scipy.io as scio
+    import numpy as np
+    
+    print('Writing FAST files for \"{:s}\" with u0 = {:.1f}'.format(TName,u0))
+    
+    # set optional values as necessary
+    if wind_dir is None:
+        wind_dir = os.path.join(turb_dir,'Wind')
+    if len(fileID) > 0:
+        fileID = '_' + fileID
+    if BlPitch0 == None:
+        LUT = scio.loadmat(os.path.join(turb_dir,TName+'_ICs.mat'))['LUT']
+        BlPitch0 = np.interp(u0,LUT[:,0],LUT[:,1])*np.ones(3)
+    if RotSpeed0 == None:
+        LUT = scio.loadmat(os.path.join(turb_dir,TName+'_ICs.mat'))['LUT']
+        RotSpeed0 = np.interp(u0,LUT[:,0],LUT[:,2])
+
+    # create filenames
+    fAD_name  = TName+fileID+'_AD.ipt'
+    fFST_name = TName+fileID+'.fst'
+    fAD_temp  = os.path.join(turb_dir,'templates',TName+'_AD.ipt')
+    fAD_out   = os.path.join(turb_dir,fAD_name)
+    fFST_temp = os.path.join(turb_dir,'templates',TName+'.fst')
+    fFST_out  = os.path.join(turb_dir,fFST_name)
+    
+    # write AeroDyn file
+    with open(fAD_temp,'r') as f_temp:
+        with open(fAD_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 9:
+                    f_write.write(line.format(os.path.join(wind_dir,wind_fname)))
+                else:
+                    f_write.write(line)
+                i_line += 1
+                
+    # write FAST file
+    with open(fFST_temp,'r') as f_temp:
+        with open(fFST_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 9:
+                    f_write.write(line.format(TMax))
+                elif i_line == 45:
+                    f_write.write(line.format(BlPitch0[0]))
+                elif i_line == 46:
+                    f_write.write(line.format(BlPitch0[1]))
+                elif i_line == 47:
+                    f_write.write(line.format(BlPitch0[2]))
+                elif i_line == 59:
+                    f_write.write(line.format(GenDOF))
+                elif i_line == 72:
+                    f_write.write(line.format(RotSpeed0))
+                elif i_line == 160:
+                    f_write.write(line.format(fAD_name))
+                else:
+                    f_write.write(line)
+                i_line += 1
+                
     return
     
     

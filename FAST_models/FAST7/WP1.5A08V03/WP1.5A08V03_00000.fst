@@ -7,7 +7,7 @@ False       Echo        - Echo input data to "echo.out" (flag)
    1        ADAMSPrep   - ADAMS preprocessor mode {1: Run FAST, 2: use FAST as a preprocessor to create an ADAMS model, 3: do both} (switch)
    1        AnalMode    - Analysis mode {1: Run a time-marching simulation, 2: create a periodic linearized model} (switch)
    3        NumBl       - Number of blades (-)
- 120.0      TMax        - Total run time (s)
+ 80.0      TMax        - Total run time (s)
    0.005    DT          - Integration time step (s)
 ---------------------- TURBINE CONTROL -----------------------------------------
    0        YCMode      - Yaw control mode {0: none, 1: user-defined from routine UserYawCont, 2: user-defined from Simulink/Labview} (switch)
@@ -16,8 +16,8 @@ False       Echo        - Echo input data to "echo.out" (flag)
    5.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
 1800.0      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
-8602.97     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
-  0.002655  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
+8376.58     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
+  0.002585  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
 9999.9E-9   VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
    1        GenModel    - Generator model {1: simple, 2: Thevenin, 3: user-defined from routine UserGen} (switch) [used only when VSContrl=0]
 True        GenTiStr    - Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} (flag)
@@ -43,9 +43,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
 9999.9      TPitManE(1) - Time at which override pitch maneuver for blade 1 reaches final pitch (s)
 9999.9      TPitManE(2) - Time at which override pitch maneuver for blade 2 reaches final pitch (s)
 9999.9      TPitManE(3) - Time at which override pitch maneuver for blade 3 reaches final pitch (s) [unused for 2 blades]
-   2.6      BlPitch(1)  - Blade 1 initial pitch (degrees)
-   2.6      BlPitch(2)  - Blade 2 initial pitch (degrees)
-   2.6      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
+  11.7      BlPitch(1)  - Blade 1 initial pitch (degrees)
+  11.7      BlPitch(2)  - Blade 2 initial pitch (degrees)
+  11.7      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
    2.6      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
@@ -70,7 +70,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      IPDefl      - Initial in-plane blade-tip deflection (meters)
    0.0      TeetDefl    - Initial or fixed teeter angle (degrees) [unused for 3 blades]
    0.0      Azimuth     - Initial azimuth angle for blade 1 (degrees)
-  20.0      RotSpeed    - Initial or fixed rotor speed (rpm)
+  20.5      RotSpeed    - Initial or fixed rotor speed (rpm)
    0.0      NacYaw      - Initial or fixed nacelle-yaw angle (degrees)
    0.0      TTDspFA     - Initial fore-aft tower-top displacement (meters)
    0.0      TTDspSS     - Initial side-to-side tower-top displacement (meters)
@@ -105,7 +105,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
  2.998e+04  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
 ---------------------- DRIVETRAIN ----------------------------------------------
  100.0      GBoxEff     - Gearbox efficiency (%)
-  92.5      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
+  95.0      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
   87.965    GBRatio     - Gearbox ratio (-)
 False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in opposite directions} (flag)
 9999.9      HSSBrTqF    - Fully deployed HSS-brake torque (N-m)

@@ -100,7 +100,7 @@ if ADInp:
     fpath_out  = os.path.join(turb_dir,'templates',fname_out)
     
     # write blade file
-    jr.writeAeroDyn(fpath_temp,fpath_out,TurbDict)
+    jr.writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict)
     
     sys.stdout.write('done.\n')
                 
@@ -134,7 +134,7 @@ if FASTInp:
     fpath_out  = os.path.join(turb_dir,'templates',fname_out)
     
     # write FAST fi;e
-    jr.writeFAST(fpath_temp,fpath_out,TurbDict)
+    jr.writeFASTTemplate(fpath_temp,fpath_out,TurbDict)
     
     sys.stdout.write('done.\n')
                 

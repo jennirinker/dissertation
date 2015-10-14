@@ -11,7 +11,7 @@
    0.5      CNST(8)  - Pitch angle at end of gain scheduling (GSPit2>GSPit1), rad
    0.213    CNST(9)  - Power law gain sched. coefficient
   -0.500    CNST(10) - Power law gain sched. exponent
-   0        CNST(11) - Write pitcntrl.plt file?  0=no, 1=yes
+   1        CNST(11) - Write pitcntrl.plt file?  0=no, 1=yes
 
    1        Order of tf #1 (highest power of s), input=Rotor speed (RPM), output=Integral Pitch demand (deg)
  2.22    0.0            Numerator coefficients   (Order+1 values, ascending powers of s)

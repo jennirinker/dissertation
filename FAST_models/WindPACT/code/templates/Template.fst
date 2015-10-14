@@ -13,12 +13,12 @@ False       Echo        - Echo input data to "echo.out" (flag)
    0        YCMode      - Yaw control mode {0: none, 1: user-defined from routine UserYawCont, 2: user-defined from Simulink/Labview} (switch)
 9999.9      TYCOn       - Time to enable active yaw control (s) [unused when YCMode=0]
    1        PCMode      - Pitch control mode {0: none, 1: user-defined from routine PitchCntrl, 2: user-defined from Simulink/Labview} (switch)
-   5.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
+   1.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
 {:6.1f}      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
 {:7.2f}     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
 {:10.6f}  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
-9999.9E-9   VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
+{:6.1f}      VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
    1        GenModel    - Generator model {1: simple, 2: Thevenin, 3: user-defined from routine UserGen} (switch) [used only when VSContrl=0]
 True        GenTiStr    - Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} (flag)
 True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf, F: when generator power = 0} (flag)
@@ -57,7 +57,7 @@ True        FlapDOF2    - Second flapwise blade mode DOF (flag)
 True        EdgeDOF     - First edgewise blade mode DOF (flag)
 False       TeetDOF     - Rotor-teeter DOF (flag) [unused for 3 blades]
 True        DrTrDOF     - Drivetrain rotational-flexibility DOF (flag)
-True        GenDOF      - Generator DOF (flag)
+{:<5s}       GenDOF      - Generator DOF (flag)
 False       YawDOF      - Yaw DOF (flag)
 True        TwFADOF1    - First fore-aft tower bending-mode DOF (flag)
 True        TwFADOF2    - Second fore-aft tower bending-mode DOF (flag)

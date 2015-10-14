@@ -43,9 +43,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
 9999.9      TPitManE(1) - Time at which override pitch maneuver for blade 1 reaches final pitch (s)
 9999.9      TPitManE(2) - Time at which override pitch maneuver for blade 2 reaches final pitch (s)
 9999.9      TPitManE(3) - Time at which override pitch maneuver for blade 3 reaches final pitch (s) [unused for 2 blades]
-   2.6      BlPitch(1)  - Blade 1 initial pitch (degrees)
-   2.6      BlPitch(2)  - Blade 2 initial pitch (degrees)
-   2.6      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
+  16.0      BlPitch(1)  - Blade 1 initial pitch (degrees)
+  16.0      BlPitch(2)  - Blade 2 initial pitch (degrees)
+  16.0      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
    2.6      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
@@ -70,7 +70,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      IPDefl      - Initial in-plane blade-tip deflection (meters)
    0.0      TeetDefl    - Initial or fixed teeter angle (degrees) [unused for 3 blades]
    0.0      Azimuth     - Initial azimuth angle for blade 1 (degrees)
-  20.0      RotSpeed    - Initial or fixed rotor speed (rpm)
+  20.5      RotSpeed    - Initial or fixed rotor speed (rpm)
    0.0      NacYaw      - Initial or fixed nacelle-yaw angle (degrees)
    0.0      TTDspFA     - Initial fore-aft tower-top displacement (meters)
    0.0      TTDspSS     - Initial side-to-side tower-top displacement (meters)
@@ -158,7 +158,7 @@ False       Furling     - Read in additional model properties for furling turbin
 "WP1500_Blade.dat"    BldFile(2) - Name of file containing properties for blade 2 (quoted string)
 "WP1500_Blade.dat"    BldFile(3) - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
 ---------------------- AERODYN -------------------------------------------------
-"WP1500_00000_AD.ipt"         ADFile     - Name of file containing AeroDyn input parameters (quoted string)
+"WP1500_00000_AD.ipt"        ADFile     - Name of file containing AeroDyn input parameters (quoted string)
 ---------------------- NOISE ---------------------------------------------------
 "unused"    NoiseFile   - Name of file containing aerodynamic noise input parameters (quoted string) [used only when CompNoise=True]
 ---------------------- ADAMS ---------------------------------------------------
@@ -170,7 +170,7 @@ False       SumPrint    - Print summary data to "<RootName>.fsm" (flag)
 1           OutFileFmt  - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
 True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "ES10.3E2"  OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!]
-  0.0      TStart      - Time to begin tabular output (s)
+   0.0      TStart      - Time to begin tabular output (s)
   10        DecFact     - Decimation factor for tabular output {1: output every time step} (-)
    1.0      SttsTime    - Amount of time between screen status messages (sec)
    0.0      NcIMUxn     - Downwind distance from the tower-top to the nacelle IMU (meters)

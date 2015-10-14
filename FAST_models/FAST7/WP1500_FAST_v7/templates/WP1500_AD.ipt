@@ -1,4 +1,4 @@
-1.5 MW baseline aerodynamic parameters for WindPACT 1.5 MW
+1.5 MW baseline aerodynamic parameters for FAST certification test #13.
 SI                                     SysUnits - System of units for used for input and output [must be SI for FAST] (unquoted string)
 BEDDOES                                StallMod - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
 NO_CM                                  UseCm    - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)

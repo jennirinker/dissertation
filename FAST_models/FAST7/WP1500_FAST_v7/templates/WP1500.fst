@@ -7,13 +7,13 @@ False       Echo        - Echo input data to "echo.out" (flag)
    1        ADAMSPrep   - ADAMS preprocessor mode {1: Run FAST, 2: use FAST as a preprocessor to create an ADAMS model, 3: do both} (switch)
    1        AnalMode    - Analysis mode {1: Run a time-marching simulation, 2: create a periodic linearized model} (switch)
    3        NumBl       - Number of blades (-)
- 120.0      TMax        - Total run time (s)
+{:6.1f}      TMax        - Total run time (s)
    0.005    DT          - Integration time step (s)
 ---------------------- TURBINE CONTROL -----------------------------------------
    0        YCMode      - Yaw control mode {0: none, 1: user-defined from routine UserYawCont, 2: user-defined from Simulink/Labview} (switch)
 9999.9      TYCOn       - Time to enable active yaw control (s) [unused when YCMode=0]
    1        PCMode      - Pitch control mode {0: none, 1: user-defined from routine PitchCntrl, 2: user-defined from Simulink/Labview} (switch)
-   5.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
+   1.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
 1800.0      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
 8376.58     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
@@ -158,7 +158,7 @@ False       Furling     - Read in additional model properties for furling turbin
 "WP1500_Blade.dat"    BldFile(2) - Name of file containing properties for blade 2 (quoted string)
 "WP1500_Blade.dat"    BldFile(3) - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
 ---------------------- AERODYN -------------------------------------------------
-"{:s}"         ADFile     - Name of file containing AeroDyn input parameters (quoted string)
+"{:s}"        ADFile     - Name of file containing AeroDyn input parameters (quoted string)
 ---------------------- NOISE ---------------------------------------------------
 "unused"    NoiseFile   - Name of file containing aerodynamic noise input parameters (quoted string) [used only when CompNoise=True]
 ---------------------- ADAMS ---------------------------------------------------
@@ -170,7 +170,7 @@ False       SumPrint    - Print summary data to "<RootName>.fsm" (flag)
 1           OutFileFmt  - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
 True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "ES10.3E2"  OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!]
-  0.0      TStart      - Time to begin tabular output (s)
+   0.0      TStart      - Time to begin tabular output (s)
   10        DecFact     - Decimation factor for tabular output {1: output every time step} (-)
    1.0      SttsTime    - Amount of time between screen status messages (sec)
    0.0      NcIMUxn     - Downwind distance from the tower-top to the nacelle IMU (meters)
