@@ -1681,16 +1681,15 @@ def fitcompositedistribution(dataset,iP,x):
 # ==============================================================================
 
 
-def wrappedCauchySample(n_t,n_m,rho,mu):
-    """ Random numbers from a Wrapped Cauchy distribution (n_t x n_m) with 
+def wrappedCauchySample(shape,rho,mu):
+    """ Random numbers from a Wrapped Cauchy distribution with 
         location parameter mu and concentration parameter rho.
         
         Reference: Statistical Analysis of Circular Data, Fisher, Sec. 3.3.4
         Modified to correctly implement arccos.
         
         Args:
-            n_t (int): sample size
-            n_m (int): number of samples
+            shape (tuple): shape of output sample
             rho (float): concentration parameter
             mu (float): location parameter
     
@@ -1703,12 +1702,12 @@ def wrappedCauchySample(n_t,n_m,rho,mu):
         print 'rho must be between 0 and 1'
         return []
     
-    U = np.random.rand(n_t,n_m)                     # uniform random numbers
+    U = np.random.rand(*shape)                      # uniform random numbers
     
     V = np.cos(2.*np.pi*U)                          # See lines before Eq. 3.28
     c = 2.*rho/(1+(rho**2))                         # See lines before Eq. 3.28
     
-    B = 2*np.round(np.random.rand(n_t,n_m)) - 1     # boolean RV
+    B = 2*np.round(np.random.rand(*shape)) - 1     # boolean RV
                 
     theta = wrap(np.multiply(B, (np.arccos(np.divide(V+c, \
         1+c*V)))) + mu)                             # sample of angles
