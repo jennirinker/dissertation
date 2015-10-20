@@ -20,12 +20,12 @@ fileID = '_00000'
 
 
 
-PlotFields = ['Time','WindVxi','GenSpeed','GenPwr','RotSpeed',
-              'BldPitch2','TSR','GenTq','TwrBsMxt'] 
+PlotFields = ['Time','WindVxi','RotSpeed','GenPwr',
+              'BldPitch1','TSR','GenTq','TwrBsMxt','OoPDefl1']
 leg_str = ['FASTCert 1.5','JRink 1.5']
 c = ['b','r']
 
-fig1 = plt.figure(1)
+fig1 = plt.figure(1,figsize=(6.5,10))
 plt.clf()
 
 for i in range(2):
@@ -43,9 +43,10 @@ for i in range(2):
         
         y = FAST['Data'][:,FAST['Fields'].index(PlotFields[i_plot+1])]
         ax.plot(t,y,c[i],label=leg_str[i])
-#        ax.legend()
         ax.set_title(PlotFields[i_plot+1])
 #        if i_plot < len(PlotFields)-2:
 #            ax.set_ylim([np.mean(y)*0.95,np.mean(y)*1.05])
+        if i_plot == 0:
+            ax.legend()
         
 plt.tight_layout()

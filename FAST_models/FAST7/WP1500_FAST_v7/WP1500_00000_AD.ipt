@@ -7,7 +7,7 @@ SWIRL                                  IndModel - Induction-factor model [NONE o
    0.005                               AToler   - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl                                TLModel  - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"C:\Users\jrinker\Documents\GitHub\dissertation\FAST_models\wind_files\NoShr_16.0.wnd"           WindFile - Name of file containing wind data (quoted string)
+"C:\Users\jrinker\Documents\GitHub\dissertation\FAST_models\wind_files\Step_12.0_13.0.wnd"           WindFile - Name of file containing wind data (quoted string)
   84.2876                              HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.0                                 TwrShad  - Tower-shadow velocity deficit (-)
 9999.9                                 ShadHWid - Tower-shadow half width (m)

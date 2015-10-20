@@ -1,0 +1,6 @@
+! Wind file for steady 19.8 m/s wind.
+! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust
+!	Speed	Dir	Speed	Shear	Shear	Shear	Speed
+  0.0	19.8	0.0	0.0	0.0	0.0	0.0	0.0
+  0.1	19.8	0.0	0.0	0.0	0.0	0.0	0.0
+999.9	19.8	0.0	0.0	0.0	0.0	0.0	0.0

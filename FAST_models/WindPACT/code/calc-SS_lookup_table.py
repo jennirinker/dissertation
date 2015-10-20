@@ -9,10 +9,11 @@ import JR_Library.main as jr
 import os
 import numpy as np
 import scipy.io as scio
-import warnings
+import matplotlib.pyplot as plt
 
 # wind speeds to calculate steady-state
-wind_speeds = np.arange(4,25,2)
+# *************** MUST BE INCREASING ORDER ***************
+wind_speeds = np.arange(3,25,0.25)
 
 # directory where wind files are located
 wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
@@ -20,90 +21,104 @@ wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 
 # set directory and turbine name
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
 turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
+    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
 
-# load look-up table if available
-fLUTname = TName + '_ICs.mat'
-fLUTpath = os.path.join(turb_dir,fLUTname)
-if os.path.exists(fLUTpath):
-    LUT = scio.loadmat(fLUTpath,squeeze_me=True)['LUT']
-else:
-    LUT = np.empty((0,3))
-
-# specify whether to override values in look-up table if they already exist
-overwrite = 1
+# initialize look-up table
+fSSname = TName + '_SS.mat'
+fSSpath = os.path.join(turb_dir,'steady_state',fSSname)
+saveFields = ['WindVxi',
+          'GenSpeed','RotPwr','GenPwr','RotThrust','RotTorq',
+          'RotSpeed','BldPitch1','GenTq','TSR',
+          'OoPDefl1','IPDefl1','TTDspFA','TTDspSS']
+LUT = np.empty((0,len(saveFields)))
 
 # initial parameters
 TMax      = 120.0
-BlPitch0  = 2.6*np.ones(3)
-RotSpeed0 = 10.0
+T_ss      = 40.0
 
+# change directory to turbine directory to run FAST
 os.chdir(turb_dir)
+
+# set first initial conditions
+BlPitch0  = 2.6*np.ones(3)
+RotSpeed0 = 6.0
+
+# initialize stuff for plotting
+PlotFields = ['WindVxi','RotSpeed','GenPwr',
+              'BldPitch1','TSR','GenTq','TwrBsMxt'] 
+fig1 = plt.figure(1,figsize=(6.5,10))
+plt.clf()
 
 # loop through wind speeds
 for i_WS in range(wind_speeds.size):
-    
     wind_speed = wind_speeds[i_WS]
-    
-    if ((not np.any(LUT[:,0] == wind_speed)) or (overwrite)):
-    
-        fileID     = '{:.0f}'.format(i_WS).zfill(5)
         
-        # create wind filename
-        wind_fname = 'NoShr_'+'{:2.1f}'.format(wind_speed).zfill(4)+'.wnd'
-        
-        # check if wind file exists, make it if not
-        wind_fpath = os.path.join(wind_dir,wind_fname)
-        if not os.path.exists(wind_fpath):
-            with open(wind_fpath,'w') as f:
-                f.write('! Wind file for steady {:.1f} m/s wind.\n'.format(wind_speed))
-                f.write('! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust\n')
-                f.write('!	Speed	Dir	Speed	Shear	Shear	Shear	Speed\n')
-                f.write('  0.0\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(wind_speed))
-                f.write('  0.1\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(wind_speed))
-                f.write('999.9\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(wind_speed))
-                
-        # create FAST files
-        jr.writeFASTFiles(turb_dir,TName,wind_fname,wind_speed,
-                   BlPitch0=BlPitch0,RotSpeed0=RotSpeed0,
-                   wind_dir=wind_dir,fileID=fileID,TMax=TMax)
-        # run FAST
-        print('Processing wind speed {:.1f}'.format(wind_speed))
-        FASTfname = TName+'_'+fileID
-        os.system('FAST.exe '+FASTfname+'.fst')
+    # set fileID for FAST run
+    fileID     = '{:.0f}'.format(i_WS).zfill(5)
+    
+    # create wind filename
+    wind_fname = 'NoShr_'+'{:2.1f}'.format(wind_speed).zfill(4)+'.wnd'
+    
+    # check if wind file exists, make it if not
+    wind_fpath = os.path.join(wind_dir,wind_fname)
+    if not os.path.exists(wind_fpath):
+        jr.writeSteadyWind(wind_speed,wind_dir=wind_dir)
+            
+    # create FAST files
+    jr.writeFASTFiles(turb_dir,TName,wind_fname,
+               BlPitch0=BlPitch0,RotSpeed0=RotSpeed0,
+               wind_dir=wind_dir,fileID=fileID,TMax=TMax)
+               
+    # run FAST
+    print('Processing wind speed {:.1f}'.format(wind_speed))
+    FASTfname = TName+'_'+fileID
+    os.system('FAST.exe '+FASTfname+'.fst')
+                  
+    # load FAST files
+    FAST = jr.ReadFASTFile(FASTfname+'.out')
+    
+    # loop through and save steady-state values
+    n_t = FAST['Data'][:,FAST['Fields'].index('Time')].size*T_ss/TMax
+    row = np.empty(len(saveFields))
+    for i_parm in range(len(saveFields)):
+        parm = saveFields[i_parm]
+        x = FAST['Data'][:,FAST['Fields'].index(parm)]
                       
-        # load blade pitch angle, rotor speed
-        FAST = jr.ReadFASTFile(FASTfname+'.out')
-        BldPitch = FAST['Data'][:,FAST['Fields'].index('BldPitch2')]
-        RotSpeed = FAST['Data'][:,FAST['Fields'].index('RotSpeed')]
-                          
-        # calculate and save last value. throw warning if not steady-state.
-        BldPitchSS = np.mean(BldPitch[-10:])
-        RotSpeedSS = np.mean(RotSpeed[-10:])
-        if ((np.abs(BldPitch[0.83*BldPitch.size]-BldPitchSS)/BldPitchSS >= 0.10) \
-                or (np.std(BldPitch[-50:])/BldPitchSS >= 0.05)):
-            warnings.warn('Blade pitch angle is not at steady-state')
-        elif ((np.abs(RotSpeed[0.83*RotSpeed.size]-RotSpeedSS)/RotSpeedSS >= 0.10) \
-                or (np.std(RotSpeed[-50:])/RotSpeedSS >= 0.05)):
-            warnings.warn('Rotor speed is not at steady-state')
-        else:
-            row = np.array([wind_speed,BldPitchSS,RotSpeedSS])
-            LUT = np.vstack((LUT,row.reshape((1,row.size))))
-                      
-        # set initial conditions for next round, delete FAST files
-        BlPitch0  = BldPitchSS*np.ones(3)
-        RotSpeed0 = RotSpeedSS
-        os.system('del '+FASTfname+'.fst')
-        os.system('del '+FASTfname+'.out')
-        os.system('del '+FASTfname+'_AD.ipt')
-        
-    else:
-        BlPitch0  = LUT[np.where(LUT[:,0]==wind_speed)[0],1]*np.ones(3)
-        RotSpeed0 = float(LUT[np.where(LUT[:,0]==wind_speed)[0],2])
-        print('Wind speed {:.1f} present in LUT - skipping'.format(wind_speed))
+        # calculate and save last value
+        x_SS = np.mean(x[-n_t:])
+        row[i_parm] = np.array(x_SS)
+    LUT = np.vstack((LUT,row.reshape((1,row.size))))
     
+    # rearrange to increasing wind speed
+    LUT = LUT[LUT[:,saveFields.index('WindVxi')].argsort()]
+                  
+    # set initial conditions for next round
+    BlPitch0  = LUT[-1,saveFields.index('BldPitch1')]*np.ones(3)
+    RotSpeed0 = LUT[-1,saveFields.index('RotSpeed')]
+    
+    # plot results and save figure
+    t = FAST['Data'][:,FAST['Fields'].index('Time')]
+    jr.PlotTurbineResponse(t,FAST['Data'],FAST['Fields'],fig=fig1)
+    figpath = os.path.join(turb_dir,'steady_state',
+                           '{:2.1f}'.format(wind_speed).zfill(4)+'.png')
+    fig1.savefig(figpath)
+    fig1.clf()
+    
+    # delete input files, move to steady-state
+    os.system('del '+FASTfname+'.fst')
+    os.system('del '+FASTfname+'.out')
+    os.system('del '+FASTfname+'_AD.ipt')
+
+ 
+plt.close(fig1)  
 print('Simulations completed.')    
    
 # rearrange to increasing wind speed
@@ -111,6 +126,7 @@ LUT = LUT[LUT[:,0].argsort()]
    
 # save LUT   
 mdict = {}
-mdict['LUT'] = LUT    
-scio.savemat(fLUTpath,mdict)
+mdict['SS'] = LUT   
+mdict['Fields'] = saveFields 
+scio.savemat(fSSpath,mdict)
 print('Look-up table saved.')

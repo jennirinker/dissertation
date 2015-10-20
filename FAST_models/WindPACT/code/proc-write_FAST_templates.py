@@ -11,16 +11,16 @@ import json, os, sys
 
 BldModesInp = 0
 TwrModesInp = 0
-BladeInp    = 0
-ADInp       = 0
-TowerInp    = 0
+BladeInp    = 1
+ADInp       = 1
+TowerInp    = 1
 FASTInp     = 1
-PitchInp    = 0
+PitchInp    = 1
 
 # define turbine name
 #TName = 'WP0.75A08V00'
-TName = 'WP1.5A08V03'
-#TName = 'WP3.0A02V02'
+#TName = 'WP1.5A08V03'
+TName = 'WP3.0A02V02'
 #TName = 'WP5.0A04V00'
 
 # specify the directory to write the files to

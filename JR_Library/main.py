@@ -1761,8 +1761,8 @@ def generateKaimal1D(n_t,n_m,dt,U,sig,tau,rho,mu):
             alpha = spectralScale(Sk,sig,n_t);      #   for discretizaion
             Xmag = alpha*Xmag
 
-        dtheta = wrappedCauchySample(n_f-1,\
-            n_m,rho,mu)                             # phase differences
+        dtheta = wrappedCauchySample((n_f-1,n_m),\
+            rho,mu)                                 # phase differences
         phases = np.cumsum(dtheta,axis=0)           # phases from f1 to end
         phases = np.append(np.zeros((1,n_m)), \
             phases, axis=0)                         # phases from f0 to end
@@ -2223,7 +2223,7 @@ def TurbSimSpatCoh(fname,rsep):
     import numpy as np
 
     # read file
-    tsout = io.readModel( fname );
+    tsout = io.readModel( fname )
 
     # extract grid
     grid = tsout.grid;
@@ -2466,9 +2466,8 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
         GenTorsSprng  = [float(x) for x in f.readline().strip('\n').split()][0]
         GenEff        = [float(x) for x in f.readline().strip('\n').split()][0]
         GenNatFreq    = [float(x) for x in f.readline().strip('\n').split()][0]
-        GenInerY      = [float(x) for x in f.readline().strip('\n').split()][0]
-        RatedGenTrq   = [float(x) for x in f.readline().strip('\n').split()][0]
-        VSSlipPerc    = [float(x) for x in f.readline().strip('\n').split()][0]
+        RatedPower    = [float(x) for x in f.readline().strip('\n').split()][0]
+        GenInerLSS    = [float(x) for x in f.readline().strip('\n').split()][0]
     
     # save values in blade dictionary
     NacDict['RatedTipSpeed'] = RatedTipSpeed
@@ -2489,9 +2488,8 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     NacDict['GenTorsSprng']  = GenTorsSprng
     NacDict['GenNatFreq']    = GenNatFreq
     NacDict['GenEff']        = GenEff
-    NacDict['GenInerY']      = GenInerY
-    NacDict['RatedGenTrq']   = RatedGenTrq
-    NacDict['VSSlipPerc']    = VSSlipPerc
+    NacDict['RatedPower']    = RatedPower
+    NacDict['GenInerLSS']    = GenInerLSS
     
     # add blade dictionary to turbine dictionary
     TurbDict['Nacelle'] = NacDict
@@ -2776,11 +2774,11 @@ def writeBlade(fpath_temp,fpath_out,TurbDict):
                 elif i_line == 4:
                     f_write.write(line.format(len(BldInterp)))
                 elif i_line == 6:
-                    f_write.write(line.format(Damping[0]*100.))
+                    f_write.write(line.format(Damping[0]))
                 elif i_line == 7:
-                    f_write.write(line.format(Damping[1]*100.))
+                    f_write.write(line.format(Damping[1]))
                 elif i_line == 8:
-                    f_write.write(line.format(Damping[2]*100.))
+                    f_write.write(line.format(Damping[2]))
                 elif i_line == 18:
                     for i_BlNode in range(len(BldInterp)):
                         f_write.write(line.format(*BldInterp[i_BlNode,:]))
@@ -2818,13 +2816,13 @@ def writeTower(fpath_temp,fpath_out,TurbDict):
                 elif i_line == 4:
                     f_write.write(line.format(len(TowerInterp)))
                 elif i_line == 6:
-                    f_write.write(line.format(Damping[0]*100.))
+                    f_write.write(line.format(Damping[0]))
                 elif i_line == 7:
-                    f_write.write(line.format(Damping[1]*100.))
+                    f_write.write(line.format(Damping[1]))
                 elif i_line == 8:
-                    f_write.write(line.format(Damping[2]*100.))
+                    f_write.write(line.format(Damping[2]))
                 elif i_line == 9:
-                    f_write.write(line.format(Damping[3]*100.))
+                    f_write.write(line.format(Damping[3]))
                 elif i_line == 21:
                     for i_TwrNode in range(len(TowerInterp)):
                         f_write.write(line.format(*TowerInterp[i_TwrNode,:]))
@@ -2911,19 +2909,15 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     ConingAngle   = TurbDict['Nacelle']['ConingAngle']
     HubMass       = TurbDict['Nacelle']['HubMass']
     NacYIner      = TurbDict['Nacelle']['NacYIner']
-    GenInerY      = TurbDict['Nacelle']['GenInerY']
+    GenInerLSS    = TurbDict['Nacelle']['GenInerLSS']
     HubIner       = TurbDict['Nacelle']['HubIner']
-    GenEff        = TurbDict['Nacelle']['GenEff']*100
+    GenEff        = TurbDict['Nacelle']['GenEff']
     RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
     GenTorsSprng  = TurbDict['Nacelle']['GenTorsSprng']
     GenNatFreq    = TurbDict['Nacelle']['GenNatFreq']
-    RatedGenTrq   = TurbDict['Nacelle']['RatedGenTrq']
+    RatedPower    = TurbDict['Nacelle']['RatedPower']
     MinPitchAng   = TurbDict['Rotor']['MinPitchAng']
-    AirDens       = TurbDict['Rotor']['AirDens']
-    CpMax         = TurbDict['Rotor']['CpMax']
-    TSROpt        = TurbDict['Rotor']['TSROpt']
-    VSSlipPerc    = TurbDict['Nacelle']['VSSlipPerc']
-    
+
     # calculate input parameters
     title_str1 = 'FAST v7.02 input file for turbine \"{:s}\"'.format(TName)
     title_str2 = 'Generated by Jennifer Rinker (Duke University) based on WindPACT Excel input files'.format(TName)
@@ -2940,11 +2934,11 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     NacMass = MainFrameMass + GenShaftMass +  RotShaftMass
     ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
     GearboxRatio = GenRatedRPM/ShaftRatedRPM
-    GenTorsDamp = GenTorsSprng*2*0.05/GenNatFreq
-    GenTrqAlpha = (AirDens * np.pi**3 * RotorRad**5 * CpMax)/ \
-                    (1800*GearboxRatio**3*TSROpt**3)
-    print(AirDens,RotorRad,CpMax,GearboxRatio,TSROpt)
-    
+    GenTorsDamp  = GenTorsSprng*2*0.05/GenNatFreq
+    RatedGenTrq  = RatedPower/GenEff/(GenRatedRPM*np.pi/30)
+    GenTrqAlpha  = np.floor(RatedGenTrq/(GenRatedRPM**2)*1E6)/(1E6)
+    GenInerY     = GenInerLSS/(GearboxRatio**2)
+        
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
         with open(fpath_out,'w') as f_write:
@@ -2960,8 +2954,6 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
                     f_write.write(line.format(RatedGenTrq))
                 elif i_line == 19:
                     f_write.write(line.format(GenTrqAlpha))
-                elif i_line == 20:
-                    f_write.write(line.format(VSSlipPerc))
                 elif i_line == 48:
                     f_write.write(line.format(MinPitchAng))
                 elif i_line == 49:
@@ -2999,7 +2991,7 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
                 elif i_line == 104:
                     f_write.write(line.format(HubIner))
                 elif i_line == 107:
-                    f_write.write(line.format(GenEff))  
+                    f_write.write(line.format(GenEff*100))  
                 elif i_line == 108:
                     f_write.write(line.format(GearboxRatio))  
                 elif i_line == 113:
@@ -3020,7 +3012,7 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     
     return
 
-def writePitchTemplate(fpath_temp,fpath_out,TurbDict):
+def writePitch(fpath_temp,fpath_out,TurbDict):
     """ Pitch controller input file for UserVSControl by ACH (FAST v7.02)
     """
     import numpy as np
@@ -3050,7 +3042,7 @@ def writePitchTemplate(fpath_temp,fpath_out,TurbDict):
     return
     
     
-def writeFASTFiles(turb_dir,TName,wind_fname,u0,
+def writeFASTFiles(turb_dir,TName,wind_fname,
                    BlPitch0=None,RotSpeed0=None,
                    wind_dir=None,fileID='',TMax=630.0,
                    GenDOF='True'):
@@ -3060,8 +3052,9 @@ def writeFASTFiles(turb_dir,TName,wind_fname,u0,
         
         Args:
             turb_dir (string): path to turbine FAST directory
-            wind_dir (string): optional path to directory with wind files
             TName (string): turbine name
+            wind_fname (string): name of wind file
+            wind_dir (string): optional path to directory with wind files
             BlPitch0 (list/numpy array): optional initial blade pitch angles
             RotSpee0 (float): optional initial rotor speed
             fileID (string): optional file identifier
@@ -3072,19 +3065,32 @@ def writeFASTFiles(turb_dir,TName,wind_fname,u0,
     import scipy.io as scio
     import numpy as np
     
-    print('Writing FAST files for \"{:s}\" with u0 = {:.1f}'.format(TName,u0))
+    # get initial wind speed
+    wind_fpath = os.path.join(wind_dir,wind_fname)
+    u0 = GetFirstWind(wind_fpath)
+    
+    print('Writing FAST files for \"{:s}\" '.format(TName) + \
+            'with wind file {:s}'.format(wind_fpath))
     
     # set optional values as necessary
     if wind_dir is None:
         wind_dir = os.path.join(turb_dir,'Wind')
     if len(fileID) > 0:
         fileID = '_' + fileID
-    if BlPitch0 == None:
-        LUT = scio.loadmat(os.path.join(turb_dir,TName+'_ICs.mat'))['LUT']
-        BlPitch0 = np.interp(u0,LUT[:,0],LUT[:,1])*np.ones(3)
-    if RotSpeed0 == None:
-        LUT = scio.loadmat(os.path.join(turb_dir,TName+'_ICs.mat'))['LUT']
-        RotSpeed0 = np.interp(u0,LUT[:,0],LUT[:,2])
+    if BlPitch0 is None:
+        mdict = scio.loadmat(os.path.join(turb_dir,'steady_state',
+                                        TName+'_SS.mat'),squeeze_me=True)
+        LUT        = mdict['SS']
+        saveFields = [str(s).strip() for s in mdict['Fields']]
+        BlPitch0 = np.interp(u0,LUT[:,saveFields.index('WindVxi')],
+                            LUT[:,saveFields.index('BldPitch1')])*np.ones(3)
+    if RotSpeed0 is None:
+        mdict = scio.loadmat(os.path.join(turb_dir,'steady_state',
+                                        TName+'_SS.mat'),squeeze_me=True)
+        LUT        = mdict['SS']
+        saveFields = [str(s).strip() for s in mdict['Fields']]
+        RotSpeed0 = np.interp(u0,LUT[:,saveFields.index('WindVxi')],
+                            LUT[:,saveFields.index('RotSpeed')])
 
     # create filenames
     fAD_name  = TName+fileID+'_AD.ipt'
@@ -3100,7 +3106,7 @@ def writeFASTFiles(turb_dir,TName,wind_fname,u0,
             i_line = 0
             for line in f_temp:
                 if i_line == 9:
-                    f_write.write(line.format(os.path.join(wind_dir,wind_fname)))
+                    f_write.write(line.format(wind_fpath))
                 else:
                     f_write.write(line)
                 i_line += 1
@@ -3129,6 +3135,296 @@ def writeFASTFiles(turb_dir,TName,wind_fname,u0,
                 i_line += 1
                 
     return
+    
+    
+def PlotSSTurbineResponse(x,Data,Fields,fig=None):
+    """ Steady-state turbine response in 3-axis plot
+    
+        Args:
+            x (numpy array): mean wind speed
+            Data (numpy array): array of turbine data
+            Fields (numpy array): columns in Data
+            SS (boolean): whether response is steady-state or time series
+            fig (pyplot figure handle): handle to figure
+            
+        Returns:
+            fig (pyplot figure handle): handle to figure
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    # create figure if none specified
+    if fig is None:
+        fig = plt.figure(figsize=(7,9))
+        
+    # axes locations
+    xPlot = 0.11
+    yPlot = np.arange(3)[::-1]*0.31 + 0.08
+    wd,ht = 0.80,0.25
+    
+    # Axes 1: GenSpeed,RotPwr,GenPwr,RotThrust,RotTorq
+    ax1 = fig.add_axes([xPlot,yPlot[0],wd,ht])
+    
+    plt.plot(x,Data[:,Fields.index('GenSpeed')],label='GenSpeed, rpm')
+    plt.plot(x,Data[:,Fields.index('RotPwr')],label='RotPwr, kW')
+    plt.plot(x,Data[:,Fields.index('GenPwr')],label='GenPwr, kW')
+    plt.plot(x,Data[:,Fields.index('RotThrust')],label='RotThrust, kN')
+    plt.plot(x,Data[:,Fields.index('RotTorq')],label='RotTorq, kN-m')
+    
+    ax1.set_xlim([x[0],x[-1]])
+    ax1.grid('on')
+    ax1.legend(loc=2,fontsize='small')
+    ax1.set_xticks(np.arange(x[0],x[-1]+1))
+    
+    
+    # Axes 2: RotSpeed,BlPitch,GenTq,TSR
+    ax2 = fig.add_axes([xPlot,yPlot[1],wd,ht])
+    
+    plt.plot(x,Data[:,Fields.index('RotSpeed')],label='RotSpeed, rpm')
+    plt.plot(x,Data[:,Fields.index('BldPitch1')],label='BlPitch, $^\mathrm{o}$')
+    plt.plot(x,Data[:,Fields.index('GenTq')],label='GenTq, kN-m')
+    plt.plot(x,Data[:,Fields.index('TSR')],label='TSR, -')
+    
+    ax2.set_xlim([x[0],x[-1]])
+    ax2.grid('on')
+    ax2.legend(loc=2,fontsize='small')
+    ax2.set_xticks(np.arange(x[0],x[-1]+1))
+    
+    # Axes 3: OopDefl1,IPDefl1,TTDspFA,TTDspSS
+    ax3 = fig.add_axes([xPlot,yPlot[2],wd,ht])
+    
+    plt.plot(x,Data[:,Fields.index('OoPDefl1')],label='OoPDefl1, m')
+    plt.plot(x,Data[:,Fields.index('IPDefl1')],label='IPDefl1, m')
+    plt.plot(x,Data[:,Fields.index('TTDspFA')],label='TTDspFA, m')
+    plt.plot(x,Data[:,Fields.index('TTDspSS')],label='TTDspSS, m')
+    
+    #ax3.set_ylim([0,40])
+    ax3.set_xlim([x[0],x[-1]])
+    ax3.grid('on')
+    ax3.legend(loc=2,fontsize='small')
+    ax3.set_xticks(np.arange(x[0],x[-1]+1))
+    
+    return fig,ax1,ax2,ax3
+    
+    
+def PlotTurbineResponse(t,Data,Fields,fig=None):
+    """ Turbine response in 3-axis plot
+    
+        Args:
+            t (numpy array): time
+            Data (numpy array): array of turbine data
+            Fields (numpy array): columns in Data
+            SS (boolean): whether response is steady-state or time series
+            fig (pyplot figure handle): handle to figure
+            
+        Returns:
+            fig (pyplot figure handle): handle to figure
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
+    # create figure if none specified
+    if fig is None:
+        fig = plt.figure(figsize=(6.5,9))
+    fig.clf()
+    
+    # axes locations
+    xPlot = 0.10
+    yPlot = [0.88,0.586,0.32,0.06]
+    wd,ht = 0.83,0.17
+    
+    # Axes 0: WindVxi
+    ax0 = fig.add_axes([xPlot,yPlot[0],wd,0.06])
+    
+    plt.plot(t,Data[:,Fields.index('WindVxi')])
+    
+    ax0.set_xlim([t[0],t[-1]])
+    ax0.set_xticklabels([])
+    ax0.set_ylabel('Wind [m/s]')
+    plt.locator_params(axis='y',nbins=4)
+    
+    # Axes 1: GenSpeed,RotPwr,GenPwr,RotThrust,RotTorq
+    ax1 = fig.add_axes([xPlot,yPlot[1],wd,ht])
+    
+    plt.plot(t,Data[:,Fields.index('GenSpeed')],label='GenSpeed, rpm')
+    plt.plot(t,Data[:,Fields.index('RotPwr')],label='RotPwr, kW')
+    plt.plot(t,Data[:,Fields.index('GenPwr')],label='GenPwr, kW')
+    plt.plot(t,Data[:,Fields.index('RotThrust')],label='RotThrust, kN')
+    plt.plot(t,Data[:,Fields.index('RotTorq')],label='RotTorq, kN-m')
+    
+    ax1.set_xlim([t[0],t[-1]])
+    ax1.legend(fontsize='small',
+               bbox_to_anchor=(1.0, 1.02), loc=4, borderaxespad=0.)
+#    ax1.set_xlabel('Time [s]')
+    ax1.set_xticklabels([])
+    
+    
+    # Axes 2: RotSpeed,BlPitch,GenTq,TSR
+    ax2 = fig.add_axes([xPlot,yPlot[2],wd,ht])
+    
+    plt.plot(t,Data[:,Fields.index('RotSpeed')],label='RotSpeed, rpm')
+    plt.plot(t,Data[:,Fields.index('BldPitch1')],label='BlPitch, $^\mathrm{o}$')
+    plt.plot(t,Data[:,Fields.index('GenTq')],label='GenTq, kN-m')
+    plt.plot(t,Data[:,Fields.index('TSR')],label='TSR, -')
+    
+    ax2.set_xlim([t[0],t[-1]])
+    ax2.legend(fontsize='small',
+               bbox_to_anchor=(1.0, 1.02), loc=4, borderaxespad=0.)
+#    ax2.set_xlabel('Time [s]')
+    ax2.set_xticklabels([])
+    
+    # Axes 3: OopDefl1,IPDefl1,TTDspFA,TTDspSS
+    ax3 = fig.add_axes([xPlot,yPlot[3],wd,ht])
+    
+    plt.plot(t,Data[:,Fields.index('OoPDefl1')],label='OoPDefl1, m')
+    plt.plot(t,Data[:,Fields.index('IPDefl1')],label='IPDefl1, m')
+    plt.plot(t,Data[:,Fields.index('TTDspFA')],label='TTDspFA, m')
+    plt.plot(t,Data[:,Fields.index('TTDspSS')],label='TTDspSS, m')
+    
+    #ax3.set_ylim([0,40])
+    ax3.set_xlim([t[0],t[-1]])
+    ax3.legend(fontsize='small',
+               bbox_to_anchor=(1.0, 1.02), loc=4, borderaxespad=0.)
+    ax3.set_xlabel('Time [s]')
+    
+    return fig,ax1,ax2,ax3
+    
+    
+def writeSteadyWind(U,wind_dir=''):
+    """ Write steady-state wind file
+    
+        Args:
+            U (float): wind value
+            wind_dir (string): optional path to directory with wind files
+    """
+    import os
+    
+    # create path to file
+    wind_fname = 'NoShr_'+'{:2.1f}'.format(U).zfill(4)+'.wnd'
+    wind_fpath = os.path.join(wind_dir,wind_fname)
+    
+    # write wind file
+    with open(wind_fpath,'w') as f:
+        f.write('! Wind file for steady {:.1f} m/s wind without shear.\n'.format(U))
+        f.write('! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust\n')
+        f.write('!	Speed	Dir	Speed	Shear	Shear	Shear	Speed\n')
+        f.write('   0.0\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(U))
+        f.write('   0.1\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(U))
+        f.write('9999.9\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(U))
+        
+    return
+    
+    
+def writeStepWind(U0,UF,t_step=40.0,dt_step=0.1,wind_dir=''):
+    """ Write step wind file
+    
+        Args:
+            U0 (float): starting wind value
+            UF (float): ending wind value
+            t_step (float): optional time step occurs
+            dt_step (float): optional time step duration
+            wind_dir (string): optional path to directory with wind files
+    """
+    import os
+    
+    # create path to file
+    U0s, UFs   = '{:2.1f}'.format(U0).zfill(4), '{:2.1f}'.format(UF).zfill(4)
+    wind_fname = 'Step_'+U0s+'_'+UFs+'.wnd'
+    wind_fpath = os.path.join(wind_dir,wind_fname)
+    
+    # write wind file
+    with open(wind_fpath,'w') as f:
+        f.write('! Wind file for step wind ({:.1f}'.format(U0) + \
+                ' - {:.1f} m/s) without shear.\n'.format(UF))
+        f.write('! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust\n')
+        f.write('!	Speed	Dir	Speed	Shear	Shear	Shear	Speed\n')
+        f.write('   0.0\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(U0))
+        f.write('   0.1\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(U0))
+        f.write('{:6.1f}\t{:.1f}\t0.0\t0.0\t0.0'.format(t_step,U0) + \
+                    '\t0.0\t0.0\t0.0\n')
+        f.write('{:6.1f}\t{:.1f}\t0.0\t0.0\t0.0'.format(t_step+dt_step,UF) + \
+                    '\t0.0\t0.0\t0.0\n')
+        f.write('9999.9\t{:.1f}\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\n'.format(UF))
+        
+    return
+    
+    
+def writeKaimalWind(U,sig,tau,rho,mu,T=600.0,dt=0.05,T_steady=30.0,
+                    fileID='',wind_dir=''):
+    """ 1D Kaimal wind file (single point)
+    
+        Args:
+            U (float): mean wind speed
+            sigma (float): turbulent standard deviation
+            tau (float): Kaimal time scale
+            rho (float): concentration parameter
+            mu (float): location parameter
+            T (float): optional length of turbulent portion of simulation
+            dt (float): optional time step
+            T_steady (float): optional length of steady time before turbulent
+            fileID (string): optional unique file identifier
+            wind_dir (string): optional path to directory with wind files
+    """
+    import os
+    import numpy as np
+    
+    # simulate wind, add time before
+    n_t = np.ceil(T/dt)
+    t,u = generateKaimal1D(n_t,1,dt,U,sig,tau,rho,mu)
+    t_all = np.arange((T+T_steady)/dt)*dt
+    u_all = np.empty(t_all.shape)
+    u_all[:T_steady/dt] = u[0]
+    u_all[T_steady/dt:] = np.squeeze(u)    
+    
+    # create path to file
+    if len(fileID)>0:
+        wind_fname = 'Kaimal'+'_'+fileID+'.wnd'
+    else:
+        wind_fname = 'Kaimal.wnd'
+    wind_fpath = os.path.join(wind_dir,wind_fname)
+    
+    # write wind file
+    with open(wind_fpath,'w') as f:
+        f.write('! Wind file for 1D Kaimal simulation: ' + \
+                '{:.2f} {:.2f} {:.2f} {:.2f} {:.2f}\n'.format(U,sig,tau,rho,mu))
+        f.write('! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust\n')
+        f.write('!	Speed	Dir	Speed	Shear	Shear	Shear	Speed\n')
+        for i_t in range(t_all.size):
+            f.write('{:6.2f}\t{:.2f}\t0.0\t'.format(t_all[i_t],u_all[i_t]) + \
+                    '0.0\t0.0\t0.0\t0.0\t0.0\n')
+
+    return
+    
+    
+def GetFirstWind(wind_fpath):
+    """ First wind speed from file
+    
+        Args:
+            wind_fpath (string): path to wind file
+            
+        Returns:
+            u0 (float): initial wind value
+    """
+    import pyts.io.main as io
+
+    # if it's a .wnd file (text)
+    if wind_fpath.endswith('.wnd'):
+        with open(wind_fpath,'r') as f:
+            for i in range(3):
+                f.readline()
+            u0 = float(f.readline().split()[1])
+    
+    # if it's a .bts file
+    elif wind_fpath.endswith('.bts'):
+        
+        tsout = io.readModel(wind_fpath)            # read file
+        u0    = tsout.u[:,:,0].mean()               # average first wind
+
+    else:
+        errStr = 'Can only analyze .wnd (text) and .bts files'
+        ValueError(errStr)
+
+    return u0
     
     
 # ==============================================================================

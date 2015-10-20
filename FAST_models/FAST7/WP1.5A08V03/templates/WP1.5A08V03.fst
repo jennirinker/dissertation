@@ -16,9 +16,9 @@ False       Echo        - Echo input data to "echo.out" (flag)
    1.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
 1800.0      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
-8602.97     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
-  0.002136  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
-   1.0      VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
+8376.58     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
+  0.002585  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
+9999.9E-9   VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
    1        GenModel    - Generator model {1: simple, 2: Thevenin, 3: user-defined from routine UserGen} (switch) [used only when VSContrl=0]
 True        GenTiStr    - Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} (flag)
 True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf, F: when generator power = 0} (flag)
@@ -101,11 +101,11 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      TipMass(2)  - Tip-brake mass, blade 2 (kg)
    0.0      TipMass(3)  - Tip-brake mass, blade 3 (kg) [unused for 2 blades]
   4.54e+04  NacYIner    - Nacelle inertia about yaw axis (kg m^2)
-    53.036    GenIner     - Generator inertia about HSS (kg m^2)
+    56.442  GenIner     - Generator inertia about HSS (kg m^2)
  2.998e+04  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
 ---------------------- DRIVETRAIN ----------------------------------------------
  100.0      GBoxEff     - Gearbox efficiency (%)
-  92.5      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
+  95.0      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
   87.965    GBRatio     - Gearbox ratio (-)
 False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in opposite directions} (flag)
 9999.9      HSSBrTqF    - Fully deployed HSS-brake torque (N-m)
@@ -184,7 +184,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
             OutList     - The next line(s) contains a list of output parameters.  See OutList.xlsx for a listing of available output channels, (-)
 "WindVxi,WindVyi,WindVzi"          	- Wind-speed components
 "HorWndDir,VerWndDir"              	- Wind directions
-"BldPitch2"                        	- Blade 2 pitch angle
+"BldPitch1"                        	- Blade 2 pitch angle
 "IPDefl1, IPDefl2"                 	- IP blade 1,2 tip deflections
 "TwstDefl1,TwstDefl2,TwstDefl3"    	- Blade torsional tip twist deflections
 "RootMxb2, RootMyb2, RootMzb2"     	- Blade 2 root moments
@@ -194,9 +194,10 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "YawBrMxn, YawBrMyn, YawBrMzn"     	- Tower-top / yaw bearing roll, pitch, and yaw moments
 "GenSpeed, GenTq, GenPwr, GenCp"	- Generator outputs
 "RotPwr, RotThrust, RotTorq, RotSpeed"	- rotor outputs
-"OoPDefl1, TSR"				- Blade tip outputs
+"OoPDefl1, IPDefl1, TSR"		- Blade tip outputs
 "TwrBsFxt, TwrBsFyt"			- tower base forces
 "TwrBsMxt, TwrBsMyt, TwrBsMzt"		- tower base moments
+"TTDspFA, TTDspSS"			- tower top displacements
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 

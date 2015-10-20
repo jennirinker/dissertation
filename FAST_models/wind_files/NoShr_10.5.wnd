@@ -1,0 +1,6 @@
+! Wind file for steady 10.5 m/s wind.
+! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust
+!	Speed	Dir	Speed	Shear	Shear	Shear	Speed
+  0.0	10.5	0.0	0.0	0.0	0.0	0.0	0.0
+  0.1	10.5	0.0	0.0	0.0	0.0	0.0	0.0
+999.9	10.5	0.0	0.0	0.0	0.0	0.0	0.0

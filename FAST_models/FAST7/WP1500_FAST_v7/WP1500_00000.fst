@@ -13,7 +13,7 @@ False       Echo        - Echo input data to "echo.out" (flag)
    0        YCMode      - Yaw control mode {0: none, 1: user-defined from routine UserYawCont, 2: user-defined from Simulink/Labview} (switch)
 9999.9      TYCOn       - Time to enable active yaw control (s) [unused when YCMode=0]
    1        PCMode      - Pitch control mode {0: none, 1: user-defined from routine PitchCntrl, 2: user-defined from Simulink/Labview} (switch)
-   5.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
+   1.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
 1800.0      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
 8376.58     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
@@ -43,9 +43,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
 9999.9      TPitManE(1) - Time at which override pitch maneuver for blade 1 reaches final pitch (s)
 9999.9      TPitManE(2) - Time at which override pitch maneuver for blade 2 reaches final pitch (s)
 9999.9      TPitManE(3) - Time at which override pitch maneuver for blade 3 reaches final pitch (s) [unused for 2 blades]
-  16.0      BlPitch(1)  - Blade 1 initial pitch (degrees)
-  16.0      BlPitch(2)  - Blade 2 initial pitch (degrees)
-  16.0      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
+   7.3      BlPitch(1)  - Blade 1 initial pitch (degrees)
+   7.3      BlPitch(2)  - Blade 2 initial pitch (degrees)
+   7.3      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
    2.6      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
@@ -184,7 +184,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
             OutList     - The next line(s) contains a list of output parameters.  See OutList.xlsx for a listing of available output channels, (-)
 "WindVxi,WindVyi,WindVzi"          	- Wind-speed components
 "HorWndDir,VerWndDir"              	- Wind directions
-"BldPitch2"                        	- Blade 2 pitch angle
+"BldPitch1"                        	- Blade 2 pitch angle
 "IPDefl1, IPDefl2"                 	- IP blade 1,2 tip deflections
 "TwstDefl1,TwstDefl2,TwstDefl3"    	- Blade torsional tip twist deflections
 "RootMxb2, RootMyb2, RootMzb2"     	- Blade 2 root moments
@@ -194,9 +194,10 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "YawBrMxn, YawBrMyn, YawBrMzn"     	- Tower-top / yaw bearing roll, pitch, and yaw moments
 "GenSpeed, GenTq, GenPwr, GenCp"	- Generator outputs
 "RotPwr, RotThrust, RotTorq, RotSpeed"	- rotor outputs
-"OoPDefl1, TSR"				- Blade tip outputs
+"OoPDefl1, IPDefl1, TSR"		- Blade tip outputs
 "TwrBsFxt, TwrBsFyt"			- tower base forces
 "TwrBsMxt, TwrBsMyt, TwrBsMzt"		- tower base moments
+"TTDspFA, TTDspSS"			- tower top displacements
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 

@@ -1,12 +1,12 @@
 --------------------------------------------------------------------------------
 ---------------------- FAST INDIVIDUAL BLADE FILE ------------------------------
-FAST 7 blade file for turbine WP5.0A04V00
+FAST v7.02 blade file for turbine "WP5.0A04V00" (JRinker, Duke University)
 ---------------------- BLADE PARAMETERS ----------------------------------------
   21        NBlInpSt    - Number of blade input stations (-)
 False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode shapes from below, F: use mode shapes from below} [CURRENTLY IGNORED] (flag)
-   3.000    BldFlDmp(1) - Blade flap mode #1 structural damping in percent of critical (%)
-   3.000    BldFlDmp(2) - Blade flap mode #2 structural damping in percent of critical (%)
-   3.000    BldEdDmp(1) - Blade edge mode #1 structural damping in percent of critical (%)
+   3.882    BldFlDmp(1) - Blade flap mode #1 structural damping in percent of critical (%)
+   3.882    BldFlDmp(2) - Blade flap mode #2 structural damping in percent of critical (%)
+   5.900    BldEdDmp(1) - Blade edge mode #1 structural damping in percent of critical (%)
 ---------------------- BLADE ADJUSTMENT FACTORS --------------------------------
    1.0      FlStTunr(1) - Blade flapwise modal stiffness tuner, 1st mode (-)
    1.0      FlStTunr(2) - Blade flapwise modal stiffness tuner, 2nd mode (-)
@@ -38,20 +38,20 @@ BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EA
 0.94737  0.241      0.12       62.62   3.3093E+07   1.6498E+08   3.3111E+06   7.7003E+08
 1.00000  0.250      0.00       21.99   1.5598E+06   5.3624E+07   1.2375E+06   2.3571E+08
 ---------------------- BLADE MODE SHAPES ---------------------------------------
-   0.1627   BldFl1Sh(2) - Flap mode 1, coeff of x^2
-   1.6395   BldFl1Sh(3) -            , coeff of x^3
-  -2.1560   BldFl1Sh(4) -            , coeff of x^4
-   2.6749   BldFl1Sh(5) -            , coeff of x^5
-  -1.3210   BldFl1Sh(6) -            , coeff of x^6
-  -0.4863   BldFl2Sh(2) - Flap mode 2, coeff of x^2
-  -1.4363   BldFl2Sh(3) -            , coeff of x^3
-  -4.3687   BldFl2Sh(4) -            , coeff of x^4
-  15.8464   BldFl2Sh(5) -            , coeff of x^5
-  -8.5552   BldFl2Sh(6) -            , coeff of x^6
-   0.5594   BldEdgSh(2) - Edge mode 1, coeff of x^2
-   1.7444   BldEdgSh(3) -            , coeff of x^3
-  -4.5923   BldEdgSh(4) -            , coeff of x^4
-   5.9295   BldEdgSh(5) -            , coeff of x^5
-  -2.6411   BldEdgSh(6) -            , coeff of x^6
+   0.1532   BldFl1Sh(2) - Flap mode 1, coeff of x^2
+   1.7158   BldFl1Sh(3) -            , coeff of x^3
+  -2.3131   BldFl1Sh(4) -            , coeff of x^4
+   2.8084   BldFl1Sh(5) -            , coeff of x^5
+  -1.3643   BldFl1Sh(6) -            , coeff of x^6
+  -0.4652   BldFl2Sh(2) - Flap mode 2, coeff of x^2
+  -1.6179   BldFl2Sh(3) -            , coeff of x^3
+  -3.9428   BldFl2Sh(4) -            , coeff of x^4
+  15.4805   BldFl2Sh(5) -            , coeff of x^5
+  -8.4547   BldFl2Sh(6) -            , coeff of x^6
+   0.5418   BldEdgSh(2) - Edge mode 1, coeff of x^2
+   1.8285   BldEdgSh(3) -            , coeff of x^3
+  -4.7455   BldEdgSh(4) -            , coeff of x^4
+   6.0593   BldEdgSh(5) -            , coeff of x^5
+  -2.6841   BldEdgSh(6) -            , coeff of x^6
 
 

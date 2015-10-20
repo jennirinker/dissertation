@@ -1,0 +1,8 @@
+! Wind file for step wind (4.0 - 5.0 m/s) without shear.
+! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust
+!	Speed	Dir	Speed	Shear	Shear	Shear	Speed
+   0.0	4.0	0.0	0.0	0.0	0.0	0.0	0.0
+   0.1	4.0	0.0	0.0	0.0	0.0	0.0	0.0
+  40.0	4.0	0.0	0.0	0.0	0.0	0.0	0.0
+  40.1	5.0	0.0	0.0	0.0	0.0	0.0	0.0
+9999.9	5.0	0.0	0.0	0.0	0.0	0.0	0.0

@@ -184,7 +184,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
             OutList     - The next line(s) contains a list of output parameters.  See OutList.xlsx for a listing of available output channels, (-)
 "WindVxi,WindVyi,WindVzi"          	- Wind-speed components
 "HorWndDir,VerWndDir"              	- Wind directions
-"BldPitch2"                        	- Blade 2 pitch angle
+"BldPitch1"                        	- Blade 2 pitch angle
 "IPDefl1, IPDefl2"                 	- IP blade 1,2 tip deflections
 "TwstDefl1,TwstDefl2,TwstDefl3"    	- Blade torsional tip twist deflections
 "RootMxb2, RootMyb2, RootMzb2"     	- Blade 2 root moments
@@ -194,9 +194,10 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "YawBrMxn, YawBrMyn, YawBrMzn"     	- Tower-top / yaw bearing roll, pitch, and yaw moments
 "GenSpeed, GenTq, GenPwr, GenCp"	- Generator outputs
 "RotPwr, RotThrust, RotTorq, RotSpeed"	- rotor outputs
-"OoPDefl1, TSR"				- Blade tip outputs
+"OoPDefl1, IPDefl1, TSR"		- Blade tip outputs
 "TwrBsFxt, TwrBsFyt"			- tower base forces
 "TwrBsMxt, TwrBsMyt, TwrBsMzt"		- tower base moments
+"TTDspFA, TTDspSS"			- tower top displacements
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 

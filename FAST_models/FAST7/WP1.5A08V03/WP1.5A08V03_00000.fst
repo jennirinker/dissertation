@@ -7,13 +7,13 @@ False       Echo        - Echo input data to "echo.out" (flag)
    1        ADAMSPrep   - ADAMS preprocessor mode {1: Run FAST, 2: use FAST as a preprocessor to create an ADAMS model, 3: do both} (switch)
    1        AnalMode    - Analysis mode {1: Run a time-marching simulation, 2: create a periodic linearized model} (switch)
    3        NumBl       - Number of blades (-)
- 80.0      TMax        - Total run time (s)
+ 120.0      TMax        - Total run time (s)
    0.005    DT          - Integration time step (s)
 ---------------------- TURBINE CONTROL -----------------------------------------
    0        YCMode      - Yaw control mode {0: none, 1: user-defined from routine UserYawCont, 2: user-defined from Simulink/Labview} (switch)
 9999.9      TYCOn       - Time to enable active yaw control (s) [unused when YCMode=0]
    1        PCMode      - Pitch control mode {0: none, 1: user-defined from routine PitchCntrl, 2: user-defined from Simulink/Labview} (switch)
-   5.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
+   1.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
 1800.0      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
 8376.58     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
@@ -43,9 +43,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
 9999.9      TPitManE(1) - Time at which override pitch maneuver for blade 1 reaches final pitch (s)
 9999.9      TPitManE(2) - Time at which override pitch maneuver for blade 2 reaches final pitch (s)
 9999.9      TPitManE(3) - Time at which override pitch maneuver for blade 3 reaches final pitch (s) [unused for 2 blades]
-  11.7      BlPitch(1)  - Blade 1 initial pitch (degrees)
-  11.7      BlPitch(2)  - Blade 2 initial pitch (degrees)
-  11.7      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
+   7.3      BlPitch(1)  - Blade 1 initial pitch (degrees)
+   7.3      BlPitch(2)  - Blade 2 initial pitch (degrees)
+   7.3      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
    2.6      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
@@ -101,7 +101,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      TipMass(2)  - Tip-brake mass, blade 2 (kg)
    0.0      TipMass(3)  - Tip-brake mass, blade 3 (kg) [unused for 2 blades]
   4.54e+04  NacYIner    - Nacelle inertia about yaw axis (kg m^2)
-    53.036    GenIner     - Generator inertia about HSS (kg m^2)
+    56.442  GenIner     - Generator inertia about HSS (kg m^2)
  2.998e+04  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
 ---------------------- DRIVETRAIN ----------------------------------------------
  100.0      GBoxEff     - Gearbox efficiency (%)
@@ -112,7 +112,7 @@ False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in 
 9999.9      HSSBrDT     - Time for HSS-brake to reach full deployment once initiated (sec) [used only when HSSBrMode=1]
 "unused"    DynBrkFi    - File containing a mech-gen-torque vs HSS-speed curve for a dynamic brake [CURRENTLY IGNORED] (quoted string)
  4.8e+08    DTTorSpr    - Drivetrain torsional spring (N-m/rad)
- 3.2e+06    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
+ 8.6e+05    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
 ---------------------- SIMPLE INDUCTION GENERATOR ------------------------------
 9999.9      SIG_SlPc    - Rated generator slip percentage (%) [used only when VSContrl=0 and GenModel=1]
 9999.9      SIG_SySp    - Synchronous (zero-torque) generator speed (rpm) [used only when VSContrl=0 and GenModel=1]
@@ -184,7 +184,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
             OutList     - The next line(s) contains a list of output parameters.  See OutList.xlsx for a listing of available output channels, (-)
 "WindVxi,WindVyi,WindVzi"          	- Wind-speed components
 "HorWndDir,VerWndDir"              	- Wind directions
-"BldPitch2"                        	- Blade 2 pitch angle
+"BldPitch1"                        	- Blade 2 pitch angle
 "IPDefl1, IPDefl2"                 	- IP blade 1,2 tip deflections
 "TwstDefl1,TwstDefl2,TwstDefl3"    	- Blade torsional tip twist deflections
 "RootMxb2, RootMyb2, RootMzb2"     	- Blade 2 root moments
@@ -194,9 +194,10 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "YawBrMxn, YawBrMyn, YawBrMzn"     	- Tower-top / yaw bearing roll, pitch, and yaw moments
 "GenSpeed, GenTq, GenPwr, GenCp"	- Generator outputs
 "RotPwr, RotThrust, RotTorq, RotSpeed"	- rotor outputs
-"OoPDefl1, TSR"				- Blade tip outputs
+"OoPDefl1, IPDefl1, TSR"		- Blade tip outputs
 "TwrBsFxt, TwrBsFyt"			- tower base forces
 "TwrBsMxt, TwrBsMyt, TwrBsMzt"		- tower base moments
+"TTDspFA, TTDspSS"			- tower top displacements
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 
