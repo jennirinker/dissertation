@@ -26,10 +26,10 @@ wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
+#    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
 
 # initialize look-up table
 fSSname = TName + '_SS.mat'
@@ -42,7 +42,7 @@ LUT = np.empty((0,len(saveFields)))
 
 # initial parameters
 TMax      = 120.0
-T_ss      = 40.0
+T_ss      = 60.0
 
 # change directory to turbine directory to run FAST
 os.chdir(turb_dir)

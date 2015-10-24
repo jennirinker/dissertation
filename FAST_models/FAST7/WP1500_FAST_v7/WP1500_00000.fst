@@ -166,7 +166,7 @@ False       Furling     - Read in additional model properties for furling turbin
 ---------------------- LINEARIZATION CONTROL -----------------------------------
 "WP1500_Linear.dat"   LinFile    - Name of file containing FAST linearization parameters (quoted string) [unused when AnalMode=1]
 ---------------------- OUTPUT --------------------------------------------------
-False       SumPrint    - Print summary data to "<RootName>.fsm" (flag)
+True       SumPrint    - Print summary data to "<RootName>.fsm" (flag)
 1           OutFileFmt  - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
 True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "ES10.3E2"  OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!]

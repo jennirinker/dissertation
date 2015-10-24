@@ -2,42 +2,72 @@
 """
 import scipy.signal
 
-#k   = 5.6e9
-#Ir  = 34.6e3
-#Ig  = 53.036
-tau = 0.02
-Kp = 5.14
-Kd = 0.08-Kp*tau
-print(Kd)
-Kp = 3.0
-Kd = -.0228
-print(Kp,Kp*tau+Kd)
+#print('\n1.5 MW CertTest')
+#
+#ktor = 5.6e9
+#Irot = 2962443.750
+#Igen = 53.036
+#GBR = 87.965
+#
+#wn = np.sqrt(ktor/Irot + ktor/(Igen*GBR**2))
+#
+#print(wn)
+#print(wn/2/np.pi)
+#
+#print('\n5.0 MW Reference')
+#
+#ktor = 867.637E6
+#Irot = 38759236.000
+#Igen = 534.116
+#GBR = 97
+#
+#wn = np.sqrt(ktor/Irot + ktor/(Igen*GBR**2))
+#
+#print(wn)
+#print(wn/2/np.pi)
 
-#b = [12947.976878612717, 831907.514450867]
-#k   = 4.8e8
-#Ir  = 2.998e4
-#Ig  = 53.036
-#tau = 0.02
+print('\n0.75 MW Rinker')
+
+ktor = 1.3e8
+Irot = 665139
+Igen = 16.651
+GBR = 62.832
+
+Ieff = (Irot *(Igen*GBR**2))/(Irot+Igen*GBR**2)
+
+wn = np.sqrt(ktor/Ieff)
+
+c = 2*0.05*wn*Ieff
+
+print(wn)
+print(wn/2/np.pi)
+print(c)
+
+#print('\n1.5 MW Rinker')
 #
+#ktor = 483129639.713
+#Irot = 2953248.500
+#Igen = 56.442
+#GBR = 87.965
 #
+#Ieff = (Irot *(Igen*GBR**2))/(Irot+Igen*GBR**2)
 #
-#a0 = k/Ir
-#b3 = Ig
-#b2 = 1
-#b1 = (1+Ig/Ir)*k
-#b0 = 1*k/Ir
+#wn = np.sqrt(ktor/Ieff)
 #
+#c = 2*0.05*wn*Ieff
 #
-#Kp = b[1]/a0
-#Kd = b[0]/a0-Kp*tau
+#print(wn)
+#print(wn/2/np.pi)
+#print(c)
+
+#print('\n5.0 MW Rinker')
 #
+#ktor = 2.3E9
+#Irot = 64807728.000
+#Igen = 438.855
+#GBR = 160.85
 #
-#b = [a0*(Kp*tau+Kd), a0*Kp]
-#a = [tau*b3, b3+tau*b2, b2*tau+b1, b1+tau*b0, b0]
+#wn = np.sqrt(ktor/Irot + ktor/(Igen*GBR**2))
 #
-#z,p,k = scipy.signal.tf2zpk(b,a)
-#
-#for i in range(4):
-#    z = -np.cos(np.angle(p[i]))
-#    wn = np.abs(p[i])
-#    print('{:.2f}, {:.2f}'.format(z,wn))
+#print(wn)
+#print(wn/2/np.pi)

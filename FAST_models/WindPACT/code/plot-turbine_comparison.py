@@ -12,8 +12,16 @@ import matplotlib.pyplot as plt
 
 
 # specify the directory to write the files to
-turbs = ['WP1500', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-        'dissertation\\FAST_models\\FAST7','WP1500_FAST_v7'),\
+#turbs = ['WP1500', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#        'dissertation\\FAST_models\\FAST7','WP1500_FAST_v7'),\
+#        'WP1.5A08V03', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#        'dissertation\\FAST_models\\FAST7','WP1.5A08V03')]
+#turbs = ['WP1.5A08V03', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#        'dissertation\\FAST_models\\FAST7','WP1.5_Linux'),\
+#        'WP1.5A08V03', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#        'dissertation\\FAST_models\\FAST7','WP1.5A08V03')]
+turbs = ['WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+        'dissertation\\FAST_models\\FAST7','WP0.75A08V00'),\
         'WP1.5A08V03', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
         'dissertation\\FAST_models\\FAST7','WP1.5A08V03')]
 fileID = '_00000'
@@ -22,7 +30,7 @@ fileID = '_00000'
 
 PlotFields = ['Time','WindVxi','RotSpeed','GenPwr',
               'BldPitch1','TSR','GenTq','TwrBsMxt','OoPDefl1']
-leg_str = ['FASTCert 1.5','JRink 1.5']
+leg_str = ['Linux 1.5','Windows 1.5']
 c = ['b','r']
 
 fig1 = plt.figure(1,figsize=(6.5,10))

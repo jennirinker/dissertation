@@ -1779,14 +1779,14 @@ def generateKaimal1D(n_t,n_m,dt,U,sig,tau,rho,mu):
         return (t,x)
 
 
-def IEC_VelProfile(z,zhub,Vhub):
-    """ IEC velocity profile for values in array z with hub height zhub and hub
-        velocity Vhub.
+def IEC_VelProfile(z,ZRef,URef):
+    """ IEC velocity profile for values in array z with reference height
+        ZRef and and reference velocitry URef
         
         Args:
             z (numpy array): array of heights in meters for velocity calcs
-            zhub (float): hub-height of turbine in meters
-            Vhub (float): hub-height mean velocity in m/s
+            ZRef (float): reference height in meters
+            URef (float): reference-height mean velocity in m/s
         
         Returns:
             V (numpy array): array of mean wind speeds at heights in z
@@ -1795,8 +1795,8 @@ def IEC_VelProfile(z,zhub,Vhub):
 
     alpha = 0.2;
 
-    V = Vhub * np.power( \
-        z/zhub, alpha );
+    V = URef * np.power( \
+        z/ZRef, alpha );
 
     return V
 
@@ -2384,7 +2384,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     RotorDict = {}
     
     # load rotor data from text file
-    n_skip = 12                              # specific for text file
+    n_skip = 13                              # specific for text file
     fRotName = os.path.join(turb_dir,'parameters\\'+TName+'_Rotor.txt')
     with open(fRotName,'r') as f:
         RotDiam        = [float(x) for x in f.readline().strip('\n').split()][0]
@@ -2397,7 +2397,8 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
         MaxPitchAng    = [float(x) for x in f.readline().strip('\n').split()][0]
         AirDens        = [float(x) for x in f.readline().strip('\n').split()][0]
         CpMax          = [float(x) for x in f.readline().strip('\n').split()][0]
-        TSROpt        = [float(x) for x in f.readline().strip('\n').split()][0]
+        TSROpt         = [float(x) for x in f.readline().strip('\n').split()][0]
+        RotIner        = [float(x) for x in f.readline().strip('\n').split()][0]
         BldSchedFields = f.readline().strip('\n').strip('\t').split('\t')
     BldSched = np.genfromtxt(fRotName,skip_header=n_skip).tolist()
     
@@ -2438,6 +2439,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     RotorDict['AirDens']        = AirDens
     RotorDict['CpMax']          = CpMax
     RotorDict['TSROpt']         = TSROpt
+    RotorDict['RotIner']        = RotIner
     
     # add blade dictionary to turbine dictionary
     TurbDict['Rotor'] = RotorDict
@@ -2465,9 +2467,9 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
         RatedGenRPM   = [float(x) for x in f.readline().strip('\n').split()][0]
         GenTorsSprng  = [float(x) for x in f.readline().strip('\n').split()][0]
         GenEff        = [float(x) for x in f.readline().strip('\n').split()][0]
-        GenNatFreq    = [float(x) for x in f.readline().strip('\n').split()][0]
         RatedPower    = [float(x) for x in f.readline().strip('\n').split()][0]
         GenInerLSS    = [float(x) for x in f.readline().strip('\n').split()][0]
+        DrTrainDamp   = [float(x) for x in f.readline().strip('\n').split()][0]
     
     # save values in blade dictionary
     NacDict['RatedTipSpeed'] = RatedTipSpeed
@@ -2486,10 +2488,10 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     NacDict['HubIner']       = HubIner
     NacDict['RatedGenRPM']   = RatedGenRPM
     NacDict['GenTorsSprng']  = GenTorsSprng
-    NacDict['GenNatFreq']    = GenNatFreq
     NacDict['GenEff']        = GenEff
     NacDict['RatedPower']    = RatedPower
     NacDict['GenInerLSS']    = GenInerLSS
+    NacDict['DrTrainDamp']   = DrTrainDamp
     
     # add blade dictionary to turbine dictionary
     TurbDict['Nacelle'] = NacDict
@@ -2914,9 +2916,10 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     GenEff        = TurbDict['Nacelle']['GenEff']
     RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
     GenTorsSprng  = TurbDict['Nacelle']['GenTorsSprng']
-    GenNatFreq    = TurbDict['Nacelle']['GenNatFreq']
     RatedPower    = TurbDict['Nacelle']['RatedPower']
     MinPitchAng   = TurbDict['Rotor']['MinPitchAng']
+    RotIner       = TurbDict['Rotor']['RotIner']
+    DTDamp        = TurbDict['Nacelle']['DrTrainDamp']
 
     # calculate input parameters
     title_str1 = 'FAST v7.02 input file for turbine \"{:s}\"'.format(TName)
@@ -2934,10 +2937,13 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     NacMass = MainFrameMass + GenShaftMass +  RotShaftMass
     ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
     GearboxRatio = GenRatedRPM/ShaftRatedRPM
-    GenTorsDamp  = GenTorsSprng*2*0.05/GenNatFreq
     RatedGenTrq  = RatedPower/GenEff/(GenRatedRPM*np.pi/30)
     GenTrqAlpha  = np.floor(RatedGenTrq/(GenRatedRPM**2)*1E6)/(1E6)
     GenInerY     = GenInerLSS/(GearboxRatio**2)
+    DTEffIner    = (RotIner*GenInerY*GearboxRatio**2)/ \
+                    (RotIner + GenInerY*GearboxRatio**2)
+    GenNatFreq   = np.sqrt(GenTorsSprng/DTEffIner)
+    GenTorsDamp  = 2*DTDamp*GenNatFreq*DTEffIner
         
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
@@ -3044,8 +3050,7 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
     
 def writeFASTFiles(turb_dir,TName,wind_fname,
                    BlPitch0=None,RotSpeed0=None,
-                   wind_dir=None,fileID='',TMax=630.0,
-                   GenDOF='True'):
+                   wind_dir=None,fileID='',TMax=630.0):
     """ Copy FAST template files from subfolder ``templates'' in turb_dir and
         place into turb_dir, pasting in nessecary initial conditions and
         simulation values as necessary.
@@ -3073,6 +3078,7 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
             'with wind file {:s}'.format(wind_fpath))
     
     # set optional values as necessary
+    GenDOF = 'True'
     if wind_dir is None:
         wind_dir = os.path.join(turb_dir,'Wind')
     if len(fileID) > 0:

@@ -1,5 +1,5 @@
 -------- User-Defined Spectra (Used only with USRINP spectral model) ------------------------------------
--U=10.0;s_u=2.00;s_v=1.60;s_w=1.00;L_u=340.2;L_v=113.4;L_w= 27.7;r_u=0.20;r_v=0.10;r_w=0.00;mu_u=3.14;mu_v=3.14;mu_w=3.14 -
+-U=10.0;s_u=2.00;s_v=1.60;s_w=1.00;L_u=340.2;L_v=113.4;L_w= 27.7;r_u=0.20;r_v=0.20;r_w=0.20;mu_u=3.14;mu_v=3.14;mu_w=3.14 -
 ---------------------------------------------------------------------------------------------------------
 40000           NumUSRf        - Number of Frequencies [dictates how many lines to read from this file]
 1.122           SpecScale1     - scaling factor for the input u-component spectrum

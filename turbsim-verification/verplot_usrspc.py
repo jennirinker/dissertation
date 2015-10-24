@@ -12,21 +12,26 @@ libpath = '/home/jrinker/git/dissertation/'
 if (libpath not in sys.path): sys.path.append(libpath)
     
 import JR_Library.main as jr
+import os
 
+nticks = 4
 
 # name of file to load
 ##dname   = '3-PDDs/TS/'
-dname   = '5-specify_allvals/TS/'
+#dname   = '5-specify_allvals/TS/'
 ##fname,fignum   = '5pts_NoSc',1
-fname,fignum   = '5pts_Usr',2
+#fname,fignum   = '5pts_Usr',2
+dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
+fname,fignum   = 'WP1.5A08V03_43333',1
 
 # save image in directory?
 saveimg = 0
 
 # construct total file path
-inpname = dname + fname + '.inp'
-outname = dname + fname + '.wnd'
-spcname = dname + fname + '.spc'
+inpname = os.path.join(dname,fname + '.inp')
+outname = os.path.join(dname,fname + '.bts')
+spcname = os.path.join(dname,fname + '.spc')
 
 # read files
 tsout = io.readModel(outname)
@@ -39,7 +44,7 @@ with open(spcname,'r') as f_obj:
             contents = line.split(';')
             contents[-1] = contents[-1].split()[0]
             parms = [float(x.split('=')[-1]) for x in contents]
-            Uhub,sig_u,sig_v,sig_w,L_u,L_v,L_w,\
+            URef,sig_u,sig_v,sig_w,L_u,L_v,L_w,\
                 rho_u,rho_v,rho_w,mu_u,mu_v,mu_w = parms
         elif i_line == 3:
             contents = line.split()
@@ -66,13 +71,14 @@ with open(spcname,'r') as f_obj:
 
 # useful values
 y = tsout.grid.y;               # y-grid vector
-# z = tsout.grid.z[::-1];         # bts
-z = tsout.grid.z;         # wnd
+z = tsout.grid.z[::-1];         # bts
+#z = tsout.grid.z;         # wnd
 [Y, Z] = np.meshgrid(y, z);     # grid arrays
 n_t = tsout.uhub.size;          # (grid.n_t is not correct)
 n_f = jr.uniqueComponents(n_t);     # unique components counting DC
 rsep = min(tsout.grid.dy,\
            tsout.grid.dz);      # coherence sep distance
+ZRef = tsin.zref                # refernce height
 
 # ============== TurbSim ==============
 
@@ -94,7 +100,7 @@ dthetau, dthetav, dthetaw = \
 # ============== Theory ==============
 zhub = tsout.grid.zhub
 df = 1./(n_t*tsout.dt)
-U_theo  = jr.IEC_VelProfile(z,zhub,Uhub)
+U_theo  = jr.IEC_VelProfile(z,ZRef,URef)
 sig_theo = sig_u*np.ones(z.shape)
 Coh_theo = jr.IEC_SpatialCoherence(zhub,Uhub,rsep,f)
 f_theo = S_theo[:,0]
@@ -131,6 +137,7 @@ ax1.scatter( U, Z )
 ax1.plot( U_theo, z, 'r')
 plt.xlabel('Velocity (m/s)')
 plt.ylabel('Height (m)')
+plt.locator_params(axis = 'x', nbins = nticks)
 
 # turbulence intensity profile
 ax4 = plt.axes([xedge[0], yedge[1], axwidth, axheight])
@@ -140,6 +147,7 @@ plt.xlabel('Turb. Intens (-)')
 ##ax4.scatter( Ti, Z )
 ##ax4.plot( Ti_theo, z, 'r')
 ##plt.xlabel('Turb. Intens (-)')
+plt.ylabel('Height (m)')
 plt.ylabel('Height (m)')
 
 # spatial coherence

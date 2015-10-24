@@ -15,8 +15,8 @@ False       Echo        - Echo input data to "echo.out" (flag)
    1        PCMode      - Pitch control mode {0: none, 1: user-defined from routine PitchCntrl, 2: user-defined from Simulink/Labview} (switch)
    1.0      TPCOn       - Time to enable active pitch control (s) [unused when PCMode=0]
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
-1800.0      VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
-27921.92     VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
+  1800.00   VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
+ 27921.92   VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
   0.008617  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
 9999.9E-9   VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
    1        GenModel    - Generator model {1: simple, 2: Thevenin, 3: user-defined from routine UserGen} (switch) [used only when VSContrl=0]
@@ -75,12 +75,12 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      TTDspFA     - Initial fore-aft tower-top displacement (meters)
    0.0      TTDspSS     - Initial side-to-side tower-top displacement (meters)
 ---------------------- TURBINE CONFIGURATION -----------------------------------
-  64.0      TipRad      - The distance from the rotor apex to the blade tip (meters)
-   3.20     HubRad      - The distance from the rotor apex to the blade root (meters)
+  64.000    TipRad      - The distance from the rotor apex to the blade tip (meters)
+   3.200    HubRad      - The distance from the rotor apex to the blade root (meters)
    1        PSpnElN     - Number of the innermost blade element which is still part of the pitchable portion of the blade for partial-span pitch control [1 to BldNodes] [CURRENTLY IGNORED] (-)
    0.0      UndSling    - Undersling length [distance from teeter pin to the rotor apex] (meters) [unused for 3 blades]
    0.0      HubCM       - Distance from rotor apex to hub mass [positive downwind] (meters)
-  -6.0      OverHang    - Distance from yaw axis to rotor apex [3 blades] or teeter pin [2 blades] (meters)
+  -6.00     OverHang    - Distance from yaw axis to rotor apex [3 blades] or teeter pin [2 blades] (meters)
   -0.3255   NacCMxn     - Downwind distance from the tower-top to the nacelle CM (meters)
    0.0      NacCMyn     - Lateral  distance from the tower-top to the nacelle CM (meters)
    2.3425   NacCMzn     - Vertical distance from the tower-top to the nacelle CM (meters)
@@ -100,7 +100,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      TipMass(1)  - Tip-brake mass, blade 1 (kg)
    0.0      TipMass(2)  - Tip-brake mass, blade 2 (kg)
    0.0      TipMass(3)  - Tip-brake mass, blade 3 (kg) [unused for 2 blades]
-   7.4e+05  NacYIner    - Nacelle inertia about yaw axis (kg m^2)
+ 7.396e+05  NacYIner    - Nacelle inertia about yaw axis (kg m^2)
    438.855  GenIner     - Generator inertia about HSS (kg m^2)
  6.685e+05  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
 ---------------------- DRIVETRAIN ----------------------------------------------
@@ -112,7 +112,7 @@ False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in 
 9999.9      HSSBrDT     - Time for HSS-brake to reach full deployment once initiated (sec) [used only when HSSBrMode=1]
 "unused"    DynBrkFi    - File containing a mech-gen-torque vs HSS-speed curve for a dynamic brake [CURRENTLY IGNORED] (quoted string)
  2.3e+09    DTTorSpr    - Drivetrain torsional spring (N-m/rad)
- 4.1e+06    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
+ 1.5e+07    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
 ---------------------- SIMPLE INDUCTION GENERATOR ------------------------------
 9999.9      SIG_SlPc    - Rated generator slip percentage (%) [used only when VSContrl=0 and GenModel=1]
 9999.9      SIG_SySp    - Synchronous (zero-torque) generator speed (rpm) [used only when VSContrl=0 and GenModel=1]

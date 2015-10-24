@@ -19,8 +19,8 @@ PitchInp    = 1
 
 # define turbine name
 #TName = 'WP0.75A08V00'
-#TName = 'WP1.5A08V03'
-TName = 'WP3.0A02V02'
+TName = 'WP1.5A08V03'
+#TName = 'WP3.0A02V02'
 #TName = 'WP5.0A04V00'
 
 # specify the directory to write the files to
@@ -141,8 +141,8 @@ if FASTInp:
 if PitchInp:
     
     # set filenames
-    fname_temp = 'Template_Pitch.ipt'
-    fname_out  = 'Pitch.ipt'
+    fname_temp = 'Template_pitch.ipt'
+    fname_out  = 'pitch.ipt'
     
     sys.stdout.write('Writing Pitch input file to \"{:s}\"...'.format(fname_out))
     

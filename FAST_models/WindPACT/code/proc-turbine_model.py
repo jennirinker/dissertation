@@ -14,8 +14,8 @@ import json
 
 # define turbine name
 #TName = 'WP0.75A08V00'
-#TName = 'WP1.5A08V03'
-TName = 'WP3.0A02V02'
+TName = 'WP1.5A08V03'
+#TName = 'WP3.0A02V02'
 #TName = 'WP5.0A04V00'
 
 # define directory locations: template files, turbine files

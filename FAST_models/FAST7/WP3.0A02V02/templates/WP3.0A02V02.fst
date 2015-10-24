@@ -112,7 +112,7 @@ False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in 
 9999.9      HSSBrDT     - Time for HSS-brake to reach full deployment once initiated (sec) [used only when HSSBrMode=1]
 "unused"    DynBrkFi    - File containing a mech-gen-torque vs HSS-speed curve for a dynamic brake [CURRENTLY IGNORED] (quoted string)
  1.0e+09    DTTorSpr    - Drivetrain torsional spring (N-m/rad)
- 1.9e+06    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
+ 5.0e+06    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
 ---------------------- SIMPLE INDUCTION GENERATOR ------------------------------
 9999.9      SIG_SlPc    - Rated generator slip percentage (%) [used only when VSContrl=0 and GenModel=1]
 9999.9      SIG_SySp    - Synchronous (zero-torque) generator speed (rpm) [used only when VSContrl=0 and GenModel=1]

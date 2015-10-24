@@ -22,12 +22,12 @@ import matplotlib.pyplot as plt
 #turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
 #    'GitHub\\dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7', \
 #    'WP1500',3,[0,2000],[-0.5,2.5]
-turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
-    'GitHub\\dissertation\\FAST_models\\FAST7\\WP3.0A02V02', \
-    'WP3.0A02V02',4,[0,4000],[-0.5,2.5]
 #turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
-#    'GitHub\\dissertation\\FAST_models\\FAST7\\WP5.0A04V00', \
-#    'WP5.0A04V00',5,[0,6000],[-1.0,3.5]
+#    'GitHub\\dissertation\\FAST_models\\FAST7\\WP3.0A02V02', \
+#    'WP3.0A02V02',4,[0,4000],[-0.5,2.5]
+turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
+    'GitHub\\dissertation\\FAST_models\\FAST7\\WP5.0A04V00', \
+    'WP5.0A04V00',5,[0,6000],[-1.0,3.5]
     
 # load steady-state dictionary
 mdict = scio.loadmat(os.path.join(turb_dir,'steady_state',

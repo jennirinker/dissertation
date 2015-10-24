@@ -18,10 +18,10 @@ import matplotlib.pyplot as plt
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
+#    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
 fileID = '00000'
 
 
