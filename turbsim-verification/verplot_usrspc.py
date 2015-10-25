@@ -18,12 +18,13 @@ nticks = 4
 
 # name of file to load
 ##dname   = '3-PDDs/TS/'
-#dname   = '5-specify_allvals/TS/'
+#dname,fignum   = '5-specify_allvals/TS/',1
+dname,fignum   = '6-allrho_newsamp/TS/',2
 ##fname,fignum   = '5pts_NoSc',1
-#fname,fignum   = '5pts_Usr',2
-dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
-fname,fignum   = 'WP1.5A08V03_43333',1
+fname   = '5pts_Usr'
+#dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
+#fname,fignum   = 'WP1.5A08V03_43333',1
 
 # save image in directory?
 saveimg = 0
@@ -102,7 +103,7 @@ zhub = tsout.grid.zhub
 df = 1./(n_t*tsout.dt)
 U_theo  = jr.IEC_VelProfile(z,ZRef,URef)
 sig_theo = sig_u*np.ones(z.shape)
-Coh_theo = jr.IEC_SpatialCoherence(zhub,Uhub,rsep,f)
+Coh_theo = jr.IEC_SpatialCoherence(zhub,URef,rsep,f)
 f_theo = S_theo[:,0]
 Su_theo = S_theo[:,1]
 Sv_theo = S_theo[:,2]
@@ -143,7 +144,7 @@ plt.locator_params(axis = 'x', nbins = nticks)
 ax4 = plt.axes([xedge[0], yedge[1], axwidth, axheight])
 ax4.scatter( sig, Z )
 ax4.plot( sig_theo, z, 'r')
-plt.xlabel('Turb. Intens (-)')
+plt.xlabel('Turb. Std. Dev. (-)')
 ##ax4.scatter( Ti, Z )
 ##ax4.plot( Ti_theo, z, 'r')
 ##plt.xlabel('Turb. Intens (-)')

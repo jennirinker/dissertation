@@ -1028,6 +1028,7 @@ CHARACTER(20)                               :: NextSeedText
          Indx  = IFreq + (J-1)*NumFreq + (IVec-1)*NPoints*NumFreq
          RN    = RandNum(Indx)
          Theta = 2*PI*RN
+         PhaseAngles(J,IFreq,IVec)  = Theta
 
                ! Create all other phases by sampling phase diff and cumulatively summing
 
