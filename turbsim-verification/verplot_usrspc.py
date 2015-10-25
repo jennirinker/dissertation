@@ -7,8 +7,8 @@ import numpy as np
 import csv
 
 import sys
-##libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
-libpath = '/home/jrinker/git/dissertation/'
+libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+#libpath = '/home/jrinker/git/dissertation/'
 if (libpath not in sys.path): sys.path.append(libpath)
     
 import JR_Library.main as jr
@@ -30,73 +30,73 @@ fname   = '5pts_Usr'
 saveimg = 0
 
 # construct total file path
-inpname = os.path.join(dname,fname + '.inp')
-outname = os.path.join(dname,fname + '.bts')
-spcname = os.path.join(dname,fname + '.spc')
-
-# read files
-tsout = io.readModel(outname)
-tsin  = jr.readInput_v2(inpname)
-with open(spcname,'r') as f_obj:
-    stop, i_line, i_f, NumF = 0, 0, 0, 1e6
-    while not stop:
-        line = f_obj.readline()
-        if i_line == 1:
-            contents = line.split(';')
-            contents[-1] = contents[-1].split()[0]
-            parms = [float(x.split('=')[-1]) for x in contents]
-            URef,sig_u,sig_v,sig_w,L_u,L_v,L_w,\
-                rho_u,rho_v,rho_w,mu_u,mu_v,mu_w = parms
-        elif i_line == 3:
-            contents = line.split()
-            NumF = int(contents[0])
-            S_theo = np.empty((NumF,4))
-        elif i_line == 4:
-            contents = line.split()
-            Scale1 = float(contents[0])
-        elif i_line == 5:
-            contents = line.split()
-            Scale2 = float(contents[0])
-        elif i_line == 6:
-            contents = line.split()
-            Scale3 = float(contents[0])
-        elif i_f >= NumF:
-            stop = 1
-        elif i_line > 10:
-            S_unsc = np.asarray([float(x) for \
-                                        x in line.split()])
-            S_theo[i_f,:] = [S_unsc[0],S_unsc[1]*Scale1,
-                             S_unsc[2]*Scale2,S_unsc[3]*Scale3]
-            i_f += 1
-        i_line += 1
-
-# useful values
-y = tsout.grid.y;               # y-grid vector
-z = tsout.grid.z[::-1];         # bts
-#z = tsout.grid.z;         # wnd
-[Y, Z] = np.meshgrid(y, z);     # grid arrays
-n_t = tsout.uhub.size;          # (grid.n_t is not correct)
-n_f = jr.uniqueComponents(n_t);     # unique components counting DC
-rsep = min(tsout.grid.dy,\
-           tsout.grid.dz);      # coherence sep distance
-ZRef = tsin.zref                # refernce height
+#inpname = os.path.join(dname,fname + '.inp')
+#outname = os.path.join(dname,fname + '.bts')
+#spcname = os.path.join(dname,fname + '.spc')
+#
+## read files
+#tsout = io.readModel(outname)
+#tsin  = jr.readInput_v2(inpname)
+#with open(spcname,'r') as f_obj:
+#    stop, i_line, i_f, NumF = 0, 0, 0, 1e6
+#    while not stop:
+#        line = f_obj.readline()
+#        if i_line == 1:
+#            contents = line.split(';')
+#            contents[-1] = contents[-1].split()[0]
+#            parms = [float(x.split('=')[-1]) for x in contents]
+#            URef,sig_u,sig_v,sig_w,L_u,L_v,L_w,\
+#                rho_u,rho_v,rho_w,mu_u,mu_v,mu_w = parms
+#        elif i_line == 3:
+#            contents = line.split()
+#            NumF = int(contents[0])
+#            S_theo = np.empty((NumF,4))
+#        elif i_line == 4:
+#            contents = line.split()
+#            Scale1 = float(contents[0])
+#        elif i_line == 5:
+#            contents = line.split()
+#            Scale2 = float(contents[0])
+#        elif i_line == 6:
+#            contents = line.split()
+#            Scale3 = float(contents[0])
+#        elif i_f >= NumF:
+#            stop = 1
+#        elif i_line > 10:
+#            S_unsc = np.asarray([float(x) for \
+#                                        x in line.split()])
+#            S_theo[i_f,:] = [S_unsc[0],S_unsc[1]*Scale1,
+#                             S_unsc[2]*Scale2,S_unsc[3]*Scale3]
+#            i_f += 1
+#        i_line += 1
+#
+## useful values
+#y = tsout.grid.y;               # y-grid vector
+#z = tsout.grid.z[::-1];         # bts
+##z = tsout.grid.z;         # wnd
+#[Y, Z] = np.meshgrid(y, z);     # grid arrays
+#n_t = tsout.uhub.size;          # (grid.n_t is not correct)
+#n_f = jr.uniqueComponents(n_t);     # unique components counting DC
+#rsep = min(tsout.grid.dy,\
+#           tsout.grid.dz);      # coherence sep distance
+#ZRef = tsin.zref                # refernce height
 
 # ============== TurbSim ==============
 
-# calculate velocity and turb intesn profiles
-U  = jr.TurbSimVelProfile(outname)
-Ti = tsout.Ti
-sig = U*Ti
-		
-# calculate spatial coherence
-f, Coh = jr.TurbSimSpatCoh(outname,rsep)
-
-# calculate hub-height spectra
-Suk, Svk, Swk = jr.TurbSimHHPSDs(outname)
-
-# phase differences
-dthetau, dthetav, dthetaw = \
-    jr.TurbSimHHPDDs(outname)
+## calculate velocity and turb intesn profiles
+#U  = jr.TurbSimVelProfile(outname)
+#Ti = tsout.Ti
+#sig = U*Ti
+#		
+## calculate spatial coherence
+#f, Coh = jr.TurbSimSpatCoh(outname,rsep)
+#
+## calculate hub-height spectra
+#Suk, Svk, Swk = jr.TurbSimHHPSDs(outname)
+#
+## phase differences
+#dthetau, dthetav, dthetaw = \
+#    jr.TurbSimHHPDDs(outname)
 
 # ============== Theory ==============
 zhub = tsout.grid.zhub
