@@ -25,7 +25,7 @@ NWTC_Lib_DIR = $(TurbSim_DIR)/dependencies/NWTC_Library
 NETLIB_DIR   = $(TurbSim_DIR)/dependencies/NetLib
 pRNG_DIR     = $(TurbSim_DIR)/dependencies/RNG
 
-BIN_DIR      = ../bin
+BIN_DIR      = .
 
    # Instructions for linking with LAPACK.
    # You will probably need to change these for your system.
