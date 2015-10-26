@@ -24,14 +24,14 @@ u0 = 15.0
 
 
 # ******** set directory and turbine name turbine 2 ********
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
     
 wind_dir = turb_dir
 wind_fname = TName + '_' + fileID + '.bts'    

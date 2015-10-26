@@ -19,84 +19,86 @@ nticks = 4
 # name of file to load
 ##dname   = '3-PDDs/TS/'
 #dname,fignum   = '5-specify_allvals/TS/',1
-dname,fignum   = '6-allrho_newsamp/TS/',2
+#dname,fignum   = '6-allrho_newsamp/TS/',2
 ##fname,fignum   = '5pts_NoSc',1
-fname   = '5pts_Usr'
-#dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
-#fname,fignum   = 'WP1.5A08V03_43333',1
+#fname   = '5pts_Usr'
+dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
+#fname,fignum   = 'WP0.75A08V00_b1333_rho0.0',1
+#fname,fignum   = 'WP0.75A08V00_b1333_rho0.3',2
+fname,fignum   = 'WP0.75A08V00_b1333_afterPP',1
 
 # save image in directory?
 saveimg = 0
 
 # construct total file path
-#inpname = os.path.join(dname,fname + '.inp')
-#outname = os.path.join(dname,fname + '.bts')
-#spcname = os.path.join(dname,fname + '.spc')
-#
-## read files
-#tsout = io.readModel(outname)
-#tsin  = jr.readInput_v2(inpname)
-#with open(spcname,'r') as f_obj:
-#    stop, i_line, i_f, NumF = 0, 0, 0, 1e6
-#    while not stop:
-#        line = f_obj.readline()
-#        if i_line == 1:
-#            contents = line.split(';')
-#            contents[-1] = contents[-1].split()[0]
-#            parms = [float(x.split('=')[-1]) for x in contents]
-#            URef,sig_u,sig_v,sig_w,L_u,L_v,L_w,\
-#                rho_u,rho_v,rho_w,mu_u,mu_v,mu_w = parms
-#        elif i_line == 3:
-#            contents = line.split()
-#            NumF = int(contents[0])
-#            S_theo = np.empty((NumF,4))
-#        elif i_line == 4:
-#            contents = line.split()
-#            Scale1 = float(contents[0])
-#        elif i_line == 5:
-#            contents = line.split()
-#            Scale2 = float(contents[0])
-#        elif i_line == 6:
-#            contents = line.split()
-#            Scale3 = float(contents[0])
-#        elif i_f >= NumF:
-#            stop = 1
-#        elif i_line > 10:
-#            S_unsc = np.asarray([float(x) for \
-#                                        x in line.split()])
-#            S_theo[i_f,:] = [S_unsc[0],S_unsc[1]*Scale1,
-#                             S_unsc[2]*Scale2,S_unsc[3]*Scale3]
-#            i_f += 1
-#        i_line += 1
-#
-## useful values
-#y = tsout.grid.y;               # y-grid vector
-#z = tsout.grid.z[::-1];         # bts
-##z = tsout.grid.z;         # wnd
-#[Y, Z] = np.meshgrid(y, z);     # grid arrays
-#n_t = tsout.uhub.size;          # (grid.n_t is not correct)
-#n_f = jr.uniqueComponents(n_t);     # unique components counting DC
-#rsep = min(tsout.grid.dy,\
-#           tsout.grid.dz);      # coherence sep distance
-#ZRef = tsin.zref                # refernce height
+inpname = os.path.join(dname,fname + '.inp')
+outname = os.path.join(dname,fname + '.bts')
+spcname = os.path.join(dname,fname + '.spc')
+
+# read files
+tsout = io.readModel(outname)
+tsin  = jr.readInput_v2(inpname)
+with open(spcname,'r') as f_obj:
+    stop, i_line, i_f, NumF = 0, 0, 0, 1e6
+    while not stop:
+        line = f_obj.readline()
+        if i_line == 1:
+            contents = line.split(';')
+            contents[-1] = contents[-1].split()[0]
+            parms = [float(x.split('=')[-1]) for x in contents]
+            URef,sig_u,sig_v,sig_w,L_u,L_v,L_w,\
+                rho_u,rho_v,rho_w,mu_u,mu_v,mu_w = parms
+        elif i_line == 3:
+            contents = line.split()
+            NumF = int(contents[0])
+            S_theo = np.empty((NumF,4))
+        elif i_line == 4:
+            contents = line.split()
+            Scale1 = float(contents[0])
+        elif i_line == 5:
+            contents = line.split()
+            Scale2 = float(contents[0])
+        elif i_line == 6:
+            contents = line.split()
+            Scale3 = float(contents[0])
+        elif i_f >= NumF:
+            stop = 1
+        elif i_line > 10:
+            S_unsc = np.asarray([float(x) for \
+                                        x in line.split()])
+            S_theo[i_f,:] = [S_unsc[0],S_unsc[1]*Scale1,
+                             S_unsc[2]*Scale2,S_unsc[3]*Scale3]
+            i_f += 1
+        i_line += 1
+
+# useful values
+y = tsout.grid.y;               # y-grid vector
+z = tsout.grid.z[::-1];         # bts
+#z = tsout.grid.z;         # wnd
+[Y, Z] = np.meshgrid(y, z);     # grid arrays
+n_t = tsout.uhub.size;          # (grid.n_t is not correct)
+n_f = jr.uniqueComponents(n_t);     # unique components counting DC
+rsep = min(tsout.grid.dy,\
+           tsout.grid.dz);      # coherence sep distance
+ZRef = tsin.zref                # refernce height
 
 # ============== TurbSim ==============
 
-## calculate velocity and turb intesn profiles
-#U  = jr.TurbSimVelProfile(outname)
-#Ti = tsout.Ti
-#sig = U*Ti
-#		
-## calculate spatial coherence
-#f, Coh = jr.TurbSimSpatCoh(outname,rsep)
-#
-## calculate hub-height spectra
-#Suk, Svk, Swk = jr.TurbSimHHPSDs(outname)
-#
-## phase differences
-#dthetau, dthetav, dthetaw = \
-#    jr.TurbSimHHPDDs(outname)
+# calculate velocity and turb intesn profiles
+U  = jr.TurbSimVelProfile(outname)
+Ti = tsout.Ti
+sig = U*Ti
+		
+# calculate spatial coherence
+f, Coh = jr.TurbSimSpatCoh(outname,rsep)
+
+# calculate hub-height spectra
+Suk, Svk, Swk = jr.TurbSimHHPSDs(outname)
+
+# phase differences
+dthetau, dthetav, dthetaw = \
+    jr.TurbSimHHPDDs(outname)
 
 # ============== Theory ==============
 zhub = tsout.grid.zhub
@@ -137,33 +139,33 @@ ax1 = plt.axes([xedge[0], yedge[-1], axwidth, axheight])
 ax1.scatter( U, Z )
 ax1.plot( U_theo, z, 'r')
 plt.xlabel('Velocity (m/s)')
-plt.ylabel('Height (m)')
+plt.ylabel('Height [m]')
 plt.locator_params(axis = 'x', nbins = nticks)
 
 # turbulence intensity profile
 ax4 = plt.axes([xedge[0], yedge[1], axwidth, axheight])
 ax4.scatter( sig, Z )
 ax4.plot( sig_theo, z, 'r')
-plt.xlabel('Turb. Std. Dev. (-)')
+plt.xlabel('Turb. Std. Dev. [m/s]')
+plt.locator_params(nbins=4,axis='x')
 ##ax4.scatter( Ti, Z )
 ##ax4.plot( Ti_theo, z, 'r')
 ##plt.xlabel('Turb. Intens (-)')
-plt.ylabel('Height (m)')
-plt.ylabel('Height (m)')
+plt.ylabel('Height [m]')
 
 # spatial coherence
 ax7 = plt.axes([xedge[0], yedge[0], axwidth, axheight]);
 ax7.semilogx(f,Coh);
 ax7.semilogx(f,Coh_theo,'r')
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Spatial Coherence (-)')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('Spatial Coherence [-]')
 
 # u-spectrum
 ax2 = plt.axes([xedge[1], yedge[-1], axwidth, axheight]);
 ax2.loglog(f[1:],Suk[1:-1]/df)
 ax2.loglog(f_theo,Su_theo,'r')
 plt.xlabel('Frequency (Hz)')
-plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.ylabel('PSD [m$^2$/s$^2$/Hz]')
 plt.xlim([1e-3,1e1])
 plt.title(fname)
 
@@ -172,7 +174,7 @@ ax5 =  plt.axes([xedge[1], yedge[1], axwidth, axheight]);
 ax5.loglog(f[1:],Svk[1:-1]/df)
 ax5.loglog(f_theo,Sv_theo,'r')
 plt.xlabel('Frequency (Hz)')
-plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.ylabel('PSD [m$^2$/s$^2$/Hz]')
 plt.xlim([1e-3,1e1])
 
 # w-spectrum
@@ -180,7 +182,7 @@ ax8 =  plt.axes([xedge[1], yedge[0], axwidth, axheight]);
 ax8.loglog(f[1:],Swk[1:-1]/df)
 ax8.loglog(f_theo,Sw_theo,'r')
 plt.xlabel('Frequency (Hz)')
-plt.ylabel('PSD (m^2/s^2/Hz)')
+plt.ylabel('PSD [m$^2$/s$^2$/Hz]')
 plt.xlim([1e-3,1e1])
 
 # u-dtheta
