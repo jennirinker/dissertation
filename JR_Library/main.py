@@ -3050,7 +3050,8 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
     
 def writeFASTFiles(turb_dir,TName,wind_fname,
                    BlPitch0=None,RotSpeed0=None,
-                   wind_dir=None,fileID='',TMax=630.0):
+                   wind_dir=None,fileID=None,TMax=630.0,
+                   wr_dir=None):
     """ Copy FAST template files from subfolder ``templates'' in turb_dir and
         place into turb_dir, pasting in nessecary initial conditions and
         simulation values as necessary.
@@ -3081,8 +3082,14 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
     GenDOF = 'True'
     if wind_dir is None:
         wind_dir = os.path.join(turb_dir,'Wind')
-    if len(fileID) > 0:
-        fileID = '_' + fileID
+    if wr_dir is None:
+        wr_dir = turb_dir
+    if fileID is None:
+        fAD_name  = wind_fname[:-4] + '_AD.ipt'
+        fFST_name = wind_fname[:-4] + '.fst'
+    else:
+        fAD_name  = TName+'_'+fileID+'_AD.ipt'
+        fFST_name = TName+'_'+fileID+'.fst'
     if BlPitch0 is None:
         mdict = scio.loadmat(os.path.join(turb_dir,'steady_state',
                                         TName+'_SS.mat'),squeeze_me=True)
@@ -3099,12 +3106,10 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
                             LUT[:,saveFields.index('RotSpeed')])
 
     # create filenames
-    fAD_name  = TName+fileID+'_AD.ipt'
-    fFST_name = TName+fileID+'.fst'
     fAD_temp  = os.path.join(turb_dir,'templates',TName+'_AD.ipt')
-    fAD_out   = os.path.join(turb_dir,fAD_name)
+    fAD_out   = os.path.join(wr_dir,fAD_name)
     fFST_temp = os.path.join(turb_dir,'templates',TName+'.fst')
-    fFST_out  = os.path.join(turb_dir,fFST_name)
+    fFST_out  = os.path.join(wr_dir,fFST_name)
     
     # write AeroDyn file
     with open(fAD_temp,'r') as f_temp:
@@ -3253,7 +3258,7 @@ def PlotTurbineResponse(t,Data,Fields,fig=None):
     ax1 = fig.add_axes([xPlot,yPlot[1],wd,ht])
     
     plt.plot(t,Data[:,Fields.index('GenSpeed')],label='GenSpeed, rpm')
-    plt.plot(t,Data[:,Fields.index('RotPwr')],label='RotPwr, kW')
+    plt.plot(t,Data[:,Fields.index('LSShftPwr')],label='RotPwr, kW')
     plt.plot(t,Data[:,Fields.index('GenPwr')],label='GenPwr, kW')
     plt.plot(t,Data[:,Fields.index('RotThrust')],label='RotThrust, kN')
     plt.plot(t,Data[:,Fields.index('RotTorq')],label='RotTorq, kN-m')

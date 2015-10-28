@@ -190,6 +190,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "Azimuth,RotSpeed,RotAccel"		- LSS motion
 "GenSpeed,GenAccel,TSR"			- HSS motion
 "TTDspFA,TTDspSS,TTDspAx"		- Towertop motions
+"YawBrTAxp,YawBrTAyp,YawBrTAzp"		- Towertop accelerations
 "RootFzb1,RootMIP1,RootMOoP1,RootMzb1"	- Blade 1 root loads (1/2)
 "RootMEdg1,RootMFlp1"			- Blade 1 root loads (2/2)
 "RootFzb2,RootMIP2,RootMOoP2,RootMzb2"	- Blade 2 root loads (1/2)

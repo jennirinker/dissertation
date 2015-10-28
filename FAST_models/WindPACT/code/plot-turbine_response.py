@@ -20,9 +20,12 @@ import matplotlib.pyplot as plt
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
-fileID = '00000'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
+#fileID = '00000'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub' + \
+        '\\dissertation\\FAST_models\\verification\\WP0.75A08V00','WP0.75A08V00'
+fileID = '42331'
 
 
 # initialize figure
