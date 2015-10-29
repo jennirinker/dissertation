@@ -1,0 +1,1 @@
+FAST.o FAST.d : FAST.f90

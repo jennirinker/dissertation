@@ -1,0 +1,8 @@
+! Steady wind file created 04/18/11 by andbo
+!   Time    Wind    Wind    Vert.   Horiz.  Vert.   LinV    Gust
+!           Speed   Dir     Speed   Shear   Shear   Shear   Speed
+    0.0     15      0       0      0       0.2    0       0
+    0.1     15      0       0      0       0.2    0       0
+    100     15      0       0      0       0.2    0       0
+    100     16      0       0      0       0.2    0       0
+    999     16      0       0      0       0.2    0       0

@@ -1,0 +1,53 @@
+CART aerodynamic parameters for LES test.
+SI                      SysUnits - System of units for used for input and output [must be SI for FAST] (unquoted string)
+STEADY                  StallMod - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
+NO_CM                   UseCm    - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
+EQUIL                   InfModel - Inflow model [DYNIN or EQUIL] (unquoted string)
+WAKE                    IndModel - Induction-factor model [NONE or WAKE or SWIRL] (unquoted string)
+ 0.001                  AToler   - Induction-factor tolerance (convergence criteria) (-)
+PRANDTL                 TLModel  - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
+NONE                    HLModel  - Hub-loss model (EQUIL only) [PRANDtl, or NONE] (unquoted string)
+"les.fdp"                        Name of file containing wind data (quoted string)      "test.WND"
+36.850                  HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(NacTilt)] (m)
+ 0.3                    TwrShad  - Tower-shadow velocity deficit (-)
+ 3.0                    ShadHWid - Tower-shadow half width (m)
+ 4.0                T_Shad_Refpt - Tower-shadow reference point (m)
+ 1.03                   Rho      - Air density (kg/m^3)
+ 1.4639e-5              KinVisc  - Kinematic air viscosity [CURRENTLY IGNORED] (m^2/sec)
+ 0.002                  DTAero   - Time interval for aerodynamic calculations (sec)
+11                      NumFoil  - Number of airfoil files (-)
+"AeroData\art15.air"    FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
+"AeroData\art25.air"
+"AeroData\art35.air"
+"AeroData\art45.air"
+"AeroData\art55.air"
+"AeroData\art65.air"
+"AeroData\art75.air"
+"AeroData\art75-5.air"
+"AeroData\art85.air"
+"AeroData\art85-5.air"
+"AeroData\art95.air"
+20                      BldNodes - Number of blade nodes used for analysis (-)
+RNodes   AeroTwst DRNodes Chord NFoil PrnElm
+    1.8799    3.3740         0.998    1.1929    1       NOPRINT
+    2.8777    3.1895         0.998    1.3286    1	NOPRINT
+    3.8754    3.0569         0.998    1.4276    1       NOPRINT
+    4.8731    2.8685         0.998    1.5637    1       NOPRINT
+    5.8709    2.7371         0.998    1.6633    2	NOPRINT
+    6.8686    2.5294         0.998    1.6575    2       NOPRINT
+    7.8663    2.3700         0.998    1.6163    3       NOPRINT
+    8.8641    2.1379         0.998    1.5555    3       NOPRINT
+    9.8618    1.9386         0.998    1.5017    4	NOPRINT
+   10.8595    1.6665         0.998    1.4274    4       NOPRINT
+   11.8573    1.4339         0.998    1.3735    5	NOPRINT
+   12.8550    1.0945         0.998    1.3000    5       NOPRINT
+   13.8528    0.8374         0.998    1.2461    6       NOPRINT
+   14.8506    0.4020         0.998    1.1718    6       NOPRINT
+   15.8483    0.0770         0.998    1.1179    7	NOPRINT
+   16.8460   -0.4568         0.998    1.0444    7	PRINT
+   17.8438   -0.8951         0.998    0.9906    8	NOPRINT
+   18.8416   -1.5209         0.998    0.9171    9	PRINT
+   19.8393   -2.1452         0.998    0.8626    10	NOPRINT
+   20.8371   -2.9979         0.998    0.7889    11	PRINT
+
+

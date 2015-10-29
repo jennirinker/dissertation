@@ -1,0 +1,5 @@
+! Steady wind file created 7/22/98 7:58:37 PM by YawDynVB Version 2.0
+! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust
+!	Speed	Dir	Speed	Shear	Shear	Shear	Speed
+0.0	30	0	-1	0.1	0.14	0	0
+ 

@@ -1,0 +1,4 @@
+                          MCrunch Change Log
+                          ------------------
+
+ First version still in alpha.  No official release.

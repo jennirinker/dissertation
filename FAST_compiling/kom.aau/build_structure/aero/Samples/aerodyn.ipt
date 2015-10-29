@@ -1,0 +1,32 @@
+Combined Experiment Baseline for YawDyn version 12.5
+SI                            SysUnits     - System of units for used for input and output [must be SI for FAST] (unquoted string)              
+BEDDOES                       StallMod     - Dynamic stall included [BEDDOES or STEADY] (unquoted string)                         
+USE_CM                        UseCm        - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)           
+EQUIL                         InfModel     - Inflow model [DYNIN or EQUIL] (unquoted string)                                      
+SWIRL                         IndModel     - Induction-factor model [NONE or WAKE or SWIRL] (unquoted string)                     
+5.0000E-03                    AToler       - Induction-factor tolerance (convergence criteria) (-)                                
+PRAND                         TLModel      - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)              
+PRAND                         HLModel      - Hub-loss model (EQUIL only) [PRANDtl or NONE] (unquoted string)                      
+"Steady.wnd"                  WindFile     - Name of file containing wind data (quoted string)                                    
+55.0                          HH           - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)            
+0.1                           TwrShad      - Tower-shadow velocity deficit (-)                                                    
+3.0                           ShadHWid     - Tower-shadow half width (m)                                                          
+4.0                           T_Shad_Refpt - Tower-shadow reference point (m)                                                 
+2.0000E-03                    AirDens      - Air density (kg/m^3)                                                                 
+1.625e-4                      KinVisc      - Kinematic air viscosity (m^2/sec)                                                    
+1.0000E-03                    DTAero       - Time interval for aerodynamic calculations (sec)                                     
+1                             NumFoil      - Number of airfoil files (-)                                                          
+"S809_Cln.dat"                FoilNm       - Names of the airfoil files [NumFoil lines] (quoted strings)                          
+10                            BldNodes     - Number of blade nodes used for analysis (-)
+  RELM       Twist      DR      Chord  NFoil   ElPrList  {   Twist ignored by ADAMS (but placeholders must be present) } 
+ 0.7400     0.0000    1.4800   1.5000   1 
+ 2.2200     0.0000    1.4800   1.5000   1       PRINT
+ 3.7000     0.0000    1.4800   1.5000   1       
+ 5.1800     0.0000    1.4800   1.5000   1       PRINT
+ 6.6600     0.0000    1.4800   1.5000   1       
+ 8.1400     0.0000    1.4800   1.5000   1       PRINT
+ 9.6200     0.0000    1.4800   1.5000   1       
+11.1000     0.0000    1.4800   1.5000   1       PRINT
+12.5800     0.0000    1.4800   1.5000   1       
+14.0600     0.0000    1.4800   1.5000   1       PRINT
+

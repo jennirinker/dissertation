@@ -43,7 +43,7 @@ FAST = jr.ReadFASTFile(FASTfpath)
 # plot results
 t = FAST['Data'][:,FAST['Fields'].index('Time')]
 
-tplot = [100,160]
+tplot = [0,160]
 mask = (t >= tplot[0]) & (t <= tplot[1])
 
 # plot wind
@@ -93,7 +93,7 @@ ax2.locator_params(axis='y',nbins=4)
 for tl in ax2.get_yticklabels():
     tl.set_color('r')
 ax2.set_ylim([0,15])
-ax2.plot(t[mask],y[mask]+0.3*FAST['Data'][:,FAST['Fields'].index('YawBrTAxp')][mask])
+#ax2.plot(t[mask],y[mask]+0.3*FAST['Data'][:,FAST['Fields'].index('YawBrTAxp')][mask])
 
 PlotField = 'OoPDefl1'
 ax = fig.add_subplot(5,1,5)

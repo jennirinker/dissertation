@@ -1,0 +1,207 @@
+
+Summary file produced by SNLWIND-3D, v2.08, 27-Aug-1998.
+
+
+      ----- Contents of input file ffield_3dc.inp -----
+
+    ----  | FFIELD-3D cartesian input file for CER Model                        
+    ----  | ----------------------------------------------------                
+    ----  | Runtime options:                                                    
+    ----  | ----------------------------------------------------                
+  turb    | Root file name for output files (10 characters max)                 
+  20871   | random seed, ISEED (0-32,767)                                       
+  z5.bin  | The ending of the H matrix files to be read or defined              
+    NO    | Use a previously defined H matrix? YES-NO                           
+    YES   | Create time series files? YES-NO                                    
+    YES   | Store time series data in binary form? YES-NO                       
+    YES   | Clockwise rotation looking downwind? YES-NO (used for binary files o
+    ----  | ----------------------------------------------------                
+    ----  | Turbine/model specifications ...                                    
+    ----  | ----------------------------------------------------                
+      6   | Square grid point matrix dimension (even values only)               
+   0.05   | Time step (seconds)                                                 
+   0.667  | Length of time series (minutes)                                     
+      1   | Number of blocks to be simulated, NAVR.                             
+  16.76   | Hub height, ZHUB (m)                                                
+  12.50   | Rotor diameter, RDIAM (m)                                           
+    ----  | ----------------------------------------------------                
+    ----  | Meteorological boundary conditions ...                              
+    ----  | ----------------------------------------------------                
+  SMOOTH  | Turbulence model: SMOOTH,UPWIND,INTRNL,IECKAI,IECVKM                
+    7D    | Turbine row-to-row spacing for INTRNL model only (7/14)             
+   16.76  | Height of reference wind speed, UREF (m)                            
+   20.00  | Mean wind speed at reference height, ZREF (m/s)                     
+   0.000  | Gradient Richardson number, RI_NO                                   
+   0.000  | Surface roughness length, Z0 (m)                                    
+   0.200  | Power law exponent, PLEXP                                           
+   0.660  | Friction or shear velocity, USTAR (m/s)                             
+   0.000  | Mixing layer depth, ZI (m)                                          
+   0.000  | U'W' cross-correlation coefficient, PC_UW                           
+   0.000  | U'V' cross-correlation coefficient, PC_UV                           
+   0.000  | V'W' cross-correlation coefficient, PC_VW                           
+   8.800  | U component coherence decrement, COHD_U                             
+   8.800  | V component coherence decrement, COHD_V                             
+   8.800  | W component coherence decrement, COHD_W                             
+   0.000  | Coherence exponent, COHEXP                                          
+
+
+      ----- Summary of responses to input values -----
+
+      turb| Root file name for output files (10 characters max)       
+    20871 | random seed, ISEED (0-32,767)                             
+    z5.bin| The ending of the H matrix files to be read or defined              
+    NO    | Use a previously defined H matrix? YES-NO                 
+    YES   | Create time series files? YES-NO                          
+    YES   | Store time series data in binary form? YES-NO             
+    YES   | Clockwise rotation looking downwind? YES-NO (used for bina
+       6  | Square grid point matrix dimension (even values only)     
+   0.050  | Time step (seconds)                                       
+   0.667  | Length of time series (minutes)                           
+     800  | LENGTH OF TIME SERIES (# OF SAMPLES) [CALCULATED]
+       1  | Number of blocks to be simulated, NAVR.                   
+  16.760  | Hub height, ZHUB (m)                                      
+  12.500  | Rotor diameter, RDIAM (m)                                 
+          | RISO SMOOTH TERRAIN TURBULENCE MODEL SPECIFIED
+           7D    | Turbine row-to-row spacing for INTRNL mod
+  16.760  | Height of reference wind speed, UREF (m)        [SPECIFIED]
+  20.000  | Mean wind speed at reference height, ZREF (m/s) [SPECIFIED]
+   0.000  | Gradient Richardson number, RI_NO               [DEFAULT]
+   0.000  | M-O z/L PARAMETER                               [CALCULATED]
+ 10000.0  | M-O LENGTH SCALE, L (M)                         [CALCULATED]
+   1.000  | NON-DIMENSIONAL WIND SHEAR                      [CALCULATED]
+   0.010  | Surface roughness length, Z0 (m)                [DEFAULT]
+   0.200  | Power law exponent, PLEXP                       [SPECIFIED]
+   0.660  | Friction or shear velocity, USTAR (m/s)         [SPECIFIED]
+    N/A   | Mixing layer depth, ZI (m)       [STABLE FLOW, NOT DEFINED]
+  -0.250  | U'W' cross-correlation coefficient, PC_UW       [ESTIMATED]
+   0.000  | U'V' cross-correlation coefficient, PC_UV       [ESTIMATED]
+   0.000  | V'W' cross-correlation coefficient, PC_VW       [ESTIMATED]
+   8.800  | U component coherence decrement, COHD_U         [SPECIFIED]
+   8.800  | V component coherence decrement, COHD_V         [SPECIFIED]
+   8.800  | W component coherence decrement, COHD_W         [SPECIFIED]
+   0.000  | Coherence exponent, COHEXP                      [SPECIFIED]
+
+ All input values were acceptable.
+
+
+      ----- Summary of output data files -----
+
+
+ You have requested a binary time series file.
+ The information file will be called "turb.ddd".
+ The data file will be called "turb.wnd".
+
+
+ AT HUB ...
+    U_VAR=   2.006342      V_VAR=   1.279431       W_VAR=  0.7506019    
+  (M/S**2)
+    HORZ_VAR=   2.379570     (M/S**2)   HORZ_SIGMA=   1.542585     (M/S)
+  
+
+
+      ----- Summary of transfer matrix warnings -----
+
+
+ There were  0 warnings during calculation of the transfer matrix H.
+
+ Transfer matrix H was calculated successfully.
+
+
+
+      ----- Summary of specified parameters -----
+
+
+ The mean wind profile is used in the time series calculations.
+
+
+            Mean Wind Speed Profile
+
+              Height  Wind Speed
+               (m)       (m/s)
+               23.0      20.52
+               20.5      20.33
+               18.0      20.12
+               16.8      20.00
+               15.5      19.87
+               13.0      19.58
+               10.5      19.23
+
+
+ Grid average turbulence intensity as specified by the PSD's = 0.077
+
+ Hub turbulence intensity as specified by the PSD = 0.077
+
+
+
+      Statistical summaries associated with time series block number    1
+
+
+
+      Statistical summaries associated with time series block number    1
+
+
+-------- CROSS-AXIS CORRELATION COEFFICIENTS USED IN SIMULATION--------
+
+           u'w' X-axis correlation coefficient (r^2) = -0.250
+           u'v' X-axis correlation coefficient (r^2) =  0.000
+           v'w' X-axis correlation coefficient (r^2) =  0.000
+
+
+
+-------- HUB-HEIGHT SIMULATED TURBULENCE STATISTICAL SUMMARY --------
+
+             u'w' mean Reynolds stress= -0.529 m/s
+             u'v' mean Reynolds stress=  0.525 m/s
+             v'w' mean Reynolds stress=  0.069 m/s
+
+             Mean Uh= 20.00  peak= 24.20  min= 15.47  Sigma=  1.47 m/s;   TI=  0.07
+
+               u' peak=  3.75  min=  -3.55 m/s
+               v' peak=  3.36  min=  -3.52 m/s
+               w' peak=  2.95  min=  -2.46 m/s
+
+             u'w' peak=  5.24  min=  -13.38 (m/s)**2
+             u'v' peak=  9.31  min=   -8.03 (m/s)**2
+             v'w' peak=  4.45  min=   -7.38 (m/s)**2
+
+
+
+----------- GRID POINT VARIANCE SUMMARY ------------
+
+
+       Y-coord   -6.25   -3.75   -1.25    1.25    3.75    6.25
+
+       Height   Standard deviation at grid points for u component
+         23.0    0.932   1.118   1.147   1.065   1.200   1.148
+         20.5    0.982   1.131   1.136   1.242   1.176   1.225
+         18.0    1.017   1.301   1.352   1.362   1.302   1.315
+         15.5    1.172   1.333   1.425   1.472   1.476   1.536
+         13.0    1.263   1.338   1.541   1.532   1.590   1.636
+         10.5    1.453   1.535   1.465   1.478   1.591   1.549
+
+       Height   Standard deviation at grid points for v component
+         23.0    0.863   0.950   1.002   0.918   0.987   0.932
+         20.5    0.900   0.922   0.973   1.012   0.879   0.922
+         18.0    0.868   1.000   1.032   1.035   0.965   0.957
+         15.5    0.996   1.023   1.009   1.058   1.065   1.068
+         13.0    1.059   1.031   1.067   1.059   1.106   1.076
+         10.5    1.131   1.138   1.024   1.046   1.097   1.048
+
+       Height   Standard deviation at grid points for w component
+         23.0    0.727   0.783   0.805   0.755   0.824   0.764
+         20.5    0.738   0.740   0.802   0.805   0.718   0.756
+         18.0    0.717   0.776   0.813   0.805   0.760   0.776
+         15.5    0.800   0.790   0.766   0.794   0.822   0.820
+         13.0    0.847   0.789   0.790   0.779   0.833   0.801
+         10.5    0.857   0.851   0.780   0.786   0.820   0.799
+
+
+      ---- Normalizing Parameters for Binary Data ----
+
+                    Ubar  = 20.000
+                    TI(u) =  7.082%
+                    TI(v) =  5.656%
+                    TI(w) =  4.332%
+
+    The program for a 3D Full Field Simulation has completed.
+

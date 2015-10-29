@@ -48,27 +48,34 @@ zeta  = -np.cos(np.angle(poles))[0]
 #print('      ({:5.2f}) ({:5.2f})'.format(*(wns*60/(2*np.pi))))
 #print('zetas: {:5.2f}   {:5.2f}'.format(*(zetas)))
 #
-##Ki,Kp,Kd = 2.22, 5.14, 0.0286
+#Ki,Kp,Kd = 2.22, 5.14, 0.0286
 ##Ki,Kp,Kd = 0,0,0
-#Ki,Kp,Kd = 2.22,5, 20
+Ki,Kp,Kd = 4, 1.7, 0.0286
 #
-Kd = 0.0286
-KpKd = 160.72
-KiKd = 30.6
+wn = 8.8
+z  = 0.01
 
-Kp = KpKd * Kd
-Ki = KiKd * Kd
+print(wn**2)
+print(2*z*wn)
 
-num_PID = [Kd,Kp,Ki]
-den_PID = [0,1,0]
 
-zeros = np.roots(num_PID)
-poles = np.roots(den_PID)
-wns   = np.abs(zeros)
-zetas = -np.cos(np.angle(zeros))
+#Kd = 0.0286
+#KpKd = 160.72
+#KiKd = 30.6
 #
-print(Kd,Ki,Kp)
-print(zeros)
+#Kp = KpKd * Kd
+#Ki = KiKd * Kd
+#
+#num_PID = [Kd,Kp,Ki]
+#den_PID = [0,1,0]
+#
+#zeros = np.roots(num_PID)
+#poles = np.roots(den_PID)
+#wns   = np.abs(zeros)
+#zetas = -np.cos(np.angle(zeros))
+##
+#print(Kd,Ki,Kp)
+#print(zeros)
 #print('\nClosed-loop system:')
 #print('---------------------')
 #print('fns:   {:5.2f}   '.format(*(wns/2/np.pi)))
@@ -79,17 +86,20 @@ print(zeros)
 
 wns = 2*np.pi*np.logspace(-3,3,100)
 
-C = (Kd*(1j*wns**2) + Kp*(1j*wns) + Ki)/(1j*wns)
+#C = (Kd*(1j*wns**2) + Kp*(1j*wns) + Ki)/(1j*wns)
+#C = (Kd*(1j*wns**2) + Kp*(1j*wns) + Ki)/ \
+#        (Kd*(1j*wns**2) + (Kp+2*z*wn)*(1j*wns) + (Ki+wn**2))
+C = 1/(0.05*(1j*wns)+1)
 
 plt.figure(10)
 plt.clf()
 
 plt.subplot(2,1,1)
-plt.loglog(wns/2/np.pi,np.abs(C))
+plt.semilogx(wns/2/np.pi,np.abs(C))
 plt.axis('tight')
 
 plt.subplot(2,1,2)
-plt.semilogx(wns/2/np.pi,np.angle(C))
+plt.semilogx(wns/2/np.pi,np.angle(C)/np.pi*180)
 
 ## blade pitch actuator
 #num = [0,0,144.]

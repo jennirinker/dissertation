@@ -1,0 +1,35 @@
+Example 4D-Wind parameter input file.  Valid with AeroDyn 12.52e.
+# Parameters that can vary from one turbine simulation to the next:
+  "I:\khwave\dataset_i16"         ! FDSpath  - Path to 4D-wind data files.
+  "I:\khwave\time_steps.dat"      ! FDTSfile - File containing the time-step history of the wind files.
+    12                            ! Ubot     - u-component, steady wind speed at the bottom of the wave (m/s).
+     1                            ! DistScal - Disturbance scale (ratio of wave height to rotor diameter).
+     0.5                          ! Lx       - Fractional location of tower centerline from upwind end to downwind end of the dataset.
+     0.5                          ! Ly       - Fractional location of tower centerline from right (looking downwind) to left side of the dataset.
+     0.5                          ! Lz       - Fractional location of hub height from the bottom of the dataset.
+     0                            ! T_4D_St  - Time at which the wave event starts.
+     4.0                          ! ScaleVel - Scaling velocity, U0.  2*U0 is the difference in wind speed between the top and bottom of the wave.
+    42.672                        ! RotDiam  - Rotor diameter (m).
+     1                            ! FD_DF_X  - Decimation factor for wind data in the x direction (1: use every point, 2: use every other point, etc.)
+     1                            ! FD_DF_Y  - Decimation factor for wind data in the y direction (1: use every point, 2: use every other point, etc.)
+     1                            ! FD_DF_Z  - Decimation factor for wind data in the z direction (1: use every point, 2: use every other point, etc.)
+
+# Constants used to define the 4D files (these should not normally be modified for a given dataset):
+  TRUE                            ! VertShft - Vertical shift needed for w component for LES-generated files?
+    12.5                          ! Xm_max   - The nondimensional downwind length of the dataset.
+    12.5                          ! Ym_max   - The nondimensional lateral width of the dataset.
+    12.70949721                   ! Zm_max   - The nondimensional vertical height of the dataset.
+    25.0                          ! Zm_maxo  - The original nondimensional vertical height of the dataset before trimming.
+     4.348821E-05                 ! UScl     - u-component scale factor for converting from integers to normalized reals.
+     5.502174E-02                 ! UOff     - u-component offset for converting from integers to normalized reals.
+     2.761883E-05                 ! VScl     - v-component scale factor for converting from integers to normalized reals.
+     5.013809E-03                 ! VOff     - v-component offset for converting from integers to normalized reals.
+     3.372244E-05                 ! WScl     - w-component scale factor for converting from integers to normalized reals.
+     6.501686E-02                 ! WOff     - w-component offset for converting from integers to normalized reals.
+  6000                            ! Num4Dt   - The number of 4D grids, one grid per time step.
+   180                            ! Num4Dx   - The number of 4D grid points in the x direction.
+    60                            ! Num4Dy   - The number of 4D grid points in the y direction.
+    92                            ! Num4Dz   - The number of 4D grid points in the z direction.
+     0.05                         ! Ri       - Richardson number.
+   300.0                          ! CoefTE   - Coefficient of thermal expansion.
+     9.806194                     ! Grav     - Gravitational acceleration.

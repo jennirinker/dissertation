@@ -1,0 +1,265 @@
+-----  MCrunch v1.00.00 Input File  -------------------------------------------
+Test #05 (+Names, +Chans, +CC, -TSp, +Stats, +SwT, -SwX, -SF, +EE, -Bins, -Bp, +PDF, +PDFp, -PSD, -PSDp, -PSDtxt, -PSDxls, +F, -FBR, -FBM, -DEL, +CF, -FwDELt, -FwDELx, -FwRFt, +FwRFx, -FpBC, -FpPE, +FpCC, -FpRM, -TbDEL, +Multi).
+-----  Job Options  ------------------------------------------------------------
+false             EchoInp           Echo input to <rootname>.echo as this file is being read.
+true              StrNames          Use channel names following a "$" instead of numbers when specifying channels in this input file.
+false             OutData           Output modified data array after scaling and calculated channels. (currently unavailable)
+"%12.4e"          RealFmt           Format for outputting floating-point values.
+"Test05_Agg"      AggRoot           Root name for aggregate output files.
+-----  Input-Data Layout  ------------------------------------------------------
+0                 TitleLine         The row with the file title on it (zero if no title is available).
+0                 NamesLine         The row with the channel names on it (zero if no names are available or are specified below).
+0                 UnitsLine         The row with the channel units on it (zero if no units are available or are specified below).
+9                 FirstDataLine     The first row of data.
+0                 TotLines          The total number of data lines in all files.  Set to a non-zero value to improve speed and reduce memory usage.  Set to zero to let MatLab determine it.
+133               NumChans:         The number of channels in each input file.
+ChanTitle    ChanUnits    Scale  Offset     NumCols rows of data follow.  Title and units strings must be 10 characters or less.
+"Time"       "(sec)"       1.0    0.0
+"WindVxi"    "(m/sec)"     1.0    0.0
+"WindVyi"    "(m/sec)"     1.0    0.0
+"WindVzi"    "(m/sec)"     1.0    0.0
+"WaveElev"   "(m)"         1.0    0.0
+"Wave1Vxi"   "(m/sec)"     1.0    0.0
+"Wave1Vyi"   "(m/sec)"     1.0    0.0
+"Wave1Vzi"   "(m/sec)"     1.0    0.0
+"Wave1Axi"   "(m/sec^2)"   1.0    0.0
+"Wave1Ayi"   "(m/sec^2)"   1.0    0.0
+"Wave1Azi"   "(m/sec^2)"   1.0    0.0
+"GenPwr"     "(kW)"        1.0    0.0
+"GenTq"      "(kN·m)"      1.0    0.0
+"HSSBrTq"    "(kN·m)"      1.0    0.0
+"BldPitch1"  "(deg)"       1.0    0.0
+"BldPitch2"  "(deg)"       1.0    0.0
+"BldPitch3"  "(deg)"       1.0    0.0
+"Azimuth"    "(deg)"       1.0    0.0
+"RotSpeed"   "(rpm)"       1.0    0.0
+"GenSpeed"   "(rpm)"       1.0    0.0
+"NacYaw"     "(deg)"       1.0    0.0
+"NacYawErr"  "(deg)"       1.0    0.0
+"OoPDefl1"   "(m)"         1.0    0.0
+"IPDefl1"    "(m)"         1.0    0.0
+"TwstDefl1"  "(deg)"       1.0    0.0
+"OoPDefl2"   "(m)"         1.0    0.0
+"IPDefl2"    "(m)"         1.0    0.0
+"TwstDefl2"  "(deg)"       1.0    0.0
+"OoPDefl3"   "(m)"         1.0    0.0
+"IPDefl3"    "(m)"         1.0    0.0
+"TwstDefl3"  "(deg)"       1.0    0.0
+"TwrClrnc1"  "(m)"         1.0    0.0
+"TwrClrnc2"  "(m)"         1.0    0.0
+"TwrClrnc3"  "(m)"         1.0    0.0
+"NcIMUTAxs"  "(m/sec^2)"   1.0    0.0
+"NcIMUTAys"  "(m/sec^2)"   1.0    0.0
+"NcIMUTAzs"  "(m/sec^2)"   1.0    0.0
+"TTDspFA"    "(m)"         1.0    0.0
+"TTDspSS"    "(m)"         1.0    0.0
+"TTDspTwst"  "(deg)"       1.0    0.0
+"PtfmSurge"  "(m)"         1.0    0.0
+"PtfmSway"   "(m)"         1.0    0.0
+"PtfmHeave"  "(m)"         1.0    0.0
+"PtfmRoll"   "(deg)"       1.0    0.0
+"PtfmPitch"  "(deg)"       1.0    0.0
+"PtfmYaw"    "(deg)"       1.0    0.0
+"PtfmTAxt"   "(m/sec^2)"   1.0    0.0
+"PtfmTAyt"   "(m/sec^2)"   1.0    0.0
+"PtfmTAzt"   "(m/sec^2)"   1.0    0.0
+"RootFxc1"   "(kN)"        1.0    0.0
+"RootFyc1"   "(kN)"        1.0    0.0
+"RootFzc1"   "(kN)"        1.0    0.0
+"RootMxc1"   "(kN·m)"      1.0    0.0
+"RootMyc1"   "(kN·m)"      1.0    0.0
+"RootMzc1"   "(kN·m)"      1.0    0.0
+"RootFxc2"   "(kN)"        1.0    0.0
+"RootFyc2"   "(kN)"        1.0    0.0
+"RootFzc2"   "(kN)"        1.0    0.0
+"RootMxc2"   "(kN·m)"      1.0    0.0
+"RootMyc2"   "(kN·m)"      1.0    0.0
+"RootMzc2"   "(kN·m)"      1.0    0.0
+"RootFxc3"   "(kN)"        1.0    0.0
+"RootFyc3"   "(kN)"        1.0    0.0
+"RootFzc3"   "(kN)"        1.0    0.0
+"RootMxc3"   "(kN·m)"      1.0    0.0
+"RootMyc3"   "(kN·m)"      1.0    0.0
+"RootMzc3"   "(kN·m)"      1.0    0.0
+"Spn1MLxb1"  "(kN·m)"      1.0    0.0
+"Spn1MLyb1"  "(kN·m)"      1.0    0.0
+"Spn1MLzb1"  "(kN·m)"      1.0    0.0
+"Spn1MLxb2"  "(kN·m)"      1.0    0.0
+"Spn1MLyb2"  "(kN·m)"      1.0    0.0
+"Spn1MLzb2"  "(kN·m)"      1.0    0.0
+"Spn1MLxb3"  "(kN·m)"      1.0    0.0
+"Spn1MLyb3"  "(kN·m)"      1.0    0.0
+"Spn1MLzb3"  "(kN·m)"      1.0    0.0
+"RotThrust"  "(kN)"        1.0    0.0
+"LSSGagFya"  "(kN)"        1.0    0.0
+"LSSGagFza"  "(kN)"        1.0    0.0
+"RotTorq"    "(kN·m)"      1.0    0.0
+"LSSGagMya"  "(kN·m)"      1.0    0.0
+"LSSGagMza"  "(kN·m)"      1.0    0.0
+"YawBrFxp"   "(kN)"        1.0    0.0
+"YawBrFyp"   "(kN)"        1.0    0.0
+"YawBrFzp"   "(kN)"        1.0    0.0
+"YawBrMxp"   "(kN·m)"      1.0    0.0
+"YawBrMyp"   "(kN·m)"      1.0    0.0
+"YawBrMzp"   "(kN·m)"      1.0    0.0
+"TwrBsFxt"   "(kN)"        1.0    0.0
+"TwrBsFyt"   "(kN)"        1.0    0.0
+"TwrBsFzt"   "(kN)"        1.0    0.0
+"TwrBsMxt"   "(kN·m)"      1.0    0.0
+"TwrBsMyt"   "(kN·m)"      1.0    0.0
+"TwrBsMzt"   "(kN·m)"      1.0    0.0
+"TwHt1MLxt"  "(kN·m)"      1.0    0.0
+"TwHt1MLyt"  "(kN·m)"      1.0    0.0
+"TwHt1MLzt"  "(kN·m)"      1.0    0.0
+"Fair1Ten"   "(kN)"        1.0    0.0
+"Fair1Ang"   "(deg)"       1.0    0.0
+"Anch1Ten"   "(kN)"        1.0    0.0
+"Anch1Ang"   "(deg)"       1.0    0.0
+"Fair2Ten"   "(kN)"        1.0    0.0
+"Fair2Ang"   "(deg)"       1.0    0.0
+"Anch2Ten"   "(kN)"        1.0    0.0
+"Anch2Ang"   "(deg)"       1.0    0.0
+"Fair3Ten"   "(kN)"        1.0    0.0
+"Fair3Ang"   "(deg)"       1.0    0.0
+"Anch3Ten"   "(kN)"        1.0    0.0
+"Anch3Ang"   "(deg)"       1.0    0.0
+"Fair4Ten"   "(kN)"        1.0    0.0
+"Fair4Ang"   "(deg)"       1.0    0.0
+"Anch4Ten"   "(kN)"        1.0    0.0
+"Anch4Ang"   "(deg)"       1.0    0.0
+"Fair5Ten"   "(kN)"        1.0    0.0
+"Fair5Ang"   "(deg)"       1.0    0.0
+"Anch5Ten"   "(kN)"        1.0    0.0
+"Anch5Ang"   "(deg)"       1.0    0.0
+"Fair6Ten"   "(kN)"        1.0    0.0
+"Fair6Ang"   "(deg)"       1.0    0.0
+"Anch6Ten"   "(kN)"        1.0    0.0
+"Anch6Ang"   "(deg)"       1.0    0.0
+"Fair7Ten"   "(kN)"        1.0    0.0
+"Fair7Ang"   "(deg)"       1.0    0.0
+"Anch7Ten"   "(kN)"        1.0    0.0
+"Anch7Ang"   "(deg)"       1.0    0.0
+"Fair8Ten"   "(kN)"        1.0    0.0
+"Fair8Ang"   "(deg)"       1.0    0.0
+"Anch8Ten"   "(kN)"        1.0    0.0
+"Anch8Ang"   "(deg)"       1.0    0.0
+"TipSpdRat"  "(-)"         1.0    0.0
+"RotCp"      "(-)"         1.0    0.0
+"RotCt"      "(-)"         1.0    0.0
+"RotCq"      "(-)"         1.0    0.0
+-----  Filtering  --------------------------------------------------------------
+-----  Calculated Channels  ----------------------------------------------------
+0                 NumCChan          The number calculated channels to generate.
+1234567890        Seed              The integer seed for the random number generator (-2,147,483,648 to 2,147,483,647)
+Col_Title   Units    Equation       Put each field in quotes.  Titles and units are limited to 10 characters.  NumCChan rows of data follow.
+-----  Generic Plot Information  -----------------------------------------------
+1.5               LineWidth         The width of curves on the plots.
+210               FigLeftPos        The number of pixels from the left side of the screen to the left side of the figures.
+100               FigBottomPos      The number of pixels from the bottom of the screen to the bottom of the figures.
+776               FigWidth          The horizontal width of the figures in pixels.
+600               FigHeight         The vertical height of the figures in pixels.
+true              FigTitles         Add titles to each figure?
+true              SaveFigs          Save the generated figures in files?
+-----  Time-Series Plots  ------------------------------------------------------
+0                 NumTimeFigs       Number of time-series figures.  Each figure will have one or more subplots.
+FigureName            #Rows      #Cols     Channel list (must number #Rows*#Cols)    (NumTimeFigs rows of data follow)
+-----  Moving Averages  --------------------------------------------------------
+-----  Time and Wind Speed  ----------------------------------------------------
+$Time$            TimeChan          The channel containing time.
+$WindVxi$         WSChan            The primary wind-speed channel (used for mean wind speed and turbulence intensity, 0 for none)
+-----  Load Roses  -------------------------------------------------------------
+-----  Azimuth Averages  -------------------------------------------------------
+-----  Crosstalk Removal -------------------------------------------------------
+-----  Peak Finding  -----------------------------------------------------------
+-----  Statistics and Extreme Events  ------------------------------------------
+true              DoStats           Generate statistics of all the channels.
+true              WrStatsTxt        Write the stats to a text file?
+false             WrStatsXLS        Write the stats to an Excel file?
+0                 NumSFChans        Number of channels that will have summary statistics generated for them.
+$RootFxc1$ $RootFyc1$ $RootFzc1$           SFChans           List of channels that will have summary statistics generated for them.  Must number NumSFChans.
+3                 NumEETables       Number of tables of extreme events.
+TableName           #Chans     ChanList                                                       #InfoChans  InfoChanList    (NumEETables rows of data follow)
+"Tip Deflections"      6       $OoPDefl1$  $IPDefl1$   $OoPDefl2$  $IPDefl2$  $OoPDefl3$  $IPDefl3$      3      $Time$ $WindVxi$ $WaveElev$
+"Tower Clearance"      3       $TwrClrnc1$ $TwrClrnc1$ $TwrClrnc1$                                       3      $Time$ $WindVxi$ $WaveElev$
+"Blade-1 Loads"        6       $RootFxc1$  $RootFyc1$  $RootFzc1$  $RootMxc1$ $RootMyc1$  $RootMzc1$     3      $Time$ $WindVxi$ $WaveElev$
+-----  Binning  ----------------------------------------------------------------
+false             DoBins            Bin selected channels?
+2                 NumDepChans       Number of dependent channels to bin.
+false             UseBinAv          When reporting the location of 1-D bins, use the average values instead of the bin centers.
+true              PltBins           Plot the binned data?
+true              PltRawData        Plot the raw data on top of the binned data if there is only one independent channel?
+false             WrBinsTxt         Write binning results to a plain-text file?
+false             WrBinsXLS         Write binning results to an Excel workbook?
+DepChan  NumDims  IndChan1  BinWid1  IndChan2  BinWid2
+$GenPwr$    1     $WindVxi$   0.5
+$RotTorq$   2     $WindVxi$   0.5   $RotSpeed$  0.5
+-----  Peak and Valley Listing  ------------------------------------------------
+-----  Probablity Density  -----------------------------------------------------
+true              DoPDFs            Generate PDFs of all channels.
+7                 NumPDFChans       Number of PDF channels.
+$WaveElev$ $OoPDefl1$ $IPDefl1$ $OoPDefl2$ $IPDefl2$ $OoPDefl3$ $IPDefl3$   PDFChans     List of PDF channels.
+100               NumPDFBins        Number of bins for the PDFs.
+true              WrPDFsTxt         Write PDFs to a plain-text file?
+true              WrPDFsXLS         Write PDFs to an Excel workbook?
+2                 NumPDFFigs        Number of figures for the PDFs.  Each figure will have one or more subplots.
+FigureName       #rows    #columns    Channel list (must number #rows*#columns)    (NumPDFFigs rows of data follow)
+"Wave Elevation"   1          1       $WaveElev$
+"Tip Deflection"   3          2       $OoPDefl1$ $IPDefl1$ $OoPDefl2$ $IPDefl2$ $OoPDefl3$ $IPDefl3$
+-----  Power Spectral Density  -------------------------------------------------
+false             DoPSDs            Generate power spectral densities?
+1                 NumPSDChans       Number of PSD channels.
+80                PSDChans          List of PSD channels.
+false             RmvMean           Remove the mean of the signal(s)?
+true              Detrend           Remove linear trend of the signal(s)?
+true              CosTaper          Add a cosine taper to the ends of the time series?
+"hamming"         WindowType        Type of data window.
+false             IntPSDs           Integrate the PSDs before plotting or writing them to a file?
+false             BinPSDs           Bin the PSDs before plotting or writing them to a file?
+0.1               BinWidth          Width of the PSD bins.
+false             WrXLS             Write the PSDs to an Excel file?
+true              WrTxt             Write the PSDs to a text file?
+0                 NumPSDFigs        Number of figures for the PSDs.  Each figure will have one or more subplots.
+FigureName       #rows    #columns    Channel list (must number #rows*#columns)    (NumPSDFigs rows of data follow)
+-----  Fatigue  ----------------------------------------------------------------
+true              DoFatigue         Do fatigue analysis.
+6                 NumFatChans       The number of rainflow channels.  Next six lines ignored if zero.
+0.0               FiltRatio         The fraction of the maximum range of each channel used as a cutoff range for the racetrack filter.  Use zero for no filter.
+1                 RF_Per            Number of seconds in the rainflow counting period.
+false             BinCycles         Bin the rainflow cycles?
+false             BinMeans          Bin by cycle means in addition to ranges?
+0.5               UCMult            Multiplier for binning unclosed cycles.  (0 discards, 1 counts as a full cycle)
+false             DoSimpDELs        Compute damage-equivalent loads?
+false             DoLife            Do lifetime-related calculations?
+10                RayAverWS         Rayleigh-average wind speed.
+3                 WSmin             Starting value for the wind-speed bins for the Rayleigh distribution.
+2                 WSdel             Delta value for the wind-speed bins for the Rayleigh distribution.
+true              CumFatigue        Generate cycle data as cumulative cycles?
+true              WrRFTxt           Write rainflow data to plain-text files?
+false             WrRFXLS           Write rainflow data to an Excel workbook?
+false             WrDELsTxt         Write DELs to plain-text files?
+false             WrDELsXLS         Write DELs to an Excel workbook?
+true              WrLifeTxt         Write lifetime results to plain-text files?
+true              WrLifeXLS         Write lifetime results to an Excel workbook?
+false             PltBinCyc         Plot binned rainflow cycles?
+false             PltProbExc        Plot probability of exceedance?
+true              PltCumCyc         Plot cumulative rainflow cycles?
+false             PltRngMean        Plot 3-D range and mean binned rainflow cycles?
+false             TblDELs           Generate an HTML table of damage-equivalent loads?
+Channel#  NSlopes  SNslopeLst  BinWidth  TypeLMF     LUlt    BinWidth not used when BinCycles is false. NumChans rows of data follow.  LUlt >> LMF
+$RootFxc1$    1         10        20.0      161       5700
+$RootFyc1$    1         10        20.0       33       5700
+$RootFzc1$    1         10        40.0      490      13680
+$RootMxc1$    1         10       200.0       60      50000
+$RootMyc1$    1         10       300.0     3600      50000
+$RootMzc1$    1         10         3.0        5        200
+2                 NumFatFigs        Number of figures for the rainflow analysis.  Each figure will have one or more subplots.
+FigureName              #rows    #columns    Channel list (must number #rows*#columns)    (NumRFFigs rows of data follow)
+"Blade 1 Root Forces"     3          1       $RootFxc1$ $RootFyc1$ $RootFzc1$
+"Blade 1 Root Moments"    1          3       $RootMxc1$ $RootMyc1$ $RootMzc1$
+-----  Statistical Extrapolation  ----------------------------------------------
+-----  Input Files  ------------------------------------------------------------
+2                 NumFiles          The number of input files to read.
+"DLC2.3_1.out"
+"DLC2.3_2.out"
+==EOF==                             DO NOT REMOVE OR CHANGE.  MUST COME JUST AFTER LAST LINE OF VALID INPUT.
+"DLC2.3_3.out"

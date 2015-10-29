@@ -3048,6 +3048,40 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
     return
     
     
+def writeSpeedTorque(fpath_out,TurbDict):
+    """ Variable-speed torque lookup table
+    """
+    import numpy as np
+    
+    # load/calculate needed values
+    RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
+    RotorRad      = TurbDict['Rotor']['RotDiam']/2
+    GenRatedRPM   = TurbDict['Nacelle']['RatedGenRPM']
+    RatedPower    = TurbDict['Nacelle']['RatedPower']
+    GenEff        = TurbDict['Nacelle']['GenEff']
+    RatedGenTrq   = RatedPower/GenEff/(GenRatedRPM*np.pi/30)
+    GenTrqAlpha   = RatedGenTrq/(GenRatedRPM**2)
+    ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
+    GearboxRatio = GenRatedRPM/ShaftRatedRPM
+    
+    # get torque speeds
+    Omega_gen = np.concatenate((np.linspace(0,GenRatedRPM,40),[GenRatedRPM*1.2]))
+    LSSSpeed  = Omega_gen/GearboxRatio
+    LSSTrq    = np.empty(Omega_gen.shape)
+    LSSTrq[Omega_gen <= GenRatedRPM] =  GenTrqAlpha * \
+                                        Omega_gen[Omega_gen <= GenRatedRPM]**2
+    LSSTrq[Omega_gen > GenRatedRPM] =  RatedGenTrq
+                
+   # open file to write to
+    with open(fpath_out,'w') as f_write:
+        f_write.write('Torque lookup table (LSS RPM to LSS Nm) for turbine' + \
+                ' {:s}\n'.format(TurbDict['TName']))
+        for i in range(Omega_gen.size):
+            f_write.write('{:8.3f} {:10.2f}\n'.format(LSSSpeed[i],LSSTrq[i]))
+    
+    return
+    
+    
 def writeFASTFiles(turb_dir,TName,wind_fname,
                    BlPitch0=None,RotSpeed0=None,
                    wind_dir=None,fileID=None,TMax=630.0,

@@ -15,11 +15,12 @@ BladeInp    = 0
 ADInp       = 0
 TowerInp    = 0
 FASTInp     = 0
-PitchInp    = 1
+PitchInp    = 0
+TorqueInp   = 1
 
 # define turbine name
-#TName = 'WP0.75A08V00'
-TName = 'WP1.5A08V03'
+TName = 'WP0.75A08V00'
+#TName = 'WP1.5A08V03'
 #TName = 'WP3.0A02V02'
 #TName = 'WP5.0A04V00'
 
@@ -133,7 +134,7 @@ if FASTInp:
     fpath_temp = os.path.join('templates',fname_temp)
     fpath_out  = os.path.join(turb_dir,'templates',fname_out)
     
-    # write FAST fi;e
+    # write FAST file
     jr.writeFASTTemplate(fpath_temp,fpath_out,TurbDict)
     
     sys.stdout.write('done.\n')
@@ -155,5 +156,19 @@ if PitchInp:
                 
     sys.stdout.write('done.\n')
                 
+if TorqueInp:      
+        
+    # set filenames
+    fname_out  = 'spd_trq.dat'
+    
+    sys.stdout.write('Writing speed torque input file to \"{:s}\"...'.format(fname_out))
+    
+    # set filepaths
+    fpath_out  = os.path.join(turb_dir,fname_out)
+    
+    # write Pitch.ipt
+    jr.writeSpeedTorque(fpath_out,TurbDict)
                 
+    sys.stdout.write('done.\n')
+    
                 
