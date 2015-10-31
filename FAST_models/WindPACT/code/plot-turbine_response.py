@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 
 # set directory and turbine name
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
@@ -23,9 +23,9 @@ import matplotlib.pyplot as plt
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
 #fileID = '00000'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub' + \
-        '\\dissertation\\FAST_models\\verification\\WP0.75A08V00','WP0.75A08V00'
-fileID = '42331'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub' + \
+#        '\\dissertation\\FAST_models\\verification\\WP0.75A08V00','WP0.75A08V00'
+fileID = '00000'
 
 
 # initialize figure

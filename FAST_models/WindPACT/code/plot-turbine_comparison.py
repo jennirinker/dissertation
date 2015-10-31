@@ -20,17 +20,22 @@ import matplotlib.pyplot as plt
 #        'dissertation\\FAST_models\\FAST7','WP1.5_Linux'),\
 #        'WP1.5A08V03', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #        'dissertation\\FAST_models\\FAST7','WP1.5A08V03')]
+#turbs = ['WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#        'dissertation\\FAST_models\\FAST7','WP0.75A08V00'),\
+#        'WP1.5A08V03', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#        'dissertation\\FAST_models\\FAST7','WP1.5A08V03')]
 turbs = ['WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
         'dissertation\\FAST_models\\FAST7','WP0.75A08V00'),\
-        'WP1.5A08V03', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-        'dissertation\\FAST_models\\FAST7','WP1.5A08V03')]
-fileID = '_00000'
+        'WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+        'dissertation\\FAST_models\\FAST7','WP0.75A08V00')]
+fileIDs = ['_00000','_00001']
 
 
 
 PlotFields = ['Time','WindVxi','RotSpeed','GenPwr',
-              'BldPitch1','TSR','GenTq','TwrBsMxt','OoPDefl1']
-leg_str = ['Linux 1.5','Windows 1.5']
+              'BldPitch1','TSR','GenTq','YawBrTAxp','OoPDefl1']
+#leg_str = ['Linux 1.5','Windows 1.5']
+leg_str = ['Standard pitch','Modified GS']
 c = ['b','r']
 
 fig1 = plt.figure(1,figsize=(6.5,10))
@@ -41,7 +46,7 @@ for i in range(2):
     TName = turbs[2*i]
     turb_dir = turbs[2*i+1]
     
-    fname = os.path.join(turb_dir,TName+fileID)
+    fname = os.path.join(turb_dir,TName+fileIDs[i])
     FAST = jr.ReadFASTFile(fname+'.out')
     
     t = FAST['Data'][:,FAST['Fields'].index('Time')]

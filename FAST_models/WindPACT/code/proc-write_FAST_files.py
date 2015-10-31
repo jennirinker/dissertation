@@ -10,30 +10,30 @@ import JR_Library.main as jr
 
 # specify a file ID and total simulation time
 fileID = '00000'
-TMax = 200
+TMax = 100
 
 # ******** set directory and turbine name ********
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
     
     
 # ******** set directory for wind ********
-#wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\wind_files'
+wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\wind_files'
 #u0 = 15.0
 #wind_fname = 'NoShr_'+'{:.1f}'.format(u0).zfill(4)+'.wnd'
 #wind_fname = 'Step_04.0_05.0.wnd'
 #wind_fname = 'Step_12.0_13.0.wnd'
 #wind_fname  = '5m_TCno.bts'
-#wind_fname  = 'Kaimal_1224.wnd'
-wind_dir,fileID = turb_dir,'42331'
-wind_fname = TName + '_' + fileID + '.bts'    
+wind_fname  = 'Harmonic_11.7_3.0_0.2.wnd'
+#wind_dir,fileID = turb_dir,'42331'
+#wind_fname = TName + '_' + fileID + '.bts'    
     
  # run FAST
 jr.writeFASTFiles(turb_dir,TName,wind_fname,

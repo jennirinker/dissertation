@@ -16,7 +16,7 @@ ADInp       = 0
 TowerInp    = 0
 FASTInp     = 0
 PitchInp    = 0
-TorqueInp   = 1
+DISCONInp   = 1
 
 # define turbine name
 TName = 'WP0.75A08V00'
@@ -156,18 +156,20 @@ if PitchInp:
                 
     sys.stdout.write('done.\n')
                 
-if TorqueInp:      
-        
-    # set filenames
-    fname_out  = 'spd_trq.dat'
+if DISCONInp:
     
-    sys.stdout.write('Writing speed torque input file to \"{:s}\"...'.format(fname_out))
+    # set filenames
+    fname_temp = 'Template_DISCON_nosat.f90'
+    fname_out  = 'DISCON.f90'
+    
+    sys.stdout.write('Writing DISCON.f90 to \"{:s}\"...'.format(fname_out))
     
     # set filepaths
+    fpath_temp = os.path.join('templates',fname_temp)
     fpath_out  = os.path.join(turb_dir,fname_out)
     
     # write Pitch.ipt
-    jr.writeSpeedTorque(fpath_out,TurbDict)
+    jr.writeDISCON(fpath_temp,fpath_out,TurbDict)
                 
     sys.stdout.write('done.\n')
     

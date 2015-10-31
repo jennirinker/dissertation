@@ -50,7 +50,7 @@ zeta  = -np.cos(np.angle(poles))[0]
 #
 #Ki,Kp,Kd = 2.22, 5.14, 0.0286
 ##Ki,Kp,Kd = 0,0,0
-Ki,Kp,Kd = 4, 1.7, 0.0286
+Ki,Kp,Kd = 0.1008,0.2333,0.001298
 #
 wn = 8.8
 z  = 0.01
@@ -87,9 +87,9 @@ print(2*z*wn)
 wns = 2*np.pi*np.logspace(-3,3,100)
 
 #C = (Kd*(1j*wns**2) + Kp*(1j*wns) + Ki)/(1j*wns)
-#C = (Kd*(1j*wns**2) + Kp*(1j*wns) + Ki)/ \
-#        (Kd*(1j*wns**2) + (Kp+2*z*wn)*(1j*wns) + (Ki+wn**2))
-C = 1/(0.05*(1j*wns)+1)
+C = (Kd*(1j*wns**2) + Kp*(1j*wns) + Ki)/ \
+        (Kd*(1j*wns**2) + (Kp+2*z*wn)*(1j*wns) + (Ki+wn**2))
+#C = 1/(0.05*(1j*wns)+1)
 
 plt.figure(10)
 plt.clf()

@@ -1,73 +1,25 @@
 """ just dicking around
 """
-import scipy.signal
+import numpy as np
 
-#print('\n1.5 MW CertTest')
-#
-#ktor = 5.6e9
-#Irot = 2962443.750
-#Igen = 53.036
-#GBR = 87.965
-#
-#wn = np.sqrt(ktor/Irot + ktor/(Igen*GBR**2))
-#
-#print(wn)
-#print(wn/2/np.pi)
-#
-#print('\n5.0 MW Reference')
-#
-#ktor = 867.637E6
-#Irot = 38759236.000
-#Igen = 534.116
-#GBR = 97
-#
-#wn = np.sqrt(ktor/Irot + ktor/(Igen*GBR**2))
-#
-#print(wn)
-#print(wn/2/np.pi)
+n_osc = 3
+A = 0.6
+U = 10.2
+T = 630.
+f = 1.4
+T_steady = 30.
+dt = 0.05
 
-print('\n0.75 MW Rinker')
-
-ktor = 1.3e8
-Irot = 665139
-Igen = 16.651
-GBR = 62.832
-
-Ieff = (Irot *(Igen*GBR**2))/(Irot+Igen*GBR**2)
-
-wn = np.sqrt(ktor/Ieff)
-
-c = 2*0.05*wn*Ieff
-
-print(wn)
-print(wn/2/np.pi)
-print(c)
-
-#print('\n1.5 MW Rinker')
-#
-#ktor = 483129639.713
-#Irot = 2953248.500
-#Igen = 56.442
-#GBR = 87.965
-#
-#Ieff = (Irot *(Igen*GBR**2))/(Irot+Igen*GBR**2)
-#
-#wn = np.sqrt(ktor/Ieff)
-#
-#c = 2*0.05*wn*Ieff
-#
-#print(wn)
-#print(wn/2/np.pi)
-#print(c)
-
-#print('\n5.0 MW Rinker')
-#
-#ktor = 2.3E9
-#Irot = 64807728.000
-#Igen = 438.855
-#GBR = 160.85
-#
-#wn = np.sqrt(ktor/Irot + ktor/(Igen*GBR**2))
-#
-#print(wn)
-#print(wn/2/np.pi)
+t = np.arange(0,T+dt,dt)
+u = U*np.ones(t.shape)
+i_steady = int(T_steady/dt)
+if n_osc is None:
+    u[i_steady:] = A*np.sin(2*np.pi*f*(t[i_steady:]-T_steady))
+else:
+    i_end = i_steady + int(n_osc*(1./f)/dt)
+    u[i_steady:i_end] = U+A*np.sin(2*np.pi*f*(t[i_steady:i_end]-T_steady))
+    
+plt.figure(11)
+plt.clf()
+plt.plot(t,u)
+plt.xlim([29,40])

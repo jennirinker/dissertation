@@ -2393,11 +2393,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
         Damping        = [float(x) for x in f.readline().strip('\n').split()]
         BldStats       = [float(x) for x in f.readline().strip('\n').split()]
         ADStats        = [float(x) for x in f.readline().strip('\n').split()]
-        MinPitchAng    = [float(x) for x in f.readline().strip('\n').split()][0]
-        MaxPitchAng    = [float(x) for x in f.readline().strip('\n').split()][0]
         AirDens        = [float(x) for x in f.readline().strip('\n').split()][0]
-        CpMax          = [float(x) for x in f.readline().strip('\n').split()][0]
-        TSROpt         = [float(x) for x in f.readline().strip('\n').split()][0]
         RotIner        = [float(x) for x in f.readline().strip('\n').split()][0]
         BldSchedFields = f.readline().strip('\n').strip('\t').split('\t')
     BldSched = np.genfromtxt(fRotName,skip_header=n_skip).tolist()
@@ -2434,11 +2430,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     RotorDict['RotModes']       = RotModes
     RotorDict['BldEdges']       = BldEdges
     RotorDict['ADEdges']        = ADEdges
-    RotorDict['MinPitchAng']    = MinPitchAng
-    RotorDict['MaxPitchAng']    = MaxPitchAng
     RotorDict['AirDens']        = AirDens
-    RotorDict['CpMax']          = CpMax
-    RotorDict['TSROpt']         = TSROpt
     RotorDict['RotIner']        = RotIner
     
     # add blade dictionary to turbine dictionary
@@ -2543,7 +2535,57 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     TowerDict['TowerDamping'] = TowerDamping
     
     # add blade dictionary to turbine dictionary
-    TurbDict['Tower'] = TowerDict
+    TurbDict['Tower'] = TowerDict    
+    
+    # ====================== Create and add control dictionary ======================
+    CntrlDict = {}
+    
+    # load nacelle data from text file
+    fCntrName = os.path.join(turb_dir,'parameters\\'+TName+'_Control.txt')
+    with open(fCntrName,'r') as f:
+        MinPitchAng  = [float(x) for x in f.readline().strip('\n').split()][0]
+        MaxPitchAng  = [float(x) for x in f.readline().strip('\n').split()][0]
+        MaxPitchRate = [float(x) for x in f.readline().strip('\n').split()][0]
+        KP           = [float(x) for x in f.readline().strip('\n').split()][0]
+        KI           = [float(x) for x in f.readline().strip('\n').split()][0]
+        KD           = [float(x) for x in f.readline().strip('\n').split()][0]
+        CornerFreq   = [float(x) for x in f.readline().strip('\n').split()][0]
+        GSStartAng   = [float(x) for x in f.readline().strip('\n').split()][0]
+        GSEndAng     = [float(x) for x in f.readline().strip('\n').split()][0]
+        GSExp        = [float(x) for x in f.readline().strip('\n').split()][0]
+        PCTimeStep   = [float(x) for x in f.readline().strip('\n').split()][0]
+        VSTimeStep   = [float(x) for x in f.readline().strip('\n').split()][0]
+        CutInGenSpd  = [float(x) for x in f.readline().strip('\n').split()][0]
+        MaxTrqRate   = [float(x) for x in f.readline().strip('\n').split()][0]
+        GenTrqAlpha  = [float(x) for x in f.readline().strip('\n').split()][0]
+        MaxTrq       = [float(x) for x in f.readline().strip('\n').split()][0]
+        Rgn15Spd     = [float(x) for x in f.readline().strip('\n').split()][0]
+        Rgn3MinPitch = [float(x) for x in f.readline().strip('\n').split()][0]
+        Rgn2SlpPrc   = [float(x) for x in f.readline().strip('\n').split()][0]
+    
+    # save values in control dictionary
+    CntrlDict['MinPitchAng']  = MinPitchAng
+    CntrlDict['MaxPitchAng']  = MaxPitchAng
+    CntrlDict['KP']           = KP
+    CntrlDict['KI']           = KI
+    CntrlDict['KD']           = KD
+    CntrlDict['CornerFreq']   = CornerFreq
+    CntrlDict['MaxPitchRate'] = MaxPitchRate
+    CntrlDict['GSStartAng']   = GSStartAng
+    CntrlDict['GSEndAng']     = GSEndAng
+    CntrlDict['GSExp']        = GSExp
+    CntrlDict['PCTimeStep']   = PCTimeStep
+    CntrlDict['VSTimeStep']   = VSTimeStep
+    CntrlDict['CutInGenSpd']  = CutInGenSpd
+    CntrlDict['MaxTrqRate']   = MaxTrqRate
+    CntrlDict['GenTrqAlpha']  = GenTrqAlpha
+    CntrlDict['MaxTrq']       = MaxTrq
+    CntrlDict['Rgn15Spd']     = Rgn15Spd
+    CntrlDict['Rgn3MinPitch'] = Rgn3MinPitch
+    CntrlDict['Rgn2SlpPrc']   = Rgn2SlpPrc
+    
+    # add control dictionary to turbine dictionary
+    TurbDict['Control'] = CntrlDict
     
     return TurbDict
 
@@ -2917,9 +2959,10 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
     GenTorsSprng  = TurbDict['Nacelle']['GenTorsSprng']
     RatedPower    = TurbDict['Nacelle']['RatedPower']
-    MinPitchAng   = TurbDict['Rotor']['MinPitchAng']
+    MinPitchAng   = TurbDict['Control']['MinPitchAng']
     RotIner       = TurbDict['Rotor']['RotIner']
     DTDamp        = TurbDict['Nacelle']['DrTrainDamp']
+    GenTrqAlpha   = TurbDict['Control']['GenTrqAlpha']
 
     # calculate input parameters
     title_str1 = 'FAST v7.02 input file for turbine \"{:s}\"'.format(TName)
@@ -2938,7 +2981,7 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
     GearboxRatio = GenRatedRPM/ShaftRatedRPM
     RatedGenTrq  = RatedPower/GenEff/(GenRatedRPM*np.pi/30)
-    GenTrqAlpha  = np.floor(RatedGenTrq/(GenRatedRPM**2)*1E6)/(1E6)
+    GenTrqAlpha  = np.floor(GenTrqAlpha*1E6)/(1E6)
     GenInerY     = GenInerLSS/(GearboxRatio**2)
     DTEffIner    = (RotIner*GenInerY*GearboxRatio**2)/ \
                     (RotIner + GenInerY*GearboxRatio**2)
@@ -2961,11 +3004,11 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
                 elif i_line == 19:
                     f_write.write(line.format(GenTrqAlpha))
                 elif i_line == 48:
-                    f_write.write(line.format(MinPitchAng))
+                    f_write.write(line.format(MinPitchAng*180/np.pi))
                 elif i_line == 49:
-                    f_write.write(line.format(MinPitchAng))
+                    f_write.write(line.format(MinPitchAng*180/np.pi))
                 elif i_line == 50:
-                    f_write.write(line.format(MinPitchAng))
+                    f_write.write(line.format(MinPitchAng*180/np.pi))
                 elif i_line == 77:
                     f_write.write(line.format(RotorRad))
                 elif i_line == 78:
@@ -3026,9 +3069,27 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
     # load/calculate needed values
     RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
     RotorRad      = TurbDict['Rotor']['RotDiam']/2
-    MaxPitchAng   = TurbDict['Rotor']['MaxPitchAng']
-    MinPitchAng   = TurbDict['Rotor']['MinPitchAng']
-    RatedRotorRPM =  RatedTipSpeed/2/np.pi/RotorRad*60.
+    GenRatedRPM   = TurbDict['Nacelle']['RatedGenRPM']
+    MaxPitchAng   = TurbDict['Control']['MaxPitchAng']
+    MinPitchAng   = TurbDict['Control']['MinPitchAng']
+    GSStartAng    = TurbDict['Control']['GSStartAng']
+    GSEndAng      = TurbDict['Control']['GSEndAng']
+    GSExp         = TurbDict['Control']['GSExp']
+    KP            = TurbDict['Control']['KP']
+    KI            = TurbDict['Control']['KI']
+    KD            = TurbDict['Control']['KD']
+    RatedRotorRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
+    GSCoef        =  1./(GSStartAng**GSExp)
+    ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
+    GearboxRatio = GenRatedRPM/ShaftRatedRPM
+    
+    # hard-code derivative time scale
+    tau           = 0.01
+    
+    # convert KP,KI,KD to from ([rad]/[rad/s]) to ([deg]/[rpm])
+    KP_CH = KP*6*GearboxRatio
+    KI_CH = KI*6*GearboxRatio
+    KD_CH = KD*6*GearboxRatio
                 
    # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
@@ -3038,46 +3099,117 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
                 if i_line == 4:
                     f_write.write(line.format(RatedRotorRPM))
                 elif i_line == 6:
-                    f_write.write(line.format(MinPitchAng))
+                    f_write.write(line.format(MinPitchAng*180/np.pi))
                 elif i_line == 7:
-                    f_write.write(line.format(MaxPitchAng))
+                    f_write.write(line.format(MaxPitchAng*180/np.pi))
+                elif i_line == 9:
+                    f_write.write(line.format(GSStartAng))
+                elif i_line == 10:
+                    f_write.write(line.format(GSEndAng))
+                elif i_line == 11:
+                    f_write.write(line.format(GSCoef))
+                elif i_line == 12:
+                    f_write.write(line.format(GSExp))
+                elif i_line == 16:
+                    f_write.write(line.format(KI_CH))
+                elif i_line == 20:
+                    f_write.write(line.format(KP_CH,KP_CH*tau+KD_CH))
+                elif i_line == 21:
+                    f_write.write(line.format(tau))
                 else:
                     f_write.write(line)
                 i_line += 1
     
     return
-    
-    
-def writeSpeedTorque(fpath_out,TurbDict):
-    """ Variable-speed torque lookup table
+            
+        
+def writeDISCON(fpath_temp,fpath_out,TurbDict):
+    """ DISCON Bladed controller routine
     """
     import numpy as np
     
     # load/calculate needed values
-    RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
-    RotorRad      = TurbDict['Rotor']['RotDiam']/2
-    GenRatedRPM   = TurbDict['Nacelle']['RatedGenRPM']
-    RatedPower    = TurbDict['Nacelle']['RatedPower']
-    GenEff        = TurbDict['Nacelle']['GenEff']
-    RatedGenTrq   = RatedPower/GenEff/(GenRatedRPM*np.pi/30)
-    GenTrqAlpha   = RatedGenTrq/(GenRatedRPM**2)
-    ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
-    GearboxRatio = GenRatedRPM/ShaftRatedRPM
-    
-    # get torque speeds
-    Omega_gen = np.concatenate((np.linspace(0,GenRatedRPM,40),[GenRatedRPM*1.2]))
-    LSSSpeed  = Omega_gen/GearboxRatio
-    LSSTrq    = np.empty(Omega_gen.shape)
-    LSSTrq[Omega_gen <= GenRatedRPM] =  GenTrqAlpha * \
-                                        Omega_gen[Omega_gen <= GenRatedRPM]**2
-    LSSTrq[Omega_gen > GenRatedRPM] =  RatedGenTrq
+    MinPitchAng = TurbDict['Control']['MinPitchAng']
+    MaxPitchAng = TurbDict['Control']['MaxPitchAng']
+    KP = TurbDict['Control']['KP']
+    KI = TurbDict['Control']['KI']
+    KD = TurbDict['Control']['KD']
+    CornerFreq = TurbDict['Control']['CornerFreq']
+    MaxPitchRate = TurbDict['Control']['MaxPitchRate']
+    GSStartAng = TurbDict['Control']['GSStartAng']
+    GSEndAng = TurbDict['Control']['GSEndAng']
+    GSExp = TurbDict['Control']['GSExp']
+    PCTimeStep = TurbDict['Control']['PCTimeStep']
+    VSTimeStep = TurbDict['Control']['VSTimeStep']
+    CutInGenSpd = TurbDict['Control']['CutInGenSpd']
+    MaxTrqRate = TurbDict['Control']['MaxTrqRate']
+    GenTrqAlpha = TurbDict['Control']['GenTrqAlpha']
+    MaxTrq = TurbDict['Control']['MaxTrq']
+    Rgn15Spd = TurbDict['Control']['Rgn15Spd']
+    Rgn3MinPitch = TurbDict['Control']['Rgn3MinPitch']
+    Rgn2SlpPrc = TurbDict['Control']['Rgn2SlpPrc']
+    RatedGenRPM = TurbDict['Nacelle']['RatedGenRPM']
+
+    # get intermediate values
+    PC_RefSpd = RatedGenRPM*np.pi/30
+    GSCoef    = 1./(GSStartAng**GSExp)
+    RatedPower = TurbDict['Nacelle']['RatedPower']
+    GenEff     = TurbDict['Nacelle']['GenEff']
                 
-   # open file to write to
-    with open(fpath_out,'w') as f_write:
-        f_write.write('Torque lookup table (LSS RPM to LSS Nm) for turbine' + \
-                ' {:s}\n'.format(TurbDict['TName']))
-        for i in range(Omega_gen.size):
-            f_write.write('{:8.3f} {:10.2f}\n'.format(LSSSpeed[i],LSSTrq[i]))
+   # open template file and file to write to
+    with open(fpath_temp,'r') as f_temp:
+        with open(fpath_out,'w') as f_write:
+            i_line = 0
+            for line in f_temp:
+                if i_line == 31:
+                    f_write.write(line.format(CornerFreq))
+                elif i_line == 44:
+                    f_write.write(line.format(PCTimeStep))
+                elif i_line == 45:
+                    f_write.write(line.format(GSStartAng))
+                elif i_line == 46:
+                    f_write.write(line.format(GSEndAng))
+                elif i_line == 47:
+                    f_write.write(line.format(GSCoef))
+                elif i_line == 48:
+                    f_write.write(line.format(GSExp))
+                elif i_line == 49:
+                    f_write.write(line.format(KD))
+                elif i_line == 50:
+                    f_write.write(line.format(KI))
+                elif i_line == 51:
+                    f_write.write(line.format(KP))
+                elif i_line == 52:
+                    f_write.write(line.format(MaxPitchAng))
+                elif i_line == 53:
+                    f_write.write(line.format(MaxPitchRate))
+                elif i_line == 54:
+                    f_write.write(line.format(MinPitchAng))
+                elif i_line == 55:
+                    f_write.write(line.format(PC_RefSpd))
+                elif i_line == 66:
+                    f_write.write(line.format(CutInGenSpd))
+                elif i_line == 67:
+                    f_write.write(line.format(VSTimeStep))
+                elif i_line == 68:
+                    f_write.write(line.format(MaxTrqRate))
+                elif i_line == 69:
+                    f_write.write(line.format(MaxTrq))
+                elif i_line == 70:
+                    f_write.write(line.format(GenTrqAlpha))
+                elif i_line == 71:
+                    f_write.write(line.format(Rgn15Spd))
+                elif i_line == 72:
+                    f_write.write(line.format(Rgn3MinPitch*np.pi/180))
+                elif i_line == 73:
+                    f_write.write(line.format(RatedGenRPM*np.pi/30))
+                elif i_line == 74:
+                    f_write.write(line.format(RatedPower/GenEff))
+                elif i_line == 77:
+                    f_write.write(line.format(Rgn2SlpPrc))
+                else:
+                    f_write.write(line)
+                i_line += 1
     
     return
     
@@ -3438,6 +3570,55 @@ def writeKaimalWind(U,sig,tau,rho,mu,T=600.0,dt=0.05,T_steady=30.0,
             f.write('{:6.2f}\t{:.2f}\t0.0\t'.format(t_all[i_t],u_all[i_t]) + \
                     '0.0\t0.0\t0.0\t0.0\t0.0\n')
 
+    return
+    
+    
+def writeHarmonicWind(U,A,freq,T=630.0,dt=0.05,T_steady=30.0,
+                    n_osc=None,fileID='',wind_dir=''):
+    """ 1D Kaimal wind file (single point)
+    
+        Args:
+            U (float): mean wind speed
+            sigma (float): turbulent standard deviation
+            tau (float): Kaimal time scale
+            rho (float): concentration parameter
+            mu (float): location parameter
+            T (float): optional length of turbulent portion of simulation
+            dt (float): optional time step
+            T_steady (float): optional length of steady time before turbulent
+            fileID (string): optional unique file identifier
+            wind_dir (string): optional path to directory with wind files
+    """
+    import os
+    import numpy as np
+    
+    # initialize time, wind speed vectors
+    t = np.arange(0,T+dt,dt)
+    u = U*np.ones(t.shape)
+    i_steady = int(T_steady/dt)
+    if n_osc is None:
+        u[i_steady:] = A*np.sin(2*np.pi*freq*(t[i_steady:]-T_steady))
+    else:
+        i_end = i_steady + int(n_osc*(1./freq)/dt)
+        u[i_steady:i_end] = U + A*np.sin(2*np.pi*freq* \
+                                            (t[i_steady:i_end]-T_steady))
+        
+    # create path to file
+    if len(fileID)>0:
+        wind_fname = 'Harmonic'+'_'+fileID+'.wnd'
+    else:
+        wind_fname = 'Harmonic.wnd'
+    wind_fpath = os.path.join(wind_dir,wind_fname)
+    
+    # write wind file
+    with open(wind_fpath,'w') as f:
+        f.write('! Wind file for 1D harmonic simulation: ' + \
+                '{:.2f} {:.2f} {:.2f}\n'.format(U,A,freq))
+        f.write('! Time	Wind	Wind	Vert.	Horiz.	Vert.	LinV	Gust\n')
+        f.write('!	Speed	Dir	Speed	Shear	Shear	Shear	Speed\n')
+        for i_t in range(t.size):
+            f.write('{:6.2f}\t{:.2f}\t0.0\t'.format(t[i_t],u[i_t]) + \
+                    '0.0\t0.0\t0.0\t0.0\t0.0\n')
     return
     
     
