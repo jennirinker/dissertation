@@ -22,20 +22,22 @@ wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 # set directory and turbine name
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
 
 # initialize look-up table
 fSSname = TName + '_SS.mat'
 fSSpath = os.path.join(turb_dir,'steady_state',fSSname)
 saveFields = ['WindVxi',
-          'GenSpeed','RotPwr','GenPwr','RotThrust','RotTorq',
+          'GenSpeed','LSShftPwr','GenPwr','RotThrust','RotTorq',
           'RotSpeed','BldPitch1','GenTq','TSR',
           'OoPDefl1','IPDefl1','TTDspFA','TTDspSS']
 LUT = np.empty((0,len(saveFields)))

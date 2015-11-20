@@ -67,7 +67,7 @@ rhosY = np.empty((n_p,n_s))
 for ibin in range(nbins):
     print('Processing bin {:d}...'.format(ibin))
 
-    # crate phases
+    # create phases
 #    DPhi = jr.wrappedCauchySample((n_p,spb,n_f-1),rho,mu)
 #    Phi = np.zeros((n_p,spb,n_f))
 #    Phi[:,:,1:] = np.cumsum(DPhi,axis=2)

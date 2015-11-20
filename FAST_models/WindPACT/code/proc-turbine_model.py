@@ -13,7 +13,7 @@ import json
 
 
 # define turbine name
-TName = 'WP0.75A08V00'
+TName,turb_id = 'WP0.75A08V00','WP0.75A08V00_stifftwr'
 #TName = 'WP1.5A08V03'
 #TName = 'WP3.0A02V02'
 #TName = 'WP5.0A04V00'
@@ -22,7 +22,7 @@ TName = 'WP0.75A08V00'
 temp_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation' + \
             '\\FAST_models\\WindPACT\\code\\templates'
 turb_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation' + \
-            '\\FAST_models\\FAST7\\' + TName
+            '\\FAST_models\\FAST7\\' + turb_id
 
 # flag to indicate if blade/tower mode files are present
 BModes = 1

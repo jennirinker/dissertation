@@ -13,21 +13,24 @@ import matplotlib.pyplot as plt
 
 
 # set directory and turbine name
-#turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
+#turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
 #    'GitHub\\dissertation\\FAST_models\\FAST7\\WP0.75A08V00', \
 #    'WP0.75A08V00',1,[0,2000],[-0.5,2.0]
-#turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
+turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
+    'GitHub\\dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR', \
+    'WP0.75A08V00',1,[0,2200],[-0.5,3.0]
+#turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
 #    'GitHub\\dissertation\\FAST_models\\FAST7\\WP1.5A08V03', \
 #    'WP1.5A08V03',2,[0,2000],[-0.5,2.5]
-#turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
+#turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
 #    'GitHub\\dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7', \
 #    'WP1500',3,[0,2000],[-0.5,2.5]
-#turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
+#turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
 #    'GitHub\\dissertation\\FAST_models\\FAST7\\WP3.0A02V02', \
 #    'WP3.0A02V02',4,[0,4000],[-0.5,2.5]
-turb_dir,TName,fignum,ylim1,ylim2 = 'C:\\Users\\jrinker\\Documents\\' + \
-    'GitHub\\dissertation\\FAST_models\\FAST7\\WP5.0A04V00', \
-    'WP5.0A04V00',5,[0,6000],[-1.0,3.5]
+#turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
+#    'GitHub\\dissertation\\FAST_models\\FAST7\\WP5.0A04V00', \
+#    'WP5.0A04V00',5,[0,6000],[-1.0,3.5]
     
 # load steady-state dictionary
 mdict = scio.loadmat(os.path.join(turb_dir,'steady_state',
@@ -46,4 +49,4 @@ fig1,ax1,ax2,ax3 = jr.PlotSSTurbineResponse(WindVxi,LUT,fields,fig=fig1)
 
 ax1.set_title(TName+' Steady State')
 ax1.set_ylim(ylim1)
-ax3.set_ylim(ylim2)
+ax3.set_ylim(ylim3)

@@ -2350,6 +2350,144 @@ def TurbSimHHPDDs(fname):
     return (dthetau,dthetav,dthetaw)
 
 
+def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
+    """ Write .inp and .spc (if UserSpec) files given TurbSim parameters
+    
+        Args:
+            fname_inp (string): name of desired .inp file with extension
+            TSDict (dictionary): dictionary with TurbSim parameters
+            wr_dir (string): directory to write files to
+    """
+    import numpy as np
+    import os
+    
+    # template filename
+    tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'templates')
+    spctemp = os.path.join(tmpl_dir,'Template_UsrSpc.spc')
+    TStemp  = os.path.join(tmpl_dir,'Template_TurbSim.inp')
+    
+    # convert items in dictionary to variables for coding convenience
+    T,dt,R1,R2         = TSDict['T'],TSDict['dt'],TSDict['R1'],TSDict['R2']
+    DY,n_y,DZ,n_z      = TSDict['DY'],TSDict['n_y'],TSDict['DZ'],TSDict['n_z']
+    URef,ZHub,ZRef     = TSDict['URef'],TSDict['ZHub'],TSDict['ZRef']
+    TurbModel,ProfType = TSDict['TurbModel'],TSDict['ProfType']
+    rho_u,rho_v,rho_w  = TSDict['rho_u'],TSDict['rho_v'],TSDict['rho_w']
+    mu_u,mu_v,mu_w     = TSDict['mu_u'],TSDict['mu_v'],TSDict['mu_w']
+    
+    if (TurbModel == 'USRINP'):
+        sig_u,sig_v,sig_w  = TSDict['sig_u'],TSDict['sig_v'],TSDict['sig_w']
+        L_u,L_v,L_w        = TSDict['L_u'],TSDict['L_v'],TSDict['L_w']
+        fname_spc          = TSDict['fname_spc']
+        IECTurbc           = 'unused'
+    elif (TurbModel == 'IECKAI'):
+        IECTurbc           = TSDict['IECTurbc']
+        fpath_spc          = 'unused'
+    else:
+        ValueError('No turbulence model option \"{:s}\"'.format(TurbModel))
+        
+
+    # create spectral input file if user input
+    if (TurbModel == 'USRINP'):
+        
+        # create unscaled PSDs
+        fo, ff, df = 0, 20, 0.0005                          # high-frequency spectra
+        fs  = np.arange(fo,ff,df)                           # high-frequency vector
+        Su    = KaimalSpectrum(fs,L_u/URef,sig_u)        # unscaled u-PSD
+        Sv    = KaimalSpectrum(fs,L_v/URef,sig_v)        # unscaled v-PSD
+        Sw    = KaimalSpectrum(fs,L_w/URef,sig_w)        # unscaled w-PSD
+        NumF  = fs.size                                     # number of frequencies
+        
+        # frequenices/spectral values for scaling
+        df_s, n_t = 1./T, T/dt                              # simulation parameters
+        fs_s = np.arange(uniqueComponents(n_t))*df_s     # simulation freqs
+        Su_s  = KaimalSpectrum(fs_s,L_u/URef,sig_u)      # simulation u-PSD
+        Sv_s  = KaimalSpectrum(fs_s,L_v/URef,sig_v)      # simulation v-PSD
+        Sw_s  = KaimalSpectrum(fs_s,L_w/URef,sig_w)      # simulation w-PSD
+        Suk_s, Svk_s, Swk_s = Su_s*df_s,\
+                        Sv_s*df_s, Sw_s*df_s                # continuous -> discrete
+        alpha1 = spectralScale(Suk_s,sig_u,n_t)**2       # u scale factor
+        alpha2 = spectralScale(Svk_s,sig_v,n_t)**2       # v scale factor
+        alpha3 = spectralScale(Swk_s,sig_w,n_t)**2       # w scale factor
+#        Scale1,Scale2,Scale3 = alpha1,alpha2,alpha3         # set scale factors
+        Scale1,Scale2,Scale3 = 1,1,1         # set scale factors
+        
+        fpath_spc = os.path.join(wr_dir,fname_spc)
+        with open(fpath_spc,'w') as f_out:
+            with open(spctemp,'r') as f_temp:
+                
+                # print header information
+                f_out.write(f_temp.readline())
+                f_out.write(f_temp.readline().format(URef,sig_u,sig_v,sig_w,
+                           L_u,L_v,L_w,rho_u,rho_v,rho_w,mu_u,mu_v,mu_w ))
+                f_out.write(f_temp.readline())
+                f_out.write(f_temp.readline().format(NumF))
+                f_out.write(f_temp.readline().format(Scale1))
+                f_out.write(f_temp.readline().format(Scale2))
+                f_out.write(f_temp.readline().format(Scale3))
+                f_out.write(f_temp.readline())
+                f_out.write(f_temp.readline())
+                f_out.write(f_temp.readline())
+                f_out.write(f_temp.readline())
+                
+                # print spectra
+                for i_f in range(NumF):
+                    f_out.write('{:>6.4f}  '.format(fs[i_f]) + \
+                        '{:>16.6f}  '.format(alpha1*Su[i_f]) + \
+                        '{:>16.6f}  '.format(alpha2*Sv[i_f]) + \
+                        '{:>14.6f}\n'.format(alpha3*Sw[i_f]))
+    
+    
+    # create TurbSim input file
+    fpath_inp = os.path.join(wr_dir,fname_inp)
+    with open(fpath_inp,'w') as f_out:
+        with open(TStemp,'r') as f_temp: 
+    
+            i_line = 0
+            for line in f_temp:
+                if i_line == 4:
+                    f_out.write(line.format(R1))
+                elif i_line == 5:
+                    f_out.write(line.format(R2))
+                elif i_line == 18:
+                    f_out.write(line.format(n_z))
+                elif i_line == 19:
+                    f_out.write(line.format(n_y))
+                elif i_line == 20:
+                    f_out.write(line.format(dt))
+                elif i_line == 21:
+                    f_out.write(line.format(T))
+                elif i_line == 23:
+                    f_out.write(line.format(ZHub))
+                elif i_line == 24:
+                    f_out.write(line.format(DZ))
+                elif i_line == 25:
+                    f_out.write(line.format(DY))
+                elif i_line == 30:
+                    f_out.write(line.format('\"'+TurbModel+'\"'))
+                elif i_line == 31:
+                    f_out.write(line.format('\"'+fname_spc+'\"'))
+                elif i_line == 33:
+                    f_out.write(line.format('\"'+IECTurbc+'\"'))
+                elif i_line == 36:
+                    f_out.write(line.format('\"'+ProfType+'\"'))
+                elif i_line == 38:
+                    f_out.write(line.format(ZRef))
+                elif i_line == 39:
+                    f_out.write(line.format(URef))
+                elif i_line == 63:
+                    f_out.write(line.format(rho_u,mu_u))
+                elif i_line == 64:
+                    f_out.write(line.format(rho_v,mu_v))
+                elif i_line == 65:
+                    f_out.write(line.format(rho_w,mu_w))
+                else:
+                    f_out.write(line)
+                i_line += 1
+    
+    return
+
+
 # %%===========================================================================
 # FAST ANALYSIS
 # =============================================================================
@@ -2384,7 +2522,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     RotorDict = {}
     
     # load rotor data from text file
-    n_skip = 13                              # specific for text file
+    n_skip = 9                              # specific for text file
     fRotName = os.path.join(turb_dir,'parameters\\'+TName+'_Rotor.txt')
     with open(fRotName,'r') as f:
         RotDiam        = [float(x) for x in f.readline().strip('\n').split()][0]
@@ -2510,7 +2648,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     fModesName = os.path.join(turb_dir,'modes\\'+TName+'_TwrModes.mod')
     TwrModes  = np.empty((2,5))
     TwrModes[:] = np.nan
-    if BModes:
+    if TModes:
         with open(fModesName,'r') as f:
             i_line = 0
             for line in f:
@@ -3343,7 +3481,7 @@ def PlotSSTurbineResponse(x,Data,Fields,fig=None):
     ax1 = fig.add_axes([xPlot,yPlot[0],wd,ht])
     
     plt.plot(x,Data[:,Fields.index('GenSpeed')],label='GenSpeed, rpm')
-    plt.plot(x,Data[:,Fields.index('RotPwr')],label='RotPwr, kW')
+    plt.plot(x,Data[:,Fields.index('LSShftPwr')],label='RotPwr, kW')
     plt.plot(x,Data[:,Fields.index('GenPwr')],label='GenPwr, kW')
     plt.plot(x,Data[:,Fields.index('RotThrust')],label='RotThrust, kN')
     plt.plot(x,Data[:,Fields.index('RotTorq')],label='RotTorq, kN-m')
