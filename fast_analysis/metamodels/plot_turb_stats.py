@@ -11,20 +11,20 @@ turb_names = ['WP0.75A08V00','WP1.5A08V03',
               'WP3.0A02V02','WP5.0A04V00']
 
 # hard-code fields for now
-fields = ['Time', 'WindVxi', 'WindVyi', 'WindVzi', 'OoPDefl1', 'IPDefl1',
-          'TipDzb1', 'TwrClrnc1', 'OoPDefl2', 'IPDefl2', 'TipDzb2', 'TwrClrnc2',
-          'OoPDefl3', 'IPDefl3', 'TipDzb3', 'TwrClrnc3', 'BldPitch1', 'BldPitch2',
-          'BldPitch3', 'Azimuth', 'RotSpeed', 'RotAccel', 'GenSpeed', 'GenAccel',
-          'TSR', 'TTDspFA', 'TTDspSS', 'TTDspAx', 
-           'RootFzb1', 'RootMIP1', 'RootMOoP1', 'RootMzb1',
-          'RootMEdg1', 'RootMFlp1', 'RootFzb2', 'RootMIP2', 'RootMOoP2',
-          'RootMzb2', 'RootMEdg2', 'RootMFlp2', 'RootFzb3', 'RootMIP3',
-          'RootMOoP3', 'RootMzb3', 'RootMEdg3', 'RootMFlp3', 'RotThrust',
-          'LSSGagFya', 'LSSGagFza', 'LSSGagFys', 'LSSGagFzs', 'RotTorq',
-          'CThrstArm', 'LSShftPwr', 'LSShftCq', 'LSShftCp', 'LSShftCt',
-          'HSShftTq', 'HSShftPwr', 'HSShftCq', 'HSShftCp', 'GenTq', 'GenPwr',
-          'GenCq', 'GenCp', 'YawBrFzp', 'YawBrMzp', 'TwrBsFxt', 'TwrBsFyt',
-          'TwrBsFzt', 'TwrBsMxt', 'TwrBsMyt', 'TwrBsMzt']
+#fields = ['Time', 'WindVxi', 'WindVyi', 'WindVzi', 'OoPDefl1', 'IPDefl1',
+#          'TipDzb1', 'TwrClrnc1', 'OoPDefl2', 'IPDefl2', 'TipDzb2', 'TwrClrnc2',
+#          'OoPDefl3', 'IPDefl3', 'TipDzb3', 'TwrClrnc3', 'BldPitch1', 'BldPitch2',
+#          'BldPitch3', 'Azimuth', 'RotSpeed', 'RotAccel', 'GenSpeed', 'GenAccel',
+#          'TSR', 'TTDspFA', 'TTDspSS', 'TTDspAx', 
+#           'RootFzb1', 'RootMIP1', 'RootMOoP1', 'RootMzb1',
+#          'RootMEdg1', 'RootMFlp1', 'RootFzb2', 'RootMIP2', 'RootMOoP2',
+#          'RootMzb2', 'RootMEdg2', 'RootMFlp2', 'RootFzb3', 'RootMIP3',
+#          'RootMOoP3', 'RootMzb3', 'RootMEdg3', 'RootMFlp3', 'RotThrust',
+#          'LSSGagFya', 'LSSGagFza', 'LSSGagFys', 'LSSGagFzs', 'RotTorq',
+#          'CThrstArm', 'LSShftPwr', 'LSShftCq', 'LSShftCp', 'LSShftCt',
+#          'HSShftTq', 'HSShftPwr', 'HSShftCq', 'HSShftCp', 'GenTq', 'GenPwr',
+#          'GenCq', 'GenCp', 'YawBrFzp', 'YawBrMzp', 'TwrBsFxt', 'TwrBsFyt',
+#          'TwrBsFzt', 'TwrBsMxt', 'TwrBsMyt', 'TwrBsMzt']
 
 # define list of parameters
 us   = [5,7,9,10,10.5,11,11.5,12,13,16,19,22]
@@ -34,22 +34,21 @@ rhos = [0.,0.1,0.2,0.3,0.4]
 
 # define statistics and parameter to plot
 #stat = 'max'
-#parm = 'OoPDefl1'
-#stat = 'mean'
-#parm = 'GenPwr'
+#parm = 'OoPDefl1'1
+#stat = 'max'
+#parm = 'RootMFlp1'
 #stat = 'max'
 #parm = 'TTDspFA'
-stat = 'min'
+stat = 'max'
 parm = 'OoPDefl1'
 
 # plotting options
-#u_lo,u_hi = 6,11.6                          # wind velocity mask
+savefig = 0
+#u_lo,u_hi = 8.5,10.5                          # wind velocity mask
 u_lo,u_hi = 0,30                          # wind velocity mask
 color_opts = ['b','r','g','m','c']          # marker colors
 marker_opts = ['o','^','s','p','d']         # marker types
-
-# intermediate parameters
-n_fields = len(fields)
+elev, az = 1,-90
 
 # loop through turbines
 for i_turb in range(len(turb_names)):
@@ -60,7 +59,8 @@ for i_turb in range(len(turb_names)):
     proc_stats = stats_dict['proc_stats']
     calc_stats = [s.rstrip() for s in stats_dict['calc_stats']]
     fnames     = [s.rstrip() for s in stats_dict['fnames']]
-    #fields     = [s.rstrip() for s in stats_dict['fields']]
+    fields     = [s.rstrip() for s in stats_dict['fields']]
+    n_fields = len(fields)
 
     # calculate specified statistic
     zs   = proc_stats[:,calc_stats.index(stat)*n_fields + \
@@ -101,11 +101,15 @@ for i_turb in range(len(turb_names)):
                    label=r'$\rho_{:d}$'.format(i_rho))    
                          
     # prettify
-    ax.view_init(0, -90)
+    ax.view_init(elev,az)
     ax.set_xlabel('Mean wind speed')
     ax.set_ylabel('Turbulence intensity')
     ax.set_zlabel('{:s} of {:s}'.format(stat,parm))
     fig.suptitle('{:s}: {:s} of {:s}'.format(turb_name,stat,parm),fontsize='large')
     plt.tight_layout()
+        
+    # save handle for funzies
+    if savefig:
+        fig.savefig('C:\\Users\\jrinker\\Desktop\\resp_{:d}.png'.format(i_turb))
     
     
