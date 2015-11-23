@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 
 
 # set directory and turbine name
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
+#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
@@ -27,8 +27,11 @@ turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #fileID = '00000'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub' + \
 #        '\\dissertation\\FAST_models\\verification\\WP0.75A08V00','WP0.75A08V00'
-fileID = '42331'
-
+fileID = '24134'
+#fileID = '24142'
+#fileID = '42331'
+t_lim = [120,180]
+grid_flg = 'on'
 
 # initialize figure
 fig1 = plt.figure(1,figsize=(6.5,10))
@@ -41,6 +44,13 @@ FAST = jr.ReadFASTFile(FASTfpath)
 
 # plot results
 t = FAST['Data'][:,FAST['Fields'].index('Time')]
-jr.PlotTurbineResponse(t,FAST['Data'],FAST['Fields'],fig=fig1)
+fig,ax1,ax2,ax3 = jr.PlotTurbineResponse(t,FAST['Data'],FAST['Fields'],fig=fig1)
 
-fig1.suptitle(TName,fontsize='large')
+ax1.set_xlim(t_lim)
+ax2.set_xlim(t_lim)
+ax3.set_xlim(t_lim)
+ax1.grid(grid_flg)
+ax2.grid(grid_flg)
+ax3.grid(grid_flg)
+
+fig1.suptitle(FASTfname,fontsize='large')

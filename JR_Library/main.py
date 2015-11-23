@@ -2043,7 +2043,6 @@ def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
     libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
     if (libpath not in sys.path): sys.path.append(libpath)
     
-    import JR_Library.main as jr
     import numpy as np
     from scipy import optimize
     
@@ -2062,7 +2061,7 @@ def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
     n_all   = n_data + n_grid                   # all points in total
     n_t     = u_data.shape[0]                   # no. time steps
     dt      = (t_data[10]-t_data[0])/float(10)  # time step
-    n_f     = jr.uniqueComponents(n_t)          # no. unique frequencies
+    n_f     = uniqueComponents(n_t)          # no. unique frequencies
     df      = 1./(n_t*dt)                       # frequency resolution
     fs      = np.arange(n_f)*df                 # array of frequencies
     Y_grid, Z_grid = np.meshgrid(y_grid,z_grid) # arrays of grid points
@@ -3580,7 +3579,7 @@ def PlotTurbineResponse(t,Data,Fields,fig=None):
     plt.plot(t,Data[:,Fields.index('RotSpeed')],label='RotSpeed, rpm')
     plt.plot(t,Data[:,Fields.index('BldPitch1')],label='BlPitch, $^\mathrm{o}$')
     plt.plot(t,Data[:,Fields.index('GenTq')],label='GenTq, kN-m')
-    plt.plot(t,Data[:,Fields.index('TSR')],label='TSR, -')
+#    plt.plot(t,Data[:,Fields.index('TSR')],label='TSR, -')
     
     ax2.set_xlim([t[0],t[-1]])
     ax2.legend(fontsize='small',
@@ -3592,9 +3591,12 @@ def PlotTurbineResponse(t,Data,Fields,fig=None):
     ax3 = fig.add_axes([xPlot,yPlot[3],wd,ht])
     
     plt.plot(t,Data[:,Fields.index('OoPDefl1')],label='OoPDefl1, m')
-    plt.plot(t,Data[:,Fields.index('IPDefl1')],label='IPDefl1, m')
-    plt.plot(t,Data[:,Fields.index('TTDspFA')],label='TTDspFA, m')
-    plt.plot(t,Data[:,Fields.index('TTDspSS')],label='TTDspSS, m')
+    plt.plot(t,Data[:,Fields.index('OoPDefl2')],label='OoPDefl2, m')
+    plt.plot(t,Data[:,Fields.index('OoPDefl3')],label='OoPDefl3, m')
+#    plt.plot(t,Data[:,Fields.index('OoPDefl1')],label='OoPDefl32, m')
+#    plt.plot(t,Data[:,Fields.index('IPDefl1')],label='IPDefl1, m')
+#    plt.plot(t,Data[:,Fields.index('TTDspFA')],label='TTDspFA, m')
+#    plt.plot(t,Data[:,Fields.index('TTDspSS')],label='TTDspSS, m')
     
     #ax3.set_ylim([0,40])
     ax3.set_xlim([t[0],t[-1]])

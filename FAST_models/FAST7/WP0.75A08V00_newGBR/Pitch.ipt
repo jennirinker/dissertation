@@ -2,7 +2,7 @@
    3        CntrlRgn - Control region {2 = power control, 3 = speed control}
   11        NCSNT    - Number of constants used in controls
   -1.0      CNST(1)  - Gain on TF 1
-  26.738    CNST(2)  - Rotor speed set point, RPM
+  24.878    CNST(2)  - Rotor speed set point, RPM
    0.3      CNST(3)  - Integrator anti-windup gain
    2.6      CNST(4)  - Minimum pitch angle, deg
   90.0      CNST(5)  - Maximum pitch angle, deg
