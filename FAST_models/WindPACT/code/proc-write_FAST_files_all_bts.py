@@ -21,11 +21,11 @@ base_rdir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 turb_dir = os.path.join(base_rdir,turb_name)
 
 # specify turbine version if necessary
-turb_dir += '_newGBR'
+#turb_dir += '_newGBR'
 
 # specify wind directory
-wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation\\' + \
-                'FAST_models\\wind_files\\WP0.75A08V00'
+wind_dir = os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\dissertation\\' + \
+                'FAST_models\\wind_files',turb_name)
 
 jr_fast.WriteFAST7InputsAll(turb_dir,turb_name,wind_dir)
 

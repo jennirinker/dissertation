@@ -66,6 +66,12 @@ for i_turb in range(len(turb_names)):
     zs   = proc_stats[:,calc_stats.index(stat)*n_fields + \
                                         fields.index(parm)]
     
+#    # print turbine index and filename for max stat
+#    max_idcs = zs.argsort()[-5:][::-1]
+#    print(i_turb)
+#    print(zs[max_idcs])
+#    print([fnames[i] for i in max_idcs])
+    
     # extract corresponding mean wind speed and ti
     xs = np.empty(zs.size)
     ys = np.empty(zs.size)
