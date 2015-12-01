@@ -14,23 +14,26 @@ import matplotlib.pyplot as plt
 # set directory and turbine name
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
+#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_steady','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
 #fileID = '00000'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub' + \
 #        '\\dissertation\\FAST_models\\verification\\WP0.75A08V00','WP0.75A08V00'
-#fileID = ['24134', '24142', '42331'][0]
+fileID = ['24134', '24142', '42331'][0]
 #fileID = ['24211', '24214', '24220'][0]
-fileID = ['24322', '24324', '24343'][0]
-t_lim = [180,250]
+#fileID = ['24322', '24324', '24343'][0]
+t_lim = [60,400]       # WP0.75
+#t_lim = [240,300]      # WP1.5
 grid_flg = 'on'
 
 # initialize figure
@@ -53,4 +56,4 @@ ax1.grid(grid_flg)
 ax2.grid(grid_flg)
 ax3.grid(grid_flg)
 
-fig1.suptitle(FASTfname,fontsize='large')
+fig1.suptitle(FASTfname+' (Beddoes)',fontsize='large')

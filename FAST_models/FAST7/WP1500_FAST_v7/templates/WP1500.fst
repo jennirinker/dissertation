@@ -183,21 +183,28 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
    0        BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
             OutList     - The next line(s) contains a list of output parameters.  See OutList.xlsx for a listing of available output channels, (-)
 "WindVxi,WindVyi,WindVzi"          	- Wind-speed components
-"HorWndDir,VerWndDir"              	- Wind directions
-"BldPitch1"                        	- Blade 2 pitch angle
-"IPDefl1, IPDefl2"                 	- IP blade 1,2 tip deflections
-"TwstDefl1,TwstDefl2,TwstDefl3"    	- Blade torsional tip twist deflections
-"RootMxb2, RootMyb2, RootMzb2"     	- Blade 2 root moments
-"LSShftFys, LSShftFzs"             	- Non-rotating LSS shear forces
-"LSSTipMys, LSSTipMzs"             	- Non-rotating LSS bending moments at the shaft tip
-"YawBrTDxp, YawBrTDyp"             	- FA and SS tower-top deflections wrt tilted tower
-"YawBrMxn, YawBrMyn, YawBrMzn"     	- Tower-top / yaw bearing roll, pitch, and yaw moments
-"GenSpeed, GenTq, GenPwr, GenCp"	- Generator outputs
-"RotPwr, RotThrust, RotTorq, RotSpeed"	- rotor outputs
-"OoPDefl1, IPDefl1, TSR"		- Blade tip outputs
-"TwrBsFxt, TwrBsFyt"			- tower base forces
-"TwrBsMxt, TwrBsMyt, TwrBsMzt"		- tower base moments
-"TTDspFA, TTDspSS"			- tower top displacements
+"OoPDefl1,IPDefl1,TipDzb1,TwrClrnc1"	- Blade 1 tip motions
+"OoPDefl2,IPDefl2,TipDzb2,TwrClrnc2"	- Blade 2 tip motions
+"OoPDefl3,IPDefl3,TipDzb3,TwrClrnc3"	- Blade 3 tip motions
+"BldPitch1,BldPitch2,BldPitch3"         - Blade pitch motions
+"Azimuth,RotSpeed,RotAccel"		- LSS motion
+"GenSpeed,GenAccel,TSR"			- HSS motion
+"TTDspFA,TTDspSS,TTDspAx"		- Towertop motions
+"YawBrTAxp,YawBrTAyp,YawBrTAzp"		- Towertop accelerations
+"RootFzb1,RootMIP1,RootMOoP1,RootMzb1"	- Blade 1 root loads (1/2)
+"RootMEdg1,RootMFlp1"			- Blade 1 root loads (2/2)
+"RootFzb2,RootMIP2,RootMOoP2,RootMzb2"	- Blade 2 root loads (1/2)
+"RootMEdg2,RootMFlp2"			- Blade 2 root loads (2/2)
+"RootFzb3,RootMIP3,RootMOoP3,RootMzb3"	- Blade 3 root loads (1/2)
+"RootMEdg3,RootMFlp3"			- Blade 3 root loads (2/2)
+"RotThrust,LSSGagFya,LSSGagFza"		- Hub and rotor loads (1/3)
+"LSSGagFys,LSSGagFzs,RotTorq,CThrstArm"	- Hub and rotor loads (2/3)
+"LSShftPwr,LSShftCq,LSShftCp,LSShftCt"	- Hub and rotor loads (3/3)
+"HSShftTq,HSShftPwr,HSShftCq,HSShftCp"	- Generator and HSS loads (1/2)
+"GenTq,GenPwr,GenCq,GenCp"		- Generator and HSS loads (2/2)
+"YawBrFzp,YawBrMzp"			- Tower top yaw-bearing loads
+"TwrBsFxt,TwrBsFyt,TwrBsFzt"		- Tower base loads (1/2)
+"TwrBsMxt,TwrBsMyt,TwrBsMzt"		- Tower base loads (2/2)
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 
