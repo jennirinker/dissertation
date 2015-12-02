@@ -11,7 +11,7 @@ False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode
    1.0      FlStTunr(1) - Blade flapwise modal stiffness tuner, 1st mode (-)
    1.0      FlStTunr(2) - Blade flapwise modal stiffness tuner, 2nd mode (-)
    1.0      AdjBlMs     - Factor to adjust blade mass density (-)
-   3.0      AdjFlSt     - Factor to adjust blade flap stiffness (-)
+   4.0      AdjFlSt     - Factor to adjust blade flap stiffness (-)
    1.0      AdjEdSt     - Factor to adjust blade edge stiffness (-)
 ---------------------- DISTRIBUTED BLADE PROPERTIES ----------------------------
 BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EAStff       Alpha  FlpIner  EdgIner  PrecrvRef  PreswpRef  FlpcgOf  EdgcgOf  FlpEAOf  EdgEAOf

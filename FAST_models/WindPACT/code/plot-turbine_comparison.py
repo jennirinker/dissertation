@@ -31,12 +31,13 @@ import matplotlib.pyplot as plt
 turbs = ['WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
         'dissertation\\FAST_models\\FAST7','WP0.75A08V00'),\
         'WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-        'dissertation\\FAST_models\\FAST7','WP0.75A08V00_newGBR')]#,\
+        'dissertation\\FAST_models\\FAST7','WP0.75A08V00_equil')]#,\
 #        'WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #        'dissertation\\FAST_models\\FAST7','WP0.75A08V00_stifftwr'),\
 #        'WP0.75A08V00', os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #        'dissertation\\FAST_models\\FAST7','WP0.75A08V00_stiffblds')]
 #fileIDs = ['_42331','_42331','_42331','_42331','_42331']
+fileIDs = ['_91242','_91242','_91242','_91242','_91242']
 #fileIDs = ['_00000','_00001']
 
 
@@ -45,8 +46,9 @@ PlotFields = ['Time','WindVxi','RotSpeed','GenPwr',
               'BldPitch1','TSR','GenTq','YawBrTAxp','OoPDefl1']
 #leg_str = ['Linux 1.5','Windows 1.5']
 #leg_str = ['Standard pitch','Modified GS']
-leg_str = ['Standard model','Modified GBR','Stiffened tower',
-           'Stiffened blades','Extra damp']
+#leg_str = ['Standard model','Modified GBR','Stiffened tower',
+#           'Stiffened blades','Extra damp']
+leg_str = ['DYNIN','EQUIL']
 c = ['b','r','g','c','m','y','k']
 
 fig1 = plt.figure(5,figsize=(6.5,10))
@@ -72,5 +74,7 @@ for i in range(len(turbs)/2):
 #            ax.set_ylim([np.mean(y)*0.95,np.mean(y)*1.05])
         if i_plot == 0:
             ax.legend()
+            
+        ax.set_xlim([200,400])
         
 plt.tight_layout()

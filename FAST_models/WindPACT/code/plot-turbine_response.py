@@ -12,10 +12,12 @@ import matplotlib.pyplot as plt
 
 
 # set directory and turbine name
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
 turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
+    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_steady','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
@@ -29,15 +31,22 @@ turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #fileID = '00000'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub' + \
 #        '\\dissertation\\FAST_models\\verification\\WP0.75A08V00','WP0.75A08V00'
-fileID = ['24134', '24142', '42331'][0]
+fileID = ['24134', '24142', '42331', '91242'][0]
 #fileID = ['24211', '24214', '24220'][0]
 #fileID = ['24322', '24324', '24343'][0]
-t_lim = [60,400]       # WP0.75
+t_lim = [30,300]       # WP0.75
 #t_lim = [240,300]      # WP1.5
 grid_flg = 'on'
 
+# define turbine version
+ext,fignum = '',1
+#ext,fignum = '_newGBR',2
+#ext,fignum = '_stiffblds',3
+#ext,fignum = '_equil',4
+turb_dir += ext
+
 # initialize figure
-fig1 = plt.figure(2,figsize=(6.5,10))
+fig1 = plt.figure(fignum,figsize=(6.5,10))
 plt.clf()
 
 # load fast file
@@ -49,6 +58,8 @@ FAST = jr.ReadFASTFile(FASTfpath)
 t = FAST['Data'][:,FAST['Fields'].index('Time')]
 fig,ax1,ax2,ax3 = jr.PlotTurbineResponse(t,FAST['Data'],FAST['Fields'],fig=fig1)
 
+#ax3.set_ylim([-10,6])
+
 ax1.set_xlim(t_lim)
 ax2.set_xlim(t_lim)
 ax3.set_xlim(t_lim)
@@ -56,4 +67,4 @@ ax1.grid(grid_flg)
 ax2.grid(grid_flg)
 ax3.grid(grid_flg)
 
-fig1.suptitle(FASTfname+' (Beddoes)',fontsize='large')
+fig1.suptitle(FASTfname+ext,fontsize='large')

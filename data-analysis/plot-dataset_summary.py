@@ -50,7 +50,7 @@ rhoCol = fields.index('Concentration_u')
 muCol  = fields.index('Location_u')
 
 # initialize figure
-plt.figure(fignum,figsize=(10,10))
+plt.figure(fignum,figsize=(6.5,6))
 plt.clf()
 ax11 = plt.axes([0.12,0.57,0.35,0.35])
 ax12 = plt.axes([0.62,0.57,0.35,0.35])
@@ -82,7 +82,7 @@ for iH in range(heights.size):
     mu  = parms_ht[:,muCol]
     
     # plot CDFs
-    ax11.plot(np.sort(U),F,label=str(ht))
+    ax11.plot(np.sort(U),F,label='{:.0f} m'.format(ht))
     ax12.plot(np.sort(sig),F)
     ax21.plot(np.sort(L),F)
     ax22.plot(np.sort(rho),F)
@@ -93,5 +93,5 @@ ax11.set_title('$U$')
 ax12.set_title('$\sigma_u$')
 ax21.set_title('$L$')
 ax22.set_title(r'$\rho$')
-ax11.legend(loc=4)
+ax11.legend(loc=4,fontsize='small')
 plt.suptitle('Dataset: ' + dataset,fontsize='large')
