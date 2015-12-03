@@ -1,0 +1,38 @@
+#Author: Jenni Rinker, modified from bmh
+
+lines.linewidth     : 0.5
+
+text.hinting_factor : 8
+
+patch.facecolor     : white
+patch.edgecolor     : black
+
+font.family         : serif
+font.size           : 10
+font.sans-serif     : Times New Roman
+
+axes.linewidth      : 0.5
+axes.facecolor      : white
+axes.edgecolor      : black
+axes.grid           : off
+axes.titlesize      : large
+axes.labelsize      : medium
+axes.color_cycle    : 235F9C, C0504D, F79646, 8064A2, 9BBB59, 8C564B, 17BECF, BCBD22, 7F7F7F, E377C2
+        # Duke Color Paletter(blue,red,orange,purple,green,brown,teal,olive,grey,pink)
+
+xtick.labelsize     : small
+xtick.color         : black
+xtick.direction     : in
+xtick.major.size    : 3
+
+ytick.labelsize     : small
+ytick.color         : black
+ytick.direction     : in
+ytick.major.size    : 3
+
+legend.fontsize     : small
+legend.frameon      : false
+
+savefig.facecolor   : none
+savefig.edgecolor   : none
+# savefig.dpi         : 300

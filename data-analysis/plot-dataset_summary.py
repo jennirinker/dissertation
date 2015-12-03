@@ -84,14 +84,16 @@ for iH in range(heights.size):
     # plot CDFs
     ax11.plot(np.sort(U),F,label='{:.0f} m'.format(ht))
     ax12.plot(np.sort(sig),F)
-    ax21.plot(np.sort(L),F)
+    ax21.plot(np.sort(tau),F)
+#    ax21.plot(np.sort(L),F)
     ax22.plot(np.sort(rho),F)
     
 # make things pretty
 ax21.set_xscale('log')
 ax11.set_title('$U$')
 ax12.set_title('$\sigma_u$')
-ax21.set_title('$L$')
+ax21.set_title('$L/U$')
+#ax21.set_title('$L$')
 ax22.set_title(r'$\rho$')
 ax11.legend(loc=4,fontsize='small')
 plt.suptitle('Dataset: ' + dataset,fontsize='large')

@@ -585,6 +585,10 @@ def datasetSpecs(dataset):
         n_t     = 12000
         dt      = 0.05
         heights = []
+    elif (dataset == 'texastech'):
+        n_t     = 30000
+        dt      = 0.02
+        heights = np.array([1,2,4,10,17,47,75,116,158,200])
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
