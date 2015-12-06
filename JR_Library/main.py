@@ -23,6 +23,10 @@ Restructured 2015-06-30
 Jenni Rinker, Duke University
 """
 
+# used modules
+import numpy as np
+import scipy.io as scio
+
 # %%===========================================================================
 # FILE I/O
 # =============================================================================
@@ -38,8 +42,8 @@ def loadmetadata(fname):
             fields (list): fields in each column
             metadata (numpy array): values for each field and each record
     """
-    import numpy as np
-    import scipy.io as scio
+    
+    
 
     # if it is a text file
     if (fname.endswith('txt')):
@@ -73,8 +77,8 @@ def loadNRELmatlab():
             fields (list): names of fields in coumns
             metadata (numpy array): array of atmospheric params
     """
-    import scipy.io as scio
-    import numpy as np
+    
+    
     
     # path to matlab-processed metadata table
     matpath = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -120,8 +124,8 @@ def loadtimeseries(dataset,field,ht,data_in):
         Returns:
             outdict (dictionary): keys = ['raw','clean','flags']
     """
-    import scipy.io as scio
-    import numpy as np
+    
+    
     
     # make sure datfield is valid before proceeding
     datfield = field2datfield(dataset,field,ht)
@@ -423,7 +427,7 @@ def mygenfromtxt(fname,header=True,units=False,delimiter='\t'):
             header (list): strings from header line (if header=True)
             units (list): strings from units line (if header,units=True)
     """
-    import numpy as np
+    
     
     # read header and unit lines if appropriate
     with open(fname,'r') as f:
@@ -457,7 +461,7 @@ def mygenfromtxt(fname,header=True,units=False,delimiter='\t'):
 def ReadFASTFile(fname):
     """ Read FAST data into numpy array (v7.02)
     """
-    import numpy as np
+    
     
     n_skip = 8
     FASTDict = {}
@@ -571,7 +575,7 @@ def datasetSpecs(dataset):
             dt (float): time step
             heights (numpy array): measurement heights
     """
-    import numpy as np
+    
 
     if (dataset == 'NREL'):
         n_t     = 12000
@@ -721,9 +725,9 @@ def listmetadata(dataset,i,list_mats):
     """ Return list of parameters all heights for element i
         in list_mats
     """
-    import numpy as np
+    
     import os
-    import scipy.io as scio
+    
 
     if (dataset in ['NREL','fluela']):
         heights  = datasetSpecs(dataset)[2]             # sampling heights
@@ -768,7 +772,7 @@ def struc2metadata(dataset,struc,height):
         Returns:
             parameters (numpy array): 1D array of metadata parameters
     """
-    import numpy as np
+    
 
     if (dataset in ['NREL','fluela']):
 
@@ -807,7 +811,7 @@ def calculateKaimal(x,dt):
         Returns:
             tau (float): optimal Kaimal length scale
     """
-    import numpy as np
+    
     
     # if (2+)D array is fed in, halt with error
     if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
@@ -876,7 +880,7 @@ def interpolationHeights(dataset,ht,field):
             interp_heights (tuple): (lowerHt,upperHt)
             
     """
-    import numpy as np
+    
     
     if (dataset == 'NREL'):
 
@@ -915,7 +919,7 @@ def interpolationHeights(dataset,ht,field):
 def interpolateparameter(dataset,ht,lo_val,hi_val,field):
     """ Interpolate parameter value
     """
-    import numpy as np
+    
     
     if (dataset == 'NREL'):
         
@@ -971,7 +975,7 @@ def calculatefield(dataset,struc20,ht):
 
     """
     import calendar, time
-    import numpy as np
+    
     
     # meteorological constants
     g, R, kappa = 9.81, 287, 0.41
@@ -1262,6 +1266,39 @@ def list_matfiles(basedir,save=0):
         print('Data saved to ' + fpath)
 
     return list_mats
+    
+    
+def RotateTimeSeries(x_raw):
+    """ Yaw and pitch time series so v- and w-directions have zero mean
+    
+        Args:
+            x_raw (numpy array): [n_t x 3] array of time series to rotate
+            
+        Returns:
+            x_rot (numpy array): [n_t x 3] array of rotated data (yaw+pitch)
+            x_yaw (numpy array): [n_t x 3] array of rotated data (yaw)
+    """
+        
+    # rotate through yaw angle
+    hyp = np.sqrt(np.mean(x_raw[:,0])**2 + np.mean(x_raw[:,1])**2)
+    cos_theta = np.mean(x_raw[:,0]) / hyp
+    sin_theta = np.mean(x_raw[:,1]) / hyp
+    A_yaw = np.array([[cos_theta, -sin_theta, 0],
+                      [sin_theta, cos_theta, 0],
+                      [0, 0, 1]])
+    x_yaw = np.dot(x_raw,A_yaw)
+    
+    # rotate through pitch angle
+    hyp = np.sqrt(np.mean(x_yaw[:,0])**2 + np.mean(x_yaw[:,2])**2)
+    cos_phi = np.mean(x_yaw[:,0]) / hyp
+    sin_phi = np.mean(x_yaw[:,2]) / hyp
+    A_pitch = np.array([[cos_phi, 0, -sin_phi],
+                        [0, 1, 0],
+                        [sin_phi, 0, cos_phi]])
+    x_rot = np.dot(x_yaw,A_pitch)
+    
+    return x_rot, x_yaw
+    
 
 # %%============================================================================
 # METADATA ANALYSIS
@@ -1296,7 +1333,7 @@ def screenmetadata(fields,metadata,dataset):
         Returns:
             cleandata (numpy array): numpy array with screened data
     """
-    import numpy as np
+    
     
     if (dataset == 'NREL'):
         CSLim  = 3                          # lower cup speed limit
@@ -1362,7 +1399,7 @@ def compositeCDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
         Returns:
             F (numpy array): composite CDF values at x
     """
-    import numpy as np
+    
     import scipy.stats
     
     # initialize cdf
@@ -1402,7 +1439,7 @@ def inversecompositeCDF(Q,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
         Returns:
             x (numpy array): composite CDF values at x
     """
-    import numpy as np
+    
     import scipy.stats
     
     # initialize array for output
@@ -1445,7 +1482,7 @@ def compositePDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
         Returns:
             f (numpy array): composite PDF values at x
     """
-    import numpy as np
+    
     import scipy.stats
     
     # initialize pdf
@@ -1484,7 +1521,7 @@ def compositeNSAE(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
         Returns:
             NSAE (float): normalized sum absolute error
     """
-    import numpy as np
+    
     
     # get threshold value
     N = x.size
@@ -1515,7 +1552,7 @@ def fitcompositeparameters(x,dist_name,x_T=float('inf')):
     """
     import scipy.stats
     from scipy.optimize import minimize
-    import numpy as np
+    
 
     # initialize CDFs
     dist_main = getattr(scipy.stats, dist_name)
@@ -1603,7 +1640,7 @@ def fitcompositedistribution(dataset,iP,x):
         Returns:
         
     """
-    import numpy as np
+    
 
     if (dataset == 'NREL'):
 
@@ -1700,7 +1737,7 @@ def wrappedCauchySample(shape,rho,mu):
         Returns:
             theta (numpy array): sample of angles
     """
-    import numpy as np
+    
     
     if ((rho < 0) or (rho>1)):
         print 'rho must be between 0 and 1'
@@ -1737,7 +1774,7 @@ def generateKaimal1D(n_t,n_m,dt,U,sig,tau,rho,mu):
             t (numpy array): time
             x (numpy array): [n_t x n_m] array of turbulent wind records
     """
-    import numpy as np
+    
 
     scale = 1;    # flag to scale for time discretizaion
 
@@ -1795,7 +1832,7 @@ def IEC_VelProfile(z,ZRef,URef):
         Returns:
             V (numpy array): array of mean wind speeds at heights in z
     """
-    import numpy as np
+    
 
     alpha = 0.2;
 
@@ -1894,7 +1931,7 @@ def IEC_SpatialCoherence(zhub,Vhub,rsep,f):
         Returns:
             Coh (numpy array): values of spatial coherence function
     """
-    import numpy as np
+    
 
     Lambda1 = IEC_Lambda1(zhub)         # longitudinal scale parameter
     Lc = 8.1*Lambda1;                   # coherence scale parameter
@@ -1918,7 +1955,7 @@ def KaimalSpectrum(f,tau,sig):
         Returns:
             S (numpy array): Kaimal spectrum evaluated at f, tau, sig
     """
-    import numpy as np
+    
 
     S = (sig**2)*(4.*tau)/ \
         np.power(1.+6.*f*tau,5./3.);            # Kaimal 1972
@@ -1966,7 +2003,7 @@ def IEC_TC_simulation(turbc,zhub,Vhub,n_t,dt,rho,mu,y_grid,z_grid):
         Returns:
             u_grid (numpy array): [n_z x n_y x n_t] array of u(t)
     """
-    import numpy as np
+    
     
     # define variables to be subsequently used          
     n_y     = y_grid.size                       # no. of y-points in grid
@@ -2047,7 +2084,7 @@ def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
     libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
     if (libpath not in sys.path): sys.path.append(libpath)
     
-    import numpy as np
+    
     from scipy import optimize
     
     # check array sizes
@@ -2185,7 +2222,7 @@ def vectorSpatCoh(Xi,Xj,df):
             Xj ([n_f x n_p] numpy array): Fourier coefficients at second point
     """
 
-    import numpy as np
+    
 
     # generate frequency vector
     n_f = Xi.shape[0];
@@ -2223,7 +2260,7 @@ def TurbSimSpatCoh(fname,rsep):
             
     """
     import pyts.io.main as io
-    import numpy as np
+    
 
     # read file
     tsout = io.readModel( fname )
@@ -2285,7 +2322,7 @@ def TurbSimVelProfile(fname):
             U (numpy array): mean velocities at heights in grid
     """
     import pyts.io.main as io
-    import numpy as np
+    
 
     # read file
     tsout = io.readModel(fname);
@@ -2332,7 +2369,7 @@ def TurbSimHHPDDs(fname):
     """ Hub-height phase differences
     """
     import pyts.io.main as io
-    import numpy as np
+    
 
     # read file
     tsout = io.readModel(fname);
@@ -2361,7 +2398,7 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
             TSDict (dictionary): dictionary with TurbSim parameters
             wr_dir (string): directory to write files to
     """
-    import numpy as np
+    
     import os
     
     # template filename
@@ -2512,7 +2549,7 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
             TurbDict (dictionary): turbine parameters in dictionary
     """
     import os
-    import numpy as np
+    
 
     print('\nWriting turbine dictionary' + \
         ' for {:s} to {:s}'.format(TName,turb_dir))
@@ -2740,7 +2777,7 @@ def InterpolateRotorParams(TurbDict):
             BldInterp (numpy array): interpolated blade properties
             ADInterp (numpy array): interpolated aerodynamic properties
     """
-    import numpy as np
+    
     
     # extract information from turbine dictionary
     BldSched = np.array(TurbDict['Rotor']['BldSched'])
@@ -2816,7 +2853,7 @@ def InterpolateTowerParams(TurbDict):
         Returns:
             TowerInterp (numpy array): interpolated tpwer properties
     """
-    import numpy as np
+    
     
     # extract information from turbine dictionary
     TopDiam    = TurbDict['Tower']['TopDiam']
@@ -2859,7 +2896,7 @@ def InterpolateTowerParams(TurbDict):
 def writeBldModes(fpath_temp,fpath_out,TurbDict):
     """ Blade input file for Modes v22
     """
-    import numpy as np
+    
     
     # get interpolated blade structural parameters
     BldInterp = InterpolateRotorParams(TurbDict)[0]
@@ -2940,7 +2977,7 @@ def writeTwrModes(fpath_temp,fpath_out,TurbDict):
 def writeBlade(fpath_temp,fpath_out,TurbDict):
     """ Blade input file for FAST v7.02
     """
-    import numpy as np
+    
     
     # calculate blade-specific vales
     TName     = TurbDict['TName']
@@ -2980,7 +3017,7 @@ def writeBlade(fpath_temp,fpath_out,TurbDict):
 def writeTower(fpath_temp,fpath_out,TurbDict):
     """ Tower input file for FAST v7.02
     """
-    import numpy as np
+    
     
     # calculate tower-specific vales
     TName       = TurbDict['TName']
@@ -3027,7 +3064,7 @@ def writeTower(fpath_temp,fpath_out,TurbDict):
 def writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict):
     """ AeroDyn input file for FAST v7.02
     """
-    import numpy as np
+    
     
     # calculate file-specific vales
     TName          = TurbDict['TName']
@@ -3074,7 +3111,7 @@ def writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict):
 def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
     """ FAST input file for FAST v7.02
     """
-    import numpy as np
+    
     
     # load needed values
     TName         = TurbDict['TName']
@@ -3205,7 +3242,7 @@ def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
 def writePitch(fpath_temp,fpath_out,TurbDict):
     """ Pitch controller input file for UserVSControl by ACH (FAST v7.02)
     """
-    import numpy as np
+    
     
     # load/calculate needed values
     RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
@@ -3267,7 +3304,7 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
 def writeDISCON(fpath_temp,fpath_out,TurbDict):
     """ DISCON Bladed controller routine
     """
-    import numpy as np
+    
     
     # load/calculate needed values
     MinPitchAng = TurbDict['Control']['MinPitchAng']
@@ -3375,8 +3412,8 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
             
     """
     import os
-    import scipy.io as scio
-    import numpy as np
+    
+    
     
     # get initial wind speed
     wind_fpath = os.path.join(wind_dir,wind_fname)
@@ -3469,7 +3506,7 @@ def PlotSSTurbineResponse(x,Data,Fields,fig=None):
             fig (pyplot figure handle): handle to figure
     """
     import matplotlib.pyplot as plt
-    import numpy as np
+    
     
     # create figure if none specified
     if fig is None:
@@ -3539,7 +3576,7 @@ def PlotTurbineResponse(t,Data,Fields,fig=None):
             fig (pyplot figure handle): handle to figure
     """
     import matplotlib.pyplot as plt
-    import numpy as np
+    
     
     # create figure if none specified
     if fig is None:
@@ -3687,7 +3724,7 @@ def writeKaimalWind(U,sig,tau,rho,mu,T=600.0,dt=0.05,T_steady=30.0,
             wind_dir (string): optional path to directory with wind files
     """
     import os
-    import numpy as np
+    
     
     # simulate wind, add time before
     n_t = np.ceil(T/dt)
@@ -3734,7 +3771,7 @@ def writeHarmonicWind(U,A,freq,T=630.0,dt=0.05,T_steady=30.0,
             wind_dir (string): optional path to directory with wind files
     """
     import os
-    import numpy as np
+    
     
     # initialize time, wind speed vectors
     t = np.arange(0,T+dt,dt)
@@ -3810,7 +3847,7 @@ def X2Sk(X):
         Returns:
             Sk (numpy array): array of discrete spectral values
     """
-    import numpy as np
+    
 
     n_t = X.size;                           # no. elements
     n_f = uniqueComponents(n_t);            # no. unique comps
@@ -3833,7 +3870,7 @@ def Sk2Xuniq(Sk):
         Returns:
             Xuniq (numpy array): array of unique Fourier components
     """
-    import numpy as np
+    
 
     Xuniq = np.sqrt(Sk/2);
 
@@ -3850,7 +3887,7 @@ def Xuniq2X(Xuniq,n_t):
         Returns:
             X (numpy array): array of all Fourier components
     """
-    import numpy as np
+    
 
     if (n_t % 2):                           # even no. of elements
         Xuniq[0] = np.abs(Xuniq[0])         # ensure real signal
@@ -3874,7 +3911,7 @@ def signal2Sk(x):
         Returns:
             Sk (numpy array): array of discrete spectral values
     """
-    import numpy as np
+    
 
     n_t  = x.shape[0];                      # no. of elements
     X    = np.fft.fft(x,axis=0)/n_t;        # Fourier vector
@@ -3894,7 +3931,7 @@ def samplePhaseCoherence(theta,axis=-1):
             rho (float): concentration parameter
             mu (float): location parameter
     """
-    import numpy as np
+    
         
     z = np.exp(1j*theta)
     V = np.mean(z,axis=axis)
@@ -3914,7 +3951,7 @@ def signalPhaseDifferences(x,axis=-1):
             rho (float): concentration parameter
             mu (float): location parameter
     """
-    import numpy as np
+    
     
     # if (2+)D array is fed in, halt with error
 #    if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
@@ -3938,7 +3975,7 @@ def signalPhaseCoherence(x):
             rho (float): concentration parameter
             mu (float): location parameter
     """
-    import numpy as np
+    
     
     # if (2+)D array is fed in, halt with error
     if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
@@ -4089,7 +4126,7 @@ def timeUTC2local(dataset,UTCtime_flt):
                 in local time
     """
     import datetime
-    import numpy as np
+    
 
     # convert integers/floats to 1D numpy arrays for calculations
     if (isinstance(UTCtime_flt,(int,float))):
@@ -4133,7 +4170,7 @@ def timeflt2arr(time_flt):
             time_vec (numpy array): Nx5 array of timestamps in
                 "expanded" format -- [year,month,day,hour,minute]
     """
-    import numpy as np
+    
 
     # convert integers/floats to 1D numpy arrays for calculations
     if (isinstance(time_flt,(int,float))):
@@ -4273,7 +4310,7 @@ def wrap(theta):
         Returns:
             theta_out (float): wrapped angle
     """
-    import numpy as np
+    
 
     theta_out = theta % (2*np.pi)           # mod to [0,2pi)
     theta_out = np.multiply(theta_out<=np.pi,theta_out) + \
@@ -4292,7 +4329,7 @@ def uniqueComponents(n_t):
         Returns:
            n_f (int): no. unique components
     """
-    import numpy as np
+    
 
     n_f = int(np.ceil((float(n_t)-1) \
         /2)+1);
@@ -4311,7 +4348,7 @@ def spectralScale(Sk,sig,n_t):
         Returns:
             alpha (float): spectral scaling factor
     """
-    import numpy as np
+    
     
     # if (2+)D array is fed in, halt with error
     if ((len(Sk.shape)>1) and (Sk.shape[0] != 1 and Sk.shape[1] != 1)):
@@ -4339,7 +4376,7 @@ def wrappedCauchyPDF(theta,rho,mu):
         Returns:
             f (numpy array): evaluation of wrapped Cauchy PDF at angles in theta
     """
-    import numpy as np
+    
     
     if ((rho < 0) or (rho>1)):
         print 'rho must be between 0 and 1'
@@ -4375,7 +4412,7 @@ def nandetrend(x,y):
         Returns:
             y_det (numpy array): detrended values with nans unchanged
     """
-    import numpy as np
+    
     
     # check that x and y are the same size
     if (x.size != y.size):
@@ -4435,7 +4472,7 @@ def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
         Returns:
             x_cl (numpy array): time series with spikes removed
     """
-    import numpy as np
+    
 
     N        = x.size                           # length of record
     x_cl     = np.copy(x)                       # cleaned version
@@ -4505,7 +4542,7 @@ def cleantimeseries(t,x,spikeWidth=6, P=0.9, beta=10.):
             x_cl (numpy array): time series with spikes
                             removed and detrended
     """
-    import numpy as np
+    
 
     # remove spikes
     x_nospike, n_spikes = remove_spikes(x,spikeWidth,P,beta)
@@ -4525,7 +4562,7 @@ def is_quantized(x):
         Returns:
             flag (boolean): flag if quantized
     """
-    import numpy as np
+    
         
     # parameters to detect quantization
     n_zero    = 4                   # number of allowable consecutive zeros
@@ -4637,7 +4674,7 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     """
     import matplotlib as mpl
     import matplotlib.pyplot as plt
-    import numpy as np
+    
     
     cdict = {
         'red': [],

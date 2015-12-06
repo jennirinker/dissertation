@@ -26,14 +26,20 @@ with open(raw_field_fpath,'r') as f:
 uniq_fname = 'FT2_E05_C01_R00001_D20120119_T2330_TR'
 csv_list   = [fname for fname in os.listdir(raw_dir) if uniq_fname in fname]
 
+# initialize 10-minute dictionaries (3 for 30-minute records)
+dict_10mins = [{},{},{}]
+
 # for raw files 1 through 4
 for i_f in range(1):
+    
+    # get filename and path to file
     csv_fname = csv_list[i_f]
     csv_fpath = os.path.join(raw_dir,csv_fname)
     
+    # extract list of raw fieldnames from list of all fieldnames
     raw_fields = raw_fields_all[i_f]
     
-    # interpolate raw data to 30 min exactly
+    # interpolate all raw data to 30 min exactly (even unused data)
 #    raw_data = np.genfromtxt(csv_fpath,delimiter=',')
     int_data = np.empty((t_30min.size,raw_data.shape[1]))
     nt_raw   = raw_data.shape[0]
@@ -43,8 +49,20 @@ for i_f in range(1):
         int_data[:,i_field] = np.interp(t_30min,
                                         t_raw,raw_data[:,i_field])
     
-    # for each 10-minute section
+    # split 30-min data into 10-minute sections
+    n_raw_10min = nt_raw/3.
+    n_int_10min = 600./dt
     
+    # save used raw and interpolated data
+    for i_t in range(3):
+        raw_data_10min = raw_data[(i_t*n_raw_10min):(i_t+1)*n_raw_10min]
+        int_data_10min = int_data[(i_t*n_int_10min):(i_t+1)*n_int_10min]
+        for i_field in range(len(raw_fields)):
+            field = raw_fields[i_field]
+            field_int = field.replace('raw','int')
+            if ('unused' not in field):
+                dict_10mins[i_t][field]     = raw_data_10min[:,i_field]
+                dict_10mins[i_t][field_int] = int_data_10min[:,i_field]
 
     # rotate sonic data
 
