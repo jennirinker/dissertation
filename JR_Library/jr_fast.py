@@ -153,3 +153,281 @@ def WriteFAST7InputsOne(tmpl_dir,turb_name,wind_fname,
                 i_line += 1
                 
     return
+    
+def CreateFAST7Dict(fast_fpath):
+    """ Build and save FAST 7 Python dictionary from input file
+    
+        Args:
+            fast_fpath (string): path to .fst file
+            
+        Returns:
+            turb_dict (dictionary): dictionary of turbine parameters
+    """
+    
+    # ensure path is to a .fst file 
+    if not fast_fpath.endswith('.fst'):
+        err_str = 'Path {:s} is not to a FAST 7 input file'.format(fast_fpath)
+        ValueError(err_str)
+        
+    # change directories to turbine directory
+    turb_dir = os.path.dirname(fast_fpath)
+    os.chdir(turb_dir)
+    
+    # ====================== initialize dictionary ============================
+    turb_dict = {}
+    turb_dict['TurbName'] = os.path.basename(fast_fpath)
+    turb_dict['TurbDir']  = turb_dir
+    
+    # ==================== read data from .fst file ===========================
+    with open(fast_fpath,'r') as f:
+        
+        # read first four lines manually
+        f.readline()
+        f.readline()
+        turb_dict['FstCmt1'] = f.readline().rstrip('\n')
+        turb_dict['FstCmt2'] = f.readline().rstrip('\n')
+        
+        # read up to OutList automatically
+        value = ''
+        while ( value != 'OutList'):
+            line = f.readline()
+            
+            # if line doesn't start with dashes, it is a parameter
+            if ( line[:2] != '--' ):
+                # convert to float if number
+                try:
+                    value = float(line.split()[0])
+                # otherwise remove quotes if present
+                except ValueError:
+                    value = line.split()[0].rstrip('\"').lstrip('\"')
+                key   = line.split()[1]
+                turb_dict[key] = value
+
+        # read OutList automatically but save differently than above
+        OutList = []
+        line = f.readline()
+        while ( line[:3] != 'END' ):
+            OutList.append(line)
+            line = f.readline()
+        turb_dict['OutList'] = OutList
+        
+    # ============== read data from platform file if used =====================
+    if turb_dict['PtfmModel']:
+        with open(turb_dict['PtfmFile'],'r') as f:
+            
+            # read first four lines manually
+            f.readline()
+            f.readline()
+            line = f.readline().rstrip('\n')
+            turb_dict['PtfmCmt'] = line
+            
+            # read remaining lines automatically
+            line = f.readline().rstrip('\n')
+            while ( line ):
+                
+                # if line doesn't start with dashes, it's a parameter
+                if ( line[:2] != '--' ):
+                    # convert to float if number
+                    try:
+                        value = float(line.split()[0])
+                    # remove quotes if present
+                    except ValueError:
+                        value = line.split()[0].rstrip('\"').lstrip('\"')
+                    key   = line.split()[1]
+                    turb_dict[key] = value
+                
+                line = f.readline().rstrip('\n')
+         
+    # =================== read data from tower file ===========================
+    with open(turb_dict['TwrFile'],'r') as f:
+        
+        # read first four lines manually
+        f.readline()
+        f.readline()
+        line = f.readline().rstrip('\n')
+        turb_dict['TwrCmt'] = line
+        
+        # read to HtFract automatically
+        value = ''
+        while ( value != 'HtFract'):
+            line = f.readline()
+            
+            # if line doesn't start with dashes, it is a parameter
+            if ( line[:2] != '--' ):
+                # convert to float if number
+                try:
+                    value = float(line.split()[0])
+                # otherwise remove quotes if present
+                except ValueError:
+                    value = line.split()[0].rstrip('\"').lstrip('\"')
+                key   = line.split()[1]
+                turb_dict[key] = value
+        f.readline()
+        
+        # read distributed tower properties
+        twr_prop = []
+        for i_st in range(int(turb_dict['NTwInpSt'])):
+            line = f.readline()
+            twr_prop.append([float(s) for s in line.rstrip('\n').split()])
+        turb_dict['TwrDistProp'] = twr_prop
+        
+        # read remaining lines automatically
+        line = f.readline().rstrip('\n')
+        while ( line ):
+            
+            # if line doesn't start with dashes, it's a parameter
+            if ( line[:2] != '--' ):
+                # convert to float if number
+                try:
+                    value = float(line.split()[0])
+                # remove quotes if present
+                except ValueError:
+                    value = line.split()[0].rstrip('\"').lstrip('\"')
+                key   = line.split()[1]
+                turb_dict[key] = value
+            
+            line = f.readline().rstrip('\n')  
+            
+        
+    # =============== read data from furling file if used =====================
+    if ( turb_dict['Furling'] == 'True' ):
+        with open(turb_dict['FurlFile'],'r') as f:
+            
+            # read first four lines manually
+            f.readline()
+            f.readline()
+            line = f.readline().rstrip('\n')
+            turb_dict['FurlCmt'] = line
+            
+            # read remaining lines automatically
+            line = f.readline().rstrip('\n')
+            while ( line ):
+                
+                # if line doesn't start with dashes, it's a parameter
+                if ( line[:2] != '--' ):
+                    # convert to float if number
+                    try:
+                        value = float(line.split()[0])
+                    # remove quotes if present
+                    except ValueError:
+                        value = line.split()[0].rstrip('\"').lstrip('\"')
+                    key   = line.split()[1]
+                    turb_dict[key] = value
+                
+                line = f.readline().rstrip('\n')
+                
+    # =================== read data from blade files ===========================
+    for i_bl in range(1,int(turb_dict['NumBl'])+1):
+        
+        # append blade number to all blade keys to differentiate
+        bl_str = str(i_bl)
+        
+        bl_key = 'BldFile({:d})'.format(i_bl)
+        with open(turb_dict[bl_key],'r') as f:
+            
+            # read first four lines manually
+            f.readline()
+            f.readline()
+            line = f.readline().rstrip('\n')
+            turb_dict['BlCmt' + bl_str] = line
+            
+            # read to BlFract automatically
+            value = ''
+            while ( value != 'BlFract'):
+                line = f.readline()
+                
+                # if line doesn't start with dashes, it is a parameter
+                if ( line[:2] != '--' ):
+                    # convert to float if number
+                    try:
+                        value = float(line.split()[0])
+                    # otherwise remove quotes if present
+                    except ValueError:
+                        value = line.split()[0].rstrip('\"').lstrip('\"')
+                    key   = line.split()[1] + bl_str
+                    turb_dict[key] = value
+            f.readline()
+            
+            # read distributed tower properties
+            bld_prop = []
+            for i_st in range(int(turb_dict['NBlInpSt' + bl_str])):
+                line = f.readline()
+                bld_prop.append([float(s) for s in line.rstrip('\n').split()])
+            turb_dict['BldDistProp' + bl_str] = twr_prop
+            
+            # read remaining lines automatically
+            line = f.readline().rstrip('\n')
+            while ( line ):
+                
+                # if line doesn't start with dashes, it's a parameter
+                if ( line[:2] != '--' ):
+                    # convert to float if number
+                    try:
+                        value = float(line.split()[0])
+                    # remove quotes if present
+                    except ValueError:
+                        value = line.split()[0].rstrip('\"').lstrip('\"')
+                    key   = line.split()[1] + bl_str
+                    turb_dict[key] = value
+                
+                line = f.readline().rstrip('\n') 
+                
+        
+    # =================== read data from AeroDyn file ===========================
+    with open(turb_dict['ADFile'],'r') as f:
+        
+        # read first line manually
+        line = f.readline().rstrip('\n')
+        turb_dict['ADCmt'] = line
+        
+        # read to NumFoil automatically
+        key = ''
+        while ( key != 'NumFoil'):
+            line = f.readline()
+            
+            # if line doesn't start with dashes, it is a parameter
+            if ( line[:2] != '--' ):
+                # convert to float if number
+                try:
+                    value = float(line.split()[0])
+                # otherwise remove quotes if present
+                except ValueError:
+                    value = line.split()[0].rstrip('\"').lstrip('\"')
+                key   = line.split()[1]
+                turb_dict[key] = value
+        
+        # read foil files
+        foil_prop = []
+        for i_st in range(int(turb_dict['NumFoil'])):
+            line = f.readline().split()[0].lstrip('\"').rstrip('\"\n')
+            foil_prop.append(line)
+        turb_dict['ADFoils'] = foil_prop
+        
+        # read number of blade nodes
+        line = f.readline()     
+        # convert to float if number
+        try:
+            value = float(line.split()[0])
+        # otherwise remove quotes if present
+        except ValueError:
+            value = line.split()[0].rstrip('\"').lstrip('\"') 
+        key   = line.split()[1]
+        turb_dict[key] = value
+        f.readline()
+        
+        # read blade nodes
+        AD_prop = []
+        for i_bl in range(int(turb_dict['BldNodes'])):
+            line = f.readline().rstrip('\n').split()
+            row = []
+            for i_col in range(len(line)):
+                try:
+                    row.append(float(line[i_col]))
+                except ValueError:
+                    row.append(line[i_col])
+            AD_prop.append(row)
+        turb_dict['ADDistProp'] = AD_prop
+    
+    return turb_dict
+    
+    # Noise file, linearization file, ADAMS file
