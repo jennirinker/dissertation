@@ -19,14 +19,15 @@ nticks = 4
 # name of file to load
 ##dname   = '3-PDDs/TS/'
 #dname,fignum   = '5-specify_allvals/TS/',1
-#dname,fignum   = '6-allrho_newsamp/TS/',2
+dname,fignum,vsn = '6-allrho_newsamp/TS/',2,'Linux'
+#dname,fignum,vsn = '6-allrho_newsamp_Windows/TS/',3,'Windows'
 ##fname,fignum   = '5pts_NoSc',1
-#fname   = '5pts_Usr'
-dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
+fname   = '5pts_Usr'
+#dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
 #fname,fignum   = 'WP0.75A08V00_b1333_rho0.0',1
 #fname,fignum   = 'WP0.75A08V00_b1333_rho0.3',2
-fname,fignum   = 'WP0.75A08V00_b1333_afterPP',1
+#fname,fignum   = 'WP0.75A08V00_b1333_afterPP',1
 
 # save image in directory?
 saveimg = 0
@@ -167,7 +168,7 @@ ax2.loglog(f_theo,Su_theo,'r')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD [m$^2$/s$^2$/Hz]')
 plt.xlim([1e-3,1e1])
-plt.title(fname)
+plt.title('{:s} ({:s})'.format(fname,vsn))
 
 # v-spectrum
 ax5 =  plt.axes([xedge[1], yedge[1], axwidth, axheight]);

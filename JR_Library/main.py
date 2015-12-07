@@ -1297,7 +1297,10 @@ def RotateTimeSeries(x_raw):
                         [sin_phi, 0, cos_phi]])
     x_rot = np.dot(x_yaw,A_pitch)
     
-    return x_rot, x_yaw
+    # calculate yaw angle
+    yaw_theta = np.arctan2(sin_theta,cos_theta)
+    
+    return x_rot, x_yaw, yaw_theta
     
 
 # %%============================================================================

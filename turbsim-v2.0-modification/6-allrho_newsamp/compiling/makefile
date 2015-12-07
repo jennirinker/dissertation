@@ -1,6 +1,6 @@
 #================================================================================#
 # This makefile created by B. Jonkman on 6-Apr-2015,                             #
-# adapted from FAST v8.10.00.                                                    #
+# adapted from FAST v8.10.00.     												 #
 # (c) 2015 National Renewable Energy Laboratory                                  #
 #                                                                                #
 # This makefile has been tested on Windows 7 with gfortran.                      #
