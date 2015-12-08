@@ -17,13 +17,13 @@ header_line = 0                     # line number for file header
 fields_line = 1                     # line number for data fields
 units_line  = 2                     # line number for units
 data_line   = 4                     # line number for start of data
-N           = jr.datasetSpecs('PM06')[0]
+N           = jr.datasetSpecs('CM06')[0]
 
 # specify drive location
 ext_drive = 'G:'
 
 # flags to process intermediate, rewrite processed
-proc_intr = 1
+proc_intr = 0
 proc_proc = 1
 
 # define base directory for intermediate data
@@ -31,7 +31,7 @@ baseraw = os.path.join(ext_drive,'data\\plaine-morte_raw\\' + \
     'CM 2006\\Data')
 baseintr = os.path.join(ext_drive,'data\\plaine-morte_raw\\' + \
     'CM 2006\\intermediate_jr')
-baseproc = os.path.join(ext_drive,'data\\plaine-morte\\PM06')
+baseproc = os.path.join(ext_drive,'data\\plaine-morte\\CM06')
 
 def timestr2datetime(time_str):
     """ Convert string time to datetime structure """
@@ -239,6 +239,7 @@ if proc_proc:
                         
                         # loop through all files
                         save_dict = {}
+                        save_dict['name'] = save_fname
                         for i_file in range(len(file_list)):
                             ufname = file_list[i_file]
                             
