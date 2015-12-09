@@ -54,6 +54,8 @@ if (__name__ == '__main__'):
     # save output
     if save_data:
         foutname = dataset + '-metadata.mat'
+        foutpath = os.path.join('C:\\Users\\jrinker\\Dropbox\\' + \
+                                    'research\\processed_data',foutname)
         mdict             = {}
         mdict['fields']   = fields
         mdict['metadata'] = metadata
