@@ -23,8 +23,8 @@ basedir = jr.getBasedir(dataset)
 n_t, dt, IDs  = jr.datasetSpecs(dataset)      # sampling heights
 
 # load test structure
-fname = '03_21_2006_1400_TS_WND.mat'
-fpath = os.path.join(basedir,'2006\\03\\21',fname)
+fname = '02_04_2006_1230_TS_WND.mat'
+fpath = os.path.join(basedir,'2006\\02\\04',fname)
 struc_hf = scio.loadmat(fpath)
 
 #grp_warning = struc['grp_warning_1(1)']
@@ -34,9 +34,9 @@ struc_hf = scio.loadmat(fpath)
 #if (perc_healthy >= 0.95):
     
 #field = 'Sonic_T'
-field = 'Humidity'
+#field = 'Humidity'
 #field = 'Grp_Warning'
-ID = 12
+ID = 4
 
 #outdict  = jr.loadtimeseries(dataset,field,ID,struc_hf)
 #t = outdict['time']
@@ -51,11 +51,15 @@ ID = 12
 #plt.plot(t,x_cl,label='stored clean')
 #plt.legend()
 
-
+md_fields = jr.metadataFields(dataset)
 outdict = jr.calculatefield(dataset,struc_hf,ID)
+row = jr.struc2metadata(dataset,struc_hf,ID)
 
-for key, value in sorted(outdict.items()):
-    print('{:20s} {:.3f}'.format(key,outdict[key]))
+for i_field in range(len(md_fields)):
+    key = md_fields[i_field]
+    print('{:20s} {:15.3f} {:15.3f}'.format(key,
+                  outdict[key],
+                  row[i_field]))
 
 #print()
 

@@ -11,24 +11,26 @@ import json, os, sys
 
 BldModesInp = 0
 TwrModesInp = 0
-BladeInp    = 1
+BladeInp    = 0
 ADInp       = 1
-TowerInp    = 1
-FASTInp     = 1
-PitchInp    = 1
+TowerInp    = 0
+FASTInp     = 0
+PitchInp    = 0
 DISCONInp   = 0
 
 # define turbine name
-#TName,turb_id = 'WP0.75A08V00','WP0.75A08V00'
-#TName,turb_id = 'WP0.75A08V00','WP0.75A08V00_newGBR'
-TName,turb_id = 'WP0.75A08V00','WP0.75A08V00_stifftwr'
+TName = 'WP0.75A08V00'
 #TName = 'WP1.5A08V03'
 #TName = 'WP3.0A02V02'
 #TName = 'WP5.0A04V00'
 
 # specify the directory to write the files to
 turb_dir = os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-        'dissertation\\FAST_models\\FAST7',turb_id)
+        'dissertation\\FAST_models\\FAST7',TName)
+        
+# specify turbine version if necessary
+#turb_dir += '_newGBR'
+#turb_dir += '_stifftwr'
 
 # load turbine model
 fTDictName = os.path.join(turb_dir,'parameters',TName+'_Dict.dat')
@@ -36,7 +38,7 @@ with open(fTDictName,'r') as f:
     TurbDict = json.load(f)
 
 # interpolate blade/tower structural parameters and aerodynamic properties
-BldInterp, ADInterp = jr.InterpolateRotorParams(TurbDict)
+#BldInterp, ADInterp = jr.InterpolateRotorParams(TurbDict)
 
 
 if BldModesInp:
@@ -137,7 +139,7 @@ if FASTInp:
     fpath_out  = os.path.join(turb_dir,'templates',fname_out)
     
     # write FAST file
-    jr.writeFASTTemplate(fpath_temp,fpath_out,TurbDict)
+    jr.WriteFASTTemplate(fpath_temp,fpath_out,TurbDict)
     
     sys.stdout.write('done.\n')
                 

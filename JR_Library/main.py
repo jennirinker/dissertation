@@ -602,14 +602,14 @@ def metadataFields(dataset):
               'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
               'MO_Length','MO_Length_virt']
     elif (dataset == 'CM06'):
-        fields = ['Record_Time','Processed_Time','Anem_Index','Sonic_Cup', \
-              'Sonic_Direction', 'Sonic_Inflow', 'Specific_Humidity',\
+        fields = ['Record_Time','Processed_Time','ID', \
+              'Sonic_Cup', 'Sonic_Direction', 'Specific_Humidity',\
               'Mean_Wind_Speed', \
               'Sigma_u','Concentration_u','Location_u', \
               'Sigma_v','Concentration_v','Location_v', \
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','Tau_u','Tau_v','Tau_w', \
-              'MO_Length','MO_Length_virt']
+              'MO_Length','MO_Length_virt','Tbar_K','Tbar_K']
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -700,7 +700,7 @@ def datasetSpecs(dataset):
     elif (dataset == 'CM06'):
         n_t     = 12000
         dt      = 0.05
-        IDs     = range(12)
+        IDs     = range(1,13)
     elif (dataset == 'texastech'):
         n_t     = 30000
         dt      = 0.02
@@ -869,13 +869,13 @@ def listmetadata(dataset,i,list_mats):
     import os
     
 
-    if (dataset in ['NREL','fluela']):
-        heights  = datasetSpecs(dataset)[2]             # sampling heights
+    if (dataset in ['NREL','fluela','CM06']):
+        IDs      = datasetSpecs(dataset)[2]             # instrument IDs
         basedir  = getBasedir(dataset)                  # base directory
         fpath    = os.path.join(basedir,list_mats[i])   # path to mat file
         n_fields = len(metadataFields(dataset))         # list wind parameters
         
-        # try to load the structure, return arrays of NaNs if failed
+        # try to load the high-frequency structure, return arrays of NaNs if failed
         try:
             struc = scio.loadmat(fpath)
         except Exception as e:
@@ -883,14 +883,14 @@ def listmetadata(dataset,i,list_mats):
             print('  ' + str(e))
             parms    = np.empty(n_fields)
             parms[:] = np.nan
-            return [parms for _ in range(heights.size)]
+            return [parms for _ in range(IDs.size)]
 
         # loop through sonic heights
         h_parms = []
-        for height in heights:
+        for ID in IDs:
             
             # calculate parameters
-            row = struc2metadata(dataset,struc,height)
+            row = struc2metadata(dataset,struc,ID)
 
             # append to list of structure parametsr
             h_parms.append(row)
@@ -902,11 +902,11 @@ def listmetadata(dataset,i,list_mats):
     return h_parms
 
 
-def struc2metadata(dataset,struc,height):
+def struc2metadata(dataset,struc_hf,ID):
     """ Calculate metadata parameters from high-frequency .mat
 
         Args:
-            struc (dictionary): 20-Hz structure
+            struc_hf (dictionary): high-frequency structure
             height (int): measurement height
 
         Returns:
@@ -914,7 +914,7 @@ def struc2metadata(dataset,struc,height):
     """
     
 
-    if (dataset in ['NREL','fluela']):
+    if (dataset in ['NREL','fluela','CM06']):
 
         # get list of metadata fieldnames
         md_fields = metadataFields(dataset)
@@ -923,37 +923,16 @@ def struc2metadata(dataset,struc,height):
         parameters = np.empty(len(md_fields))
 
         # calculate all fields
-        outdict = calculatefield(dataset,struc,height)
+        outdict = calculatefield(dataset,struc_hf,ID)
 
         # assign fields to location in output array if dictionary is non-empty
-        if (len(outdict) > 0):
+        if outdict:
             for i in range(len(md_fields)):
                 field = md_fields[i]
                 parameters[i] = outdict[field]
         else:
             parameters[:] = np.nan
         
-    elif (dataset == 'CM06'):
-        
-        # get list of metadata fieldnames
-        md_fields = metadataFields(dataset)
-
-        # intialize array of metadata parameters
-        parameters = np.empty(len(md_fields))
-
-        # *** ENDED HERE
-
-        # calculate all fields
-        outdict = calculatefield(dataset,struc,height)
-
-        # assign fields to location in output array if dictionary is non-empty
-        if (len(outdict) > 0):
-            for i in range(len(md_fields)):
-                field = md_fields[i]
-                parameters[i] = outdict[field]
-        else:
-            parameters[:] = np.nan
-            
     else:
         errStr = 'Dataset {} is not coded'.format(dataset)
         raise AttributeError(errStr)
@@ -1405,9 +1384,9 @@ def calculatefield(dataset,struc_hf,ID):
         for i in range(len(fields)):
             
             # load time series for that field, measurement height
-            field = fields[i]
-            ts_ID = ts_IDs[i]
-            outdict  = loadtimeseries(dataset,field,ts_ID,struc_hf)
+            field   = fields[i]
+            ts_ID   = ts_IDs[i]
+            outdict = loadtimeseries(dataset,field,ts_ID,struc_hf)
                         
             # save time series if it no flags
             if (len(outdict['flags']) == 0):
@@ -1423,7 +1402,7 @@ def calculatefield(dataset,struc_hf,ID):
                 
         # if all time series are clean
         if clean:
-            
+                        
             # put all time series in variables
             t     = np.arange(N)*dt                 # time vector
             ux    = time_series[0,:]                # Sonic_x
@@ -1437,9 +1416,8 @@ def calculatefield(dataset,struc_hf,ID):
             u, v, w = RotateTimeSeries(ux,uy,uz)
             
             # get variables necessary for later calculations
-            #fname     = struc_hf['name']
-            #rec_time  = fname2time(dataset,fname)
-            rec_time  = 0
+            fname     = struc_hf['name'][0]
+            rec_time  = fname2time(dataset,fname)
             T_s_K     = C2K(T_s)
             up        = nandetrend(t,u)
             vp        = nandetrend(t,v)
@@ -1593,11 +1571,19 @@ def RotateTimeSeries(ux,uy,uz):
             x_rot (numpy array): [n_t x 3] array of rotated data (yaw+pitch)
             x_yaw (numpy array): [n_t x 3] array of rotated data (yaw)
     """
-    
+        
     # combine velocities into array
     x_raw = np.concatenate((ux.reshape(ux.size,1),
                             uy.reshape(ux.size,1),
                             uz.reshape(ux.size,1)),axis=1)
+    
+    # interpolate out any NaN values
+    for i_comp in range(x_raw.shape[1]):
+        x               = x_raw[:,i_comp]
+        idcs_all        = np.arange(x.size)
+        idcs_notnan     = np.logical_not(np.isnan(x))
+        x_raw[:,i_comp] = np.interp(idcs_all,
+                            idcs_all[idcs_notnan],x[idcs_notnan])
         
     # rotate through yaw angle
     hyp = np.sqrt(np.mean(x_raw[:,0])**2 + np.mean(x_raw[:,1])**2)
@@ -2861,13 +2847,13 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
 # FAST ANALYSIS
 # =============================================================================
 
-def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
+def CreateTurbineDictionary(turb_name,turb_dir,BModes=1,TModes=1):
     """ Convert information in text files to dictionary containing all of the
         turbine parameters necessary to create all FAST files for a WindPACT 
         turbine
         
         Args:
-            TName (string): turbine name
+            turb_name (string): turbine name
             turb_dir (string): path to turbine directory
             BModes (Boolean): whether to get blade modes from 
                               Modes v22 output, opt.
@@ -2881,219 +2867,145 @@ def createTurbineDictionary(TName,turb_dir,BModes=1,TModes=1):
     
 
     print('\nWriting turbine dictionary' + \
-        ' for {:s} to {:s}'.format(TName,turb_dir))
+        ' for {:s} to {:s}'.format(turb_name,turb_dir))
     
     # ===================== Initialize turbine dictionary =====================
     TurbDict = {}
-    TurbDict['TName'] = TName
+    TurbDict['TurbName'] = turb_name
     
-    # ==================== Create and add rotor dictionary ====================
-    RotorDict = {}
+    # ========================= Add blade properties ==========================
     
     # load rotor data from text file
-    n_skip = 9                              # specific for text file
-    fRotName = os.path.join(turb_dir,'parameters\\'+TName+'_Rotor.txt')
-    with open(fRotName,'r') as f:
-        RotDiam        = [float(x) for x in f.readline().strip('\n').split()][0]
-        HubDiam        = [float(x) for x in f.readline().strip('\n').split()][0]
-        Airfoils       = [s.split('.')[0] for s in f.readline().strip('\n').split()]
-        Damping        = [float(x) for x in f.readline().strip('\n').split()]
-        BldStats       = [float(x) for x in f.readline().strip('\n').split()]
-        ADStats        = [float(x) for x in f.readline().strip('\n').split()]
-        AirDens        = [float(x) for x in f.readline().strip('\n').split()][0]
-        RotIner        = [float(x) for x in f.readline().strip('\n').split()][0]
-        BldSchedFields = f.readline().strip('\n').strip('\t').split('\t')
-    BldSched = np.genfromtxt(fRotName,skip_header=n_skip).tolist()
-    
-    # convert stations in %R to x/L
-    BldStats = np.array(BldStats)
-    ADStats  = np.array(ADStats)
-    BldEdges = ((BldStats-(HubDiam/RotDiam))/(1-(HubDiam/RotDiam))).tolist()
-    ADEdges  = ((ADStats-(HubDiam/RotDiam))/(1-(HubDiam/RotDiam))).tolist()
-    
+    fBldName = os.path.join(turb_dir,'parameters\\'+turb_name+'_Blades.txt')
+    with open(fBldName,'r') as f:
+        key,i_line = '',0
+        while (key != 'DistBldProps'):
+            row = f.readline().strip('\n').rstrip().split()
+            key = row[0]
+            if (key == 'DistBldProps'):
+                values = row[1:]
+            else:
+                values = [float(x) for x in row[1:]]
+                
+            # if list is single element, pull out that element
+            if (len(values) == 1):
+                values = values[0]
+                
+            # save extracted value
+            TurbDict[key] = values
+            i_line += 1
+            
+    # calculate blade schedule from remaining table
+    n_skip = i_line
+    BldSched = np.genfromtxt(fBldName,skip_header=n_skip).tolist()
+        
     # load mode shape data from Modes output if available
-    fModesName = os.path.join(turb_dir,'modes\\'+TName+'_BldModes.mod')
-    RotModes = np.empty((3,5))
-    RotModes[:] = np.nan
+    fModesName = os.path.join(turb_dir,'modes\\'+turb_name+'_BldModes.mod')
+    BldModes = np.empty((3,5))
+    BldModes[:] = np.nan
     if BModes:
         with open(fModesName,'r') as f:
             i_line = 0
             for line in f:
                 if ((i_line >= 20) and (i_line <= 24)):
-                    RotModes[0,i_line-20] = float(line.split()[1])
-                    RotModes[1,i_line-20] = float(line.split()[2])
+                    BldModes[0,i_line-20] = float(line.split()[1])
+                    BldModes[1,i_line-20] = float(line.split()[2])
                 elif ((i_line >= 33) and (i_line <= 37)):
-                    RotModes[2,i_line-33] = float(line.split()[1])
+                    BldModes[2,i_line-33] = float(line.split()[1])
                 i_line += 1
-    RotModes = RotModes.tolist()
+    BldModes = BldModes.tolist()
     
-    # save values in blade dictionary
-    RotorDict['Airfoils']       = Airfoils
-    RotorDict['BldSched']       = BldSched
-    RotorDict['BldSchedFields'] = BldSchedFields
-    RotorDict['Damping']        = Damping
-    RotorDict['RotDiam']        = RotDiam
-    RotorDict['HubDiam']        = HubDiam
-    RotorDict['RotModes']       = RotModes
-    RotorDict['BldEdges']       = BldEdges
-    RotorDict['ADEdges']        = ADEdges
-    RotorDict['AirDens']        = AirDens
-    RotorDict['RotIner']        = RotIner
+    # save values in dictionary
+    TurbDict['BldFile']        = turb_name + '_Blade.dat'
+    TurbDict['BldModes']       = BldModes
+    TurbDict['BldSched']       = BldSched
+        
+    # ==================== Add AeroDyn properties ==================
     
-    # add blade dictionary to turbine dictionary
-    TurbDict['Rotor'] = RotorDict
+    # load AeroDyn data from text file
+    fADName = os.path.join(turb_dir,'parameters\\'+turb_name+'_AeroDyn.txt')
+    with open(fADName,'r') as f:
+        key,i_line = '',0
+        while (key != 'ADSchedFields'):
+            row = f.readline().strip('\n').rstrip().split()
+            key = row[0]
+            if (key == 'FoilNm'):
+                values = [s.split('.')[0] for s in row[1:]]
+            elif (key == 'ADSchedFields'):
+                values = [s.split('.')[0] for s in row[1:]]
+            else:
+                values = [float(x) for x in row[1:]]
+                
+            # if list is single element, pull out that element
+            if (len(values) == 1):
+                values = values[0]
+                
+            # save extracted value
+            TurbDict[key] = values
+            i_line += 1
+            
+    # calculate AeroDyn schedule from remaining table
+    n_skip             = i_line
+    ADSched            = np.genfromtxt(fADName,skip_header=n_skip).tolist()
     
-    # ====================== Create and add nacelle dictionary ======================
-    NacDict = {}
+    # save variables
+    TurbDict['ADFile']  = turb_name + '_AD.dat'
+    TurbDict['ADSched'] = ADSched
+        
+    # ======================== Add nacelle properties =========================
     
     # load nacelle data from text file
-    fNacName = os.path.join(turb_dir,'parameters\\'+TName+'_Nacelle.txt')
+    fNacName = os.path.join(turb_dir,'parameters\\'+turb_name+'_Nacelle.txt')
     with open(fNacName,'r') as f:
-        RatedTipSpeed = [float(x) for x in f.readline().strip('\n').split()][0]
-        HubHeight     = [float(x) for x in f.readline().strip('\n').split()][0]
-        Overhang      = [float(x) for x in f.readline().strip('\n').split()][0]
-        MainFrameCG   = [float(x) for x in f.readline().strip('\n').split()]
-        GenShaftCG    = [float(x) for x in f.readline().strip('\n').split()]
-        RotShaftCG    = [float(x) for x in f.readline().strip('\n').split()]
-        RotShaftTilt  = [float(x) for x in f.readline().strip('\n').split()][0]
-        MainFrameMass = [float(x) for x in f.readline().strip('\n').split()][0]
-        GenShaftMass  = [float(x) for x in f.readline().strip('\n').split()][0]
-        RotShaftMass  = [float(x) for x in f.readline().strip('\n').split()][0]
-        ConingAngle   = [float(x) for x in f.readline().strip('\n').split()][0]
-        HubMass       = [float(x) for x in f.readline().strip('\n').split()][0]
-        NacYIner      = [float(x) for x in f.readline().strip('\n').split()][0]
-        HubIner       = [float(x) for x in f.readline().strip('\n').split()][0]
-        RatedGenRPM   = [float(x) for x in f.readline().strip('\n').split()][0]
-        GenTorsSprng  = [float(x) for x in f.readline().strip('\n').split()][0]
-        GenEff        = [float(x) for x in f.readline().strip('\n').split()][0]
-        RatedPower    = [float(x) for x in f.readline().strip('\n').split()][0]
-        GenInerLSS    = [float(x) for x in f.readline().strip('\n').split()][0]
-        DrTrainDamp   = [float(x) for x in f.readline().strip('\n').split()][0]
-    
-    # save values in blade dictionary
-    NacDict['RatedTipSpeed'] = RatedTipSpeed
-    NacDict['HubHeight']     = HubHeight
-    NacDict['Overhang']      = Overhang
-    NacDict['MainFrameCG']   = MainFrameCG
-    NacDict['GenShaftCG']    = GenShaftCG
-    NacDict['RotShaftCG']    = RotShaftCG
-    NacDict['MainFrameMass'] = MainFrameMass
-    NacDict['GenShaftMass']  = GenShaftMass
-    NacDict['RotShaftMass']  = RotShaftMass
-    NacDict['RotShaftTilt']  = RotShaftTilt
-    NacDict['ConingAngle']   = ConingAngle
-    NacDict['HubMass']       = HubMass
-    NacDict['NacYIner']      = NacYIner
-    NacDict['HubIner']       = HubIner
-    NacDict['RatedGenRPM']   = RatedGenRPM
-    NacDict['GenTorsSprng']  = GenTorsSprng
-    NacDict['GenEff']        = GenEff
-    NacDict['RatedPower']    = RatedPower
-    NacDict['GenInerLSS']    = GenInerLSS
-    NacDict['DrTrainDamp']   = DrTrainDamp
-    
-    # add blade dictionary to turbine dictionary
-    TurbDict['Nacelle'] = NacDict
-    
-    # ====================== Create and add tower dictionary ======================
-    TowerDict = {}
+        for line in f:
+            row = line.strip('\n').rstrip().split()
+            if row:
+                key          = row[0]
+                value        = float(row[1])
+                TurbDict[key] = value
+            
+    # ========================== Add tower properties =========================
     
     # load nacelle data from text file
-    fRotName = os.path.join(turb_dir,'parameters\\'+TName+'_Tower.txt')
-    with open(fRotName,'r') as f:
-        HHtoTop    = [float(x) for x in f.readline().strip('\n').split()][0]
-        TopDiam    = [float(x) for x in f.readline().strip('\n').split()][0]
-        TopThick   = [float(x) for x in f.readline().strip('\n').split()][0]
-        BaseDiam   = [float(x) for x in f.readline().strip('\n').split()][0]
-        BaseThick  = [float(x) for x in f.readline().strip('\n').split()][0]
-        ParaMass   = [float(x) for x in f.readline().strip('\n').split()][0]
-        TowerDens  = [float(x) for x in f.readline().strip('\n').split()][0]
-        TowerE     = [float(x) for x in f.readline().strip('\n').split()][0]
-        TowerG     = [float(x) for x in f.readline().strip('\n').split()][0]
-        TowerEdges = [float(x) for x in f.readline().strip('\n').split()]
-        TowerDamping = [float(x) for x in f.readline().strip('\n').split()]
+    fTwrName = os.path.join(turb_dir,'parameters\\'+turb_name+'_Tower.txt')
+    with open(fTwrName,'r') as f:
+        key,i_line = '',0
+        while (key != 'TwrSchedFields'):
+            row = f.readline().strip('\n').rstrip().split()
+            key = row[0]
+            if (key == 'TwrSchedFields'):
+                values = [s.split('.')[0] for s in row[1:]]
+            else:
+                values = [float(x) for x in row[1:]]
+                
+            # if list is single element, pull out that element
+            if (len(values) == 1):
+                values = values[0]
+                
+            # save extracted value
+            TurbDict[key] = values
+            i_line += 1
+            
+    # calculate tower schedule from remaining table
+    n_skip                 = i_line
+    TwrSched               = np.genfromtxt(fTwrName,skip_header=n_skip).tolist()
     
-    # load mode shape data from Modes output if available
-    fModesName = os.path.join(turb_dir,'modes\\'+TName+'_TwrModes.mod')
-    TwrModes  = np.empty((2,5))
-    TwrModes[:] = np.nan
-    if TModes:
-        with open(fModesName,'r') as f:
-            i_line = 0
-            for line in f:
-                if ((i_line >= 14) and (i_line <= 18)):
-                    TwrModes[0,i_line-14] = float(line.split()[1])
-                    TwrModes[1,i_line-14] = float(line.split()[2])
-                i_line += 1
-    TwrModes = TwrModes.tolist()
+    # save variables
+    TurbDict['TwrFile']  = turb_name + '_Tower.dat'
+    TurbDict['TwrSched']   = TwrSched
+        
+    # ======================== Add control properties =========================
     
-    # save values in blade dictionary
-    TowerDict['HHtoTop']    = HHtoTop
-    TowerDict['TopDiam']    = TopDiam
-    TowerDict['TopThick']   = TopThick
-    TowerDict['BaseDiam']   = BaseDiam
-    TowerDict['BaseThick']  = BaseThick
-    TowerDict['ParaMass']   = ParaMass
-    TowerDict['TowerDens']  = TowerDens
-    TowerDict['TowerE']     = TowerE
-    TowerDict['TowerG']     = TowerG
-    TowerDict['TowerEdges'] = TowerEdges
-    TowerDict['TwrModes']   = TwrModes
-    TowerDict['TowerDamping'] = TowerDamping
-    
-    # add blade dictionary to turbine dictionary
-    TurbDict['Tower'] = TowerDict    
-    
-    # ====================== Create and add control dictionary ======================
-    CntrlDict = {}
-    
-    # load nacelle data from text file
-    fCntrName = os.path.join(turb_dir,'parameters\\'+TName+'_Control.txt')
+    # load control data from text file
+    fCntrName = os.path.join(turb_dir,'parameters\\'+turb_name+'_Control.txt')
     with open(fCntrName,'r') as f:
-        MinPitchAng  = [float(x) for x in f.readline().strip('\n').split()][0]
-        MaxPitchAng  = [float(x) for x in f.readline().strip('\n').split()][0]
-        MaxPitchRate = [float(x) for x in f.readline().strip('\n').split()][0]
-        KP           = [float(x) for x in f.readline().strip('\n').split()][0]
-        KI           = [float(x) for x in f.readline().strip('\n').split()][0]
-        KD           = [float(x) for x in f.readline().strip('\n').split()][0]
-        CornerFreq   = [float(x) for x in f.readline().strip('\n').split()][0]
-        GSStartAng   = [float(x) for x in f.readline().strip('\n').split()][0]
-        GSEndAng     = [float(x) for x in f.readline().strip('\n').split()][0]
-        GSExp        = [float(x) for x in f.readline().strip('\n').split()][0]
-        PCTimeStep   = [float(x) for x in f.readline().strip('\n').split()][0]
-        VSTimeStep   = [float(x) for x in f.readline().strip('\n').split()][0]
-        CutInGenSpd  = [float(x) for x in f.readline().strip('\n').split()][0]
-        MaxTrqRate   = [float(x) for x in f.readline().strip('\n').split()][0]
-        GenTrqAlpha  = [float(x) for x in f.readline().strip('\n').split()][0]
-        MaxTrq       = [float(x) for x in f.readline().strip('\n').split()][0]
-        Rgn15Spd     = [float(x) for x in f.readline().strip('\n').split()][0]
-        Rgn3MinPitch = [float(x) for x in f.readline().strip('\n').split()][0]
-        Rgn2SlpPrc   = [float(x) for x in f.readline().strip('\n').split()][0]
-    
-    # save values in control dictionary
-    CntrlDict['MinPitchAng']  = MinPitchAng
-    CntrlDict['MaxPitchAng']  = MaxPitchAng
-    CntrlDict['KP']           = KP
-    CntrlDict['KI']           = KI
-    CntrlDict['KD']           = KD
-    CntrlDict['CornerFreq']   = CornerFreq
-    CntrlDict['MaxPitchRate'] = MaxPitchRate
-    CntrlDict['GSStartAng']   = GSStartAng
-    CntrlDict['GSEndAng']     = GSEndAng
-    CntrlDict['GSExp']        = GSExp
-    CntrlDict['PCTimeStep']   = PCTimeStep
-    CntrlDict['VSTimeStep']   = VSTimeStep
-    CntrlDict['CutInGenSpd']  = CutInGenSpd
-    CntrlDict['MaxTrqRate']   = MaxTrqRate
-    CntrlDict['GenTrqAlpha']  = GenTrqAlpha
-    CntrlDict['MaxTrq']       = MaxTrq
-    CntrlDict['Rgn15Spd']     = Rgn15Spd
-    CntrlDict['Rgn3MinPitch'] = Rgn3MinPitch
-    CntrlDict['Rgn2SlpPrc']   = Rgn2SlpPrc
-    
-    # add control dictionary to turbine dictionary
-    TurbDict['Control'] = CntrlDict
-    
+        for line in f:
+            row = line.strip('\n').rstrip().split()
+            if row:
+                key          = row[0]
+                value        = float(row[1])
+                TurbDict[key] = value
+                
     return TurbDict
 
 def InterpolateRotorParams(TurbDict): 
@@ -3394,176 +3306,111 @@ def writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict):
     """ AeroDyn input file for FAST v7.02
     """
     
-    
     # calculate file-specific vales
-    TName          = TurbDict['TName']
-    title_str      = 'FAST v7.02 AeroDyn file for turbine \"{:s}\" (JRinker, Duke University)'.format(TName)
-    Airfoils       = TurbDict['Rotor']['Airfoils']
-    HubHeight      = TurbDict['Nacelle']['HubHeight']
-    RotShaftTilt   = TurbDict['Nacelle']['RotShaftTilt']
-    Overhang       = TurbDict['Nacelle']['Overhang']
-    WindHH         = HubHeight - np.abs(Overhang)* \
-                                        np.sin(RotShaftTilt*np.pi/180.)
-    
-    # get interpolated aerodynamic properties
-    ADInterp = InterpolateRotorParams(TurbDict)[1]
+    TurbName       = TurbDict['TurbName']
+    Comment1       = 'FAST v7.02 AeroDyn file for turbine ' + \
+                        '\"{:s}\" (JRinker, Duke University)'.format(TurbName)
+    WindHH         = TurbDict['TowerHt'] + TurbDict['Twr2Shft'] + \
+                        TurbDict['OverHang']*np.sin(TurbDict['ShftTilt']*np.pi/180.)
     
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
         with open(fpath_out,'w') as f_write:
             i_line = 0
-            for line in f_temp:
-                if i_line == 0:
-                    f_write.write(line.format(title_str))
-                elif i_line == 10:
-                    f_write.write(line.format(WindHH))
-                elif i_line == 17:
-                    f_write.write(line.format(len(Airfoils)))
-                elif i_line == 18:
-                    AFPath = 'AeroData/' + Airfoils[0] + '.dat'
-                    f_write.write(line.format(AFPath))
-                elif i_line == 19:
-                    for i_AF in range(1,len(Airfoils)):
-                        AFPath = 'AeroData/' + Airfoils[i_AF] + '.dat'
-                        f_write.write(line.format(AFPath))
-                elif i_line == 20:
-                    f_write.write(line.format(len(ADInterp)))
-                elif i_line == 22:
-                    for i_AD in range(len(ADInterp)):
-                        f_write.write(line.format(*ADInterp[i_AD,:]))
+            
+            # read each line in template file
+            for r_line in f_temp:
+                
+                # print comment lines
+                if (i_line == 0):
+                    w_line = r_line.format(Comment1)
+                    f_write.write(w_line)
+                    
+                # print key to line if number identifier present
+                elif ('{:' in r_line):
+                    field = r_line.split()[1]
+                    
+                    # try to load value from turbine dictionary
+                    try:
+                        w_line = r_line.format(TurbDict[field])
+                        
+                    # if key isn't present, check a few conditions
+                    except KeyError:
+                        if (field == 'HH'):
+                            w_line = r_line.format(WindHH)
+                            f_write.write(w_line)
+                        elif (field == 'NumFoil'):
+                            # *** ENDED HERE
+                            NumFoil = len(TurbDict['FoilNm'])
+                            w_line = r_line.format(NumFoil)
+                            f_write.write(w_line)
+                            r_line = f.readlin()
+#                            for i_foil in range()
+                        else:
+                            print(field)
+                            w_line = r_line
+                            f_write.write(w_line)
+                    
+                # copy all other lines without modification
                 else:
-                    f_write.write(line)
-                i_line += 1 
+                    w_line = r_line
+                    f_write.write(w_line)
+                i_line += 1  
     
     return
     
-def writeFASTTemplate(fpath_temp,fpath_out,TurbDict):
+def WriteFASTTemplate(fpath_temp,fpath_out,TurbDict):
     """ FAST input file for FAST v7.02
     """
     
+    # get list of dictionary fields
+    DictFields = TurbDict.keys()
     
-    # load needed values
-    TName         = TurbDict['TName']
-    GenRatedRPM   = TurbDict['Nacelle']['RatedGenRPM']
-    RotorRad      = TurbDict['Rotor']['RotDiam']/2
-    HubRad        = TurbDict['Rotor']['HubDiam']/2
-    Overhang      = TurbDict['Nacelle']['Overhang']
-    MainFrameCG   = TurbDict['Nacelle']['MainFrameCG']
-    GenShaftCG    = TurbDict['Nacelle']['GenShaftCG']
-    RotShaftCG    = TurbDict['Nacelle']['RotShaftCG']
-    MainFrameMass = TurbDict['Nacelle']['MainFrameMass']
-    GenShaftMass  = TurbDict['Nacelle']['GenShaftMass']
-    RotShaftMass  = TurbDict['Nacelle']['RotShaftMass']
-    HHtoTT        = TurbDict['Tower']['HHtoTop']
-    HubHeight     = TurbDict['Nacelle']['HubHeight']
-    RotShaftTilt  = TurbDict['Nacelle']['RotShaftTilt']
-    ConingAngle   = TurbDict['Nacelle']['ConingAngle']
-    HubMass       = TurbDict['Nacelle']['HubMass']
-    NacYIner      = TurbDict['Nacelle']['NacYIner']
-    GenInerLSS    = TurbDict['Nacelle']['GenInerLSS']
-    HubIner       = TurbDict['Nacelle']['HubIner']
-    GenEff        = TurbDict['Nacelle']['GenEff']
-    RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
-    GenTorsSprng  = TurbDict['Nacelle']['GenTorsSprng']
-    RatedPower    = TurbDict['Nacelle']['RatedPower']
-    MinPitchAng   = TurbDict['Control']['MinPitchAng']
-    RotIner       = TurbDict['Rotor']['RotIner']
-    DTDamp        = TurbDict['Nacelle']['DrTrainDamp']
-    GenTrqAlpha   = TurbDict['Control']['GenTrqAlpha']
-
-    # calculate input parameters
-    title_str1 = 'FAST v7.02 input file for turbine \"{:s}\"'.format(TName)
-    title_str2 = 'Generated by Jennifer Rinker (Duke University) based on WindPACT Excel input files'.format(TName)
-    NacCMxn = (MainFrameCG[0]*MainFrameMass + GenShaftCG[0]*GenShaftMass + \
-                RotShaftCG[0]*RotShaftMass)/(MainFrameMass + GenShaftMass + \
-                RotShaftMass)
-    NacCMyn = (MainFrameCG[1]*MainFrameMass + GenShaftCG[1]*GenShaftMass + \
-                RotShaftCG[1]*RotShaftMass)/(MainFrameMass + GenShaftMass + \
-                RotShaftMass)
-    NacCMzn = (MainFrameCG[2]*MainFrameMass + GenShaftCG[2]*GenShaftMass + \
-                RotShaftCG[2]*RotShaftMass)/(MainFrameMass + GenShaftMass + \
-                RotShaftMass) + HHtoTT
-    TowerHt = HubHeight - HHtoTT
-    NacMass = MainFrameMass + GenShaftMass +  RotShaftMass
-    ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
-    GearboxRatio = GenRatedRPM/ShaftRatedRPM
-    RatedGenTrq  = RatedPower/GenEff/(GenRatedRPM*np.pi/30)
-    GenTrqAlpha  = np.floor(GenTrqAlpha*1E6)/(1E6)
-    GenInerY     = GenInerLSS/(GearboxRatio**2)
-    DTEffIner    = (RotIner*GenInerY*GearboxRatio**2)/ \
-                    (RotIner + GenInerY*GearboxRatio**2)
-    GenNatFreq   = np.sqrt(GenTorsSprng/DTEffIner)
-    GenTorsDamp  = 2*DTDamp*GenNatFreq*DTEffIner
+    # create header strings
+    turb_name     = TurbDict['TurbName']
+    Comment1 = 'FAST v7.02 input file for turbine \"{:s}\"'.format(turb_name)
+    Comment2 = 'Generated by Jennifer Rinker (Duke University) ' + \
+                'based on WindPACT Excel input files'.format(turb_name)
         
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
         with open(fpath_out,'w') as f_write:
             i_line = 0
-            for line in f_temp:
-                if i_line == 2:
-                    f_write.write(line.format(title_str1))
-                elif i_line == 3:
-                    f_write.write(line.format(title_str2))
-                elif i_line == 17:
-                    f_write.write(line.format(GenRatedRPM))
-                elif i_line == 18:
-                    f_write.write(line.format(RatedGenTrq))
-                elif i_line == 19:
-                    f_write.write(line.format(GenTrqAlpha))
-                elif i_line == 48:
-                    f_write.write(line.format(MinPitchAng*180/np.pi))
-                elif i_line == 49:
-                    f_write.write(line.format(MinPitchAng*180/np.pi))
-                elif i_line == 50:
-                    f_write.write(line.format(MinPitchAng*180/np.pi))
-                elif i_line == 77:
-                    f_write.write(line.format(RotorRad))
-                elif i_line == 78:
-                    f_write.write(line.format(HubRad))  
-                elif i_line == 82:
-                    f_write.write(line.format(Overhang)) 
-                elif i_line == 83:
-                    f_write.write(line.format(NacCMxn)) 
-                elif i_line == 84:
-                    f_write.write(line.format(NacCMyn)) 
-                elif i_line == 85:
-                    f_write.write(line.format(NacCMzn)) 
-                elif i_line == 86:
-                    f_write.write(line.format(TowerHt)) 
-                elif i_line == 87:
-                    f_write.write(line.format(HHtoTT)) 
-                elif i_line == 89:
-                    f_write.write(line.format(RotShaftTilt)) 
-                elif ((i_line >= 91) and (i_line <= 93)):
-                    f_write.write(line.format(ConingAngle)) 
-                elif i_line == 97:
-                    f_write.write(line.format(NacMass))   
-                elif i_line == 98:
-                    f_write.write(line.format(HubMass))  
-                elif i_line == 102:
-                    f_write.write(line.format(NacYIner))  
-                elif i_line == 103:
-                    f_write.write(line.format(GenInerY))  
-                elif i_line == 104:
-                    f_write.write(line.format(HubIner))
-                elif i_line == 107:
-                    f_write.write(line.format(GenEff*100))  
-                elif i_line == 108:
-                    f_write.write(line.format(GearboxRatio))  
-                elif i_line == 113:
-                    f_write.write(line.format(GenTorsSprng))  
-                elif i_line == 114:
-                    f_write.write(line.format(GenTorsDamp))  
-                elif i_line == 134:
-                    f_write.write(line.format(TName + '_Tower.dat')) 
-                elif ((i_line >= 156) and (i_line <= 158)):
-                    f_write.write(line.format(TName + '_Blade.dat')) 
-                elif i_line == 164:
-                    f_write.write(line.format(TName + '_ADAMS.dat')) 
-                elif i_line == 166:
-                    f_write.write(line.format(TName + '_Linear.dat')) 
+            
+            # read each line in template file
+            for r_line in f_temp:
+                
+                # print comment lines
+                if (i_line == 2):
+                    w_line = r_line.format(Comment1)
+                    f_write.write(w_line)
+                elif (i_line == 3):
+                    w_line = r_line.format(Comment2)
+                    f_write.write(w_line)
+                    
+                # print key to line if number identifier present
+                elif ('{:' in r_line):
+                    field = r_line.split()[1]
+                    
+                    # try to load value from turbine dictionary
+                    try:
+                        w_line = r_line.format(TurbDict[field])
+                        
+                    # if key isn't present, see if a subkey is or it's a file
+                    except KeyError:
+                        subkey = [sk for sk in DictFields if sk in field] 
+                        if subkey:
+                            w_line = r_line.format(TurbDict[subkey[0]])
+                        elif ('File' in field):
+                            w_line = r_line.format('unused')
+                        else:
+                            w_line = r_line
+                    f_write.write(w_line)
+                    
+                # copy all other lines without modification
                 else:
-                    f_write.write(line)
+                    w_line = r_line
+                    f_write.write(w_line)
                 i_line += 1   
     
     return
@@ -3572,60 +3419,33 @@ def writePitch(fpath_temp,fpath_out,TurbDict):
     """ Pitch controller input file for UserVSControl by ACH (FAST v7.02)
     """
     
-    
-    # load/calculate needed values
-    RatedTipSpeed = TurbDict['Nacelle']['RatedTipSpeed']
-    RotorRad      = TurbDict['Rotor']['RotDiam']/2
-    GenRatedRPM   = TurbDict['Nacelle']['RatedGenRPM']
-    MaxPitchAng   = TurbDict['Control']['MaxPitchAng']
-    MinPitchAng   = TurbDict['Control']['MinPitchAng']
-    GSStartAng    = TurbDict['Control']['GSStartAng']
-    GSEndAng      = TurbDict['Control']['GSEndAng']
-    GSExp         = TurbDict['Control']['GSExp']
-    KP            = TurbDict['Control']['KP']
-    KI            = TurbDict['Control']['KI']
-    KD            = TurbDict['Control']['KD']
-    RatedRotorRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
-    GSCoef        =  1./(GSStartAng**GSExp)
-    ShaftRatedRPM = RatedTipSpeed/2/np.pi/RotorRad*60.
-    GearboxRatio = GenRatedRPM/ShaftRatedRPM
-    
-    # hard-code derivative time scale
-    tau           = 0.01
-    
-    # convert KP,KI,KD to from ([rad]/[rad/s]) to ([deg]/[rpm])
-    KP_CH = KP*6*GearboxRatio
-    KI_CH = KI*6*GearboxRatio
-    KD_CH = KD*6*GearboxRatio
-                
-   # open template file and file to write to
+        
+    # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
         with open(fpath_out,'w') as f_write:
             i_line = 0
-            for line in f_temp:
-                if i_line == 4:
-                    f_write.write(line.format(RatedRotorRPM))
-                elif i_line == 6:
-                    f_write.write(line.format(MinPitchAng*180/np.pi))
-                elif i_line == 7:
-                    f_write.write(line.format(MaxPitchAng*180/np.pi))
-                elif i_line == 9:
-                    f_write.write(line.format(GSStartAng))
-                elif i_line == 10:
-                    f_write.write(line.format(GSEndAng))
-                elif i_line == 11:
-                    f_write.write(line.format(GSCoef))
-                elif i_line == 12:
-                    f_write.write(line.format(GSExp))
-                elif i_line == 16:
-                    f_write.write(line.format(KI_CH))
-                elif i_line == 20:
-                    f_write.write(line.format(KP_CH,KP_CH*tau+KD_CH))
-                elif i_line == 21:
-                    f_write.write(line.format(tau))
+            
+            # read each line in template file
+            for r_line in f_temp:
+                
+                # print key to line if number identifier present
+                if ('{:' in r_line):
+                    field = r_line.split()[1]
+                    
+                    # try to load value from turbine dictionary
+                    try:
+                        w_line = r_line.format(TurbDict[field])
+                        
+                    # if key isn't present, see if a subkey is or it's a file
+                    except KeyError:
+                        w_line = r_line
+                    f_write.write(w_line)
+                    
+                # copy all other lines without modification
                 else:
-                    f_write.write(line)
-                i_line += 1
+                    w_line = r_line
+                    f_write.write(w_line)
+                i_line += 1   
     
     return
             

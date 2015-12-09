@@ -129,7 +129,7 @@ False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in 
 9999.9      TEC_MR      - Magnetizing reactance (ohms) [used only when VSContrl=0 and GenModel=2]
 ---------------------- PLATFORM ------------------------------------------------
    0        PtfmModel   - Platform model {0: none, 1: onshore, 2: fixed bottom offshore, 3: floating offshore} (switch)
-"unused    PtfmFile    - Name of file containing platform properties (quoted string) [unused when PtfmModel=0]
+"unused"    PtfmFile    - Name of file containing platform properties (quoted string) [unused when PtfmModel=0]
 ---------------------- TOWER ---------------------------------------------------
   10        TwrNodes    - Number of tower nodes used for analysis (-)
 "WP0.75A08V00_Tower.dat"    TwrFile - Name of file containing tower properties (quoted string)

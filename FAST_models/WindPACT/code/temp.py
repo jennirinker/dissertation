@@ -1,25 +1,35 @@
-""" just dicking around
+""" processing turbine models more automated
 """
-import numpy as np
+import sys
+libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+if (libpath not in sys.path): sys.path.append(libpath)
 
-n_osc = 3
-A = 0.6
-U = 10.2
-T = 630.
-f = 1.4
-T_steady = 30.
-dt = 0.05
+import JR_Library.main as jr
+import json, os
 
-t = np.arange(0,T+dt,dt)
-u = U*np.ones(t.shape)
-i_steady = int(T_steady/dt)
-if n_osc is None:
-    u[i_steady:] = A*np.sin(2*np.pi*f*(t[i_steady:]-T_steady))
-else:
-    i_end = i_steady + int(n_osc*(1./f)/dt)
-    u[i_steady:i_end] = U+A*np.sin(2*np.pi*f*(t[i_steady:i_end]-T_steady))
-    
-plt.figure(11)
-plt.clf()
-plt.plot(t,u)
-plt.xlim([29,40])
+# define turbine name
+turb_names = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02''WP5.0A04V00']
+turb_name  = turb_names[0]
+
+# define directory locations: template files, turbine files
+turb_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation' + \
+            '\\FAST_models\\FAST7\\' + turb_name
+
+test_dict = 'Control'
+
+# load saved turbine dictionary
+fTDictName = os.path.join(turb_dir,'parameters',turb_name+'_Dict.dat')
+with open(fTDictName,'r') as f:
+    turb_dict_saved = json.load(f)
+
+# compare with current turbine dictionary
+turb_dict_new = jr.CreateTurbineDictionary(turb_name,turb_dir,
+                                    BModes=0,TModes=0)
+
+jr.WriteFASTTemplate(fpath_temp,fpath_out,TurbDict)
+
+
+print('\nnew dictionary\n')
+
+for key, value in sorted(turb_dict_new[test_dict].items()): # Note the () after items!
+    print('{:20s} '.format(key),value)
