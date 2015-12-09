@@ -17,7 +17,7 @@ False       Echo        - Echo input data to "echo.out" (flag)
    1        VSContrl    - Variable-speed control mode {0: none, 1: simple VS, 2: user-defined from routine UserVSCont, 3: user-defined from Simulink/Labview} (switch)
   1800.00   VS_RtGnSp   - Rated generator speed for simple variable-speed generator control (HSS side) (rpm) [used only when VSContrl=1]
  16753.15   VS_RtTq     - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) (N-m) [used only when VSContrl=1]
-  0.005170  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
+  0.005171  VS_Rgn2K    - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) (N-m/rpm^2) [used only when VSContrl=1]
 9999.9E-9   VS_SlPc     - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control (%) [used only when VSContrl=1]
    1        GenModel    - Generator model {1: simple, 2: Thevenin, 3: user-defined from routine UserGen} (switch) [used only when VSContrl=0]
 True        GenTiStr    - Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} (flag)
@@ -57,7 +57,7 @@ True        FlapDOF2    - Second flapwise blade mode DOF (flag)
 True        EdgeDOF     - First edgewise blade mode DOF (flag)
 False       TeetDOF     - Rotor-teeter DOF (flag) [unused for 3 blades]
 True        DrTrDOF     - Drivetrain rotational-flexibility DOF (flag)
-{:<5s}       GenDOF      - Generator DOF (flag)
+True        GenDOF      - Generator DOF (flag)
 False       YawDOF      - Yaw DOF (flag)
 True        TwFADOF1    - First fore-aft tower bending-mode DOF (flag)
 True        TwFADOF2    - Second fore-aft tower bending-mode DOF (flag)
@@ -66,14 +66,14 @@ True        TwSSDOF2    - Second side-to-side tower bending-mode DOF (flag)
 True        CompAero    - Compute aerodynamic forces (flag)
 False       CompNoise   - Compute aerodynamic noise (flag)
 ---------------------- INITIAL CONDITIONS --------------------------------------
-   0.0      OoPDefl     - Initial out-of-plane blade-tip displacement (meters)
-   0.0      IPDefl      - Initial in-plane blade-tip deflection (meters)
+{:6.1f}     OoPDefl     - Initial out-of-plane blade-tip displacement (meters)
+{:6.1f}     IPDefl      - Initial in-plane blade-tip deflection (meters)
    0.0      TeetDefl    - Initial or fixed teeter angle (degrees) [unused for 3 blades]
    0.0      Azimuth     - Initial azimuth angle for blade 1 (degrees)
 {:6.1f}      RotSpeed    - Initial or fixed rotor speed (rpm)
    0.0      NacYaw      - Initial or fixed nacelle-yaw angle (degrees)
-   0.0      TTDspFA     - Initial fore-aft tower-top displacement (meters)
-   0.0      TTDspSS     - Initial side-to-side tower-top displacement (meters)
+{:6.1f}     TTDspFA     - Initial fore-aft tower-top displacement (meters)
+{:6.1f}     TTDspSS     - Initial side-to-side tower-top displacement (meters)
 ---------------------- TURBINE CONFIGURATION -----------------------------------
   49.500    TipRad      - The distance from the rotor apex to the blade tip (meters)
    2.475    HubRad      - The distance from the rotor apex to the blade root (meters)
@@ -81,9 +81,9 @@ False       CompNoise   - Compute aerodynamic noise (flag)
    0.0      UndSling    - Undersling length [distance from teeter pin to the rotor apex] (meters) [unused for 3 blades]
    0.0      HubCM       - Distance from rotor apex to hub mass [positive downwind] (meters)
   -4.65     OverHang    - Distance from yaw axis to rotor apex [3 blades] or teeter pin [2 blades] (meters)
-  -0.2253   NacCMxn     - Downwind distance from the tower-top to the nacelle CM (meters)
+  -0.2257   NacCMxn     - Downwind distance from the tower-top to the nacelle CM (meters)
    0.0      NacCMyn     - Lateral  distance from the tower-top to the nacelle CM (meters)
-   1.8613   NacCMzn     - Vertical distance from the tower-top to the nacelle CM (meters)
+   1.8609   NacCMzn     - Vertical distance from the tower-top to the nacelle CM (meters)
  116.73     TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
    2.27     Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
    0.0      TwrRBHt     - Tower rigid base height (meters)
@@ -105,7 +105,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
  1.980e+05  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
 ---------------------- DRIVETRAIN ----------------------------------------------
  100.0      GBoxEff     - Gearbox efficiency (%)
-  95.0      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
+ 95.00      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
  124.407    GBRatio     - Gearbox ratio (-)
 False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in opposite directions} (flag)
 9999.9      HSSBrTqF    - Fully deployed HSS-brake torque (N-m)
@@ -162,9 +162,9 @@ False       Furling     - Read in additional model properties for furling turbin
 ---------------------- NOISE ---------------------------------------------------
 "unused"    NoiseFile   - Name of file containing aerodynamic noise input parameters (quoted string) [used only when CompNoise=True]
 ---------------------- ADAMS ---------------------------------------------------
-"WP3.0A02V02_ADAMS.dat"    ADAMSFile  - Name of file containing ADAMS-specific input parameters (quoted string) [unused when ADAMSPrep=1]
+"unused"    ADAMSFile  - Name of file containing ADAMS-specific input parameters (quoted string) [unused when ADAMSPrep=1]
 ---------------------- LINEARIZATION CONTROL -----------------------------------
-"WP3.0A02V02_Linear.dat"   LinFile    - Name of file containing FAST linearization parameters (quoted string) [unused when AnalMode=1]
+"unused"   LinFile    - Name of file containing FAST linearization parameters (quoted string) [unused when AnalMode=1]
 ---------------------- OUTPUT --------------------------------------------------
 False        SumPrint    - Print summary data to "<RootName>.fsm" (flag)
 1           OutFileFmt  - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)

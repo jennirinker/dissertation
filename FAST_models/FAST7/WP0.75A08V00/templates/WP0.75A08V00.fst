@@ -105,7 +105,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
  5.161e+03  HubIner     - Hub inertia about rotor axis [3 blades] or teeter axis [2 blades] (kg m^2)
 ---------------------- DRIVETRAIN ----------------------------------------------
  100.0      GBoxEff     - Gearbox efficiency (%)
-  0.95      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
+ 95.00      GenEff      - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)
   62.832    GBRatio     - Gearbox ratio (-)
 False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in opposite directions} (flag)
 9999.9      HSSBrTqF    - Fully deployed HSS-brake torque (N-m)
@@ -158,7 +158,7 @@ False       Furling     - Read in additional model properties for furling turbin
 "WP0.75A08V00_Blade.dat"    BldFile(2) - Name of file containing properties for blade 2 (quoted string)
 "WP0.75A08V00_Blade.dat"    BldFile(3) - Name of file containing properties for blade 3 (quoted string) [unused for 2 blades]
 ---------------------- AERODYN -------------------------------------------------
-"WP0.75A08V00_AD.dat"         ADFile     - Name of file containing AeroDyn input parameters (quoted string)
+"{:s}"         ADFile     - Name of file containing AeroDyn input parameters (quoted string)
 ---------------------- NOISE ---------------------------------------------------
 "unused"    NoiseFile   - Name of file containing aerodynamic noise input parameters (quoted string) [used only when CompNoise=True]
 ---------------------- ADAMS ---------------------------------------------------

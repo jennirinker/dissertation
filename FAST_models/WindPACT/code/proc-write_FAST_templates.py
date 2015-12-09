@@ -12,28 +12,27 @@ import json, os, sys
 BldModesInp = 0
 TwrModesInp = 0
 BladeInp    = 0
-ADInp       = 1
+ADInp       = 0
 TowerInp    = 0
-FASTInp     = 0
+FASTInp     = 1
 PitchInp    = 0
 DISCONInp   = 0
 
 # define turbine name
-TName = 'WP0.75A08V00'
-#TName = 'WP1.5A08V03'
-#TName = 'WP3.0A02V02'
-#TName = 'WP5.0A04V00'
+turb_names = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
+turb_name  = turb_names[0]
 
 # specify the directory to write the files to
 turb_dir = os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-        'dissertation\\FAST_models\\FAST7',TName)
+        'dissertation\\FAST_models\\FAST7',turb_name)
         
 # specify turbine version if necessary
 #turb_dir += '_newGBR'
 #turb_dir += '_stifftwr'
+        
 
 # load turbine model
-fTDictName = os.path.join(turb_dir,'parameters',TName+'_Dict.dat')
+fTDictName = os.path.join(turb_dir,'parameters',turb_name+'_Dict.dat')
 with open(fTDictName,'r') as f:
     TurbDict = json.load(f)
 
@@ -45,9 +44,10 @@ if BldModesInp:
         
     # set filenames
     fname_temp = 'Template_Modes_Blade.inp'
-    fname_out  = TName + '_BldModes.inp'
+    fname_out  = turb_name + '_BldModes.inp'
     
-    sys.stdout.write('Writing Modes input file (blade) to \"{:s}\"...'.format(fname_out))
+    sys.stdout.write('Writing Modes input file ' + \
+                            '(blade) to \"{:s}\"...'.format(fname_out))
     
     # set filepaths
     fpath_temp = os.path.join('templates',fname_temp)
@@ -62,9 +62,10 @@ if TwrModesInp:
     
     # set filenames
     fname_temp = 'Template_Modes_Tower.inp'
-    fname_out  = TName + '_TwrModes.inp'
+    fname_out  = turb_name + '_TwrModes.inp'
     
-    sys.stdout.write('Writing Modes input file (tower) to \"{:s}\"...'.format(fname_out))
+    sys.stdout.write('Writing Modes input file' + \
+                    ' (tower) to \"{:s}\"...'.format(fname_out))
     
     # set filepaths
     fpath_temp = os.path.join('templates',fname_temp)
@@ -79,7 +80,7 @@ if BladeInp:
     
     # set filenames
     fname_temp = 'Template_Blade.dat'
-    fname_out  = TName + '_Blade.dat'
+    fname_out  = turb_name + '_Blade.dat'
     
     sys.stdout.write('Writing blade input file to \"{:s}\"...'.format(fname_out))
     
@@ -96,7 +97,7 @@ if ADInp:
     
     # set filenames
     fname_temp = 'Template_AD.ipt'
-    fname_out  = TName + '_AD.ipt'
+    fname_out  = turb_name + '_AD.ipt'
     
     sys.stdout.write('Writing AeroDyn input file to \"{:s}\"...'.format(fname_out))
     
@@ -113,7 +114,7 @@ if TowerInp:
     
     # set filenames
     fname_temp = 'Template_Tower.dat'
-    fname_out  = TName + '_Tower.dat'
+    fname_out  = turb_name + '_Tower.dat'
     
     sys.stdout.write('Writing tower input file to \"{:s}\"...'.format(fname_out))
     
@@ -130,7 +131,7 @@ if FASTInp:
     
     # set filenames
     fname_temp = 'Template.fst'
-    fname_out  = TName + '.fst'
+    fname_out  = turb_name + '.fst'
     
     sys.stdout.write('Writing FAST input file to \"{:s}\"...'.format(fname_out))
     

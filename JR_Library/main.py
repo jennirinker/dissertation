@@ -2949,7 +2949,6 @@ def CreateTurbineDictionary(turb_name,turb_dir,BModes=1,TModes=1):
     ADSched            = np.genfromtxt(fADName,skip_header=n_skip).tolist()
     
     # save variables
-    TurbDict['ADFile']  = turb_name + '_AD.dat'
     TurbDict['ADSched'] = ADSched
         
     # ======================== Add nacelle properties =========================
@@ -3398,10 +3397,14 @@ def WriteFASTTemplate(fpath_temp,fpath_out,TurbDict):
                         
                     # if key isn't present, see if a subkey is or it's a file
                     except KeyError:
+                        
+                        # check subkey
                         subkey = [sk for sk in DictFields if sk in field] 
                         if subkey:
                             w_line = r_line.format(TurbDict[subkey[0]])
-                        elif ('File' in field):
+                            
+                        # check if it's an unused file
+                        elif (('File' in field) and (field != 'ADFile')):
                             w_line = r_line.format('unused')
                         else:
                             w_line = r_line
