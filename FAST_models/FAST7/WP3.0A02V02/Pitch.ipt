@@ -6,9 +6,9 @@
    0.3      CNST(3)  - Integrator anti-windup gain
    2.6      CNST(4)  - Minimum pitch angle, deg
   90.0      CNST(5)  - Maximum pitch angle, deg
-   0.025    CNST(6)  - Time interval for pitch control, sec ( >= DT )
+  0.025     CNST(6)  - Time interval for pitch control, sec ( >= DT )
    0.0454   CNST(7)  - Pitch angle at start of gain scheduling, (must be > 0) rad
-   0.5      CNST(8)  - Pitch angle at end of gain scheduling (GSPit2>GSPit1), rad
+   0.5236   CNST(8)  - Pitch angle at end of gain scheduling (GSPit2>GSPit1), rad
    0.213    CNST(9)  - Power law gain sched. coefficient
   -0.500    CNST(10) - Power law gain sched. exponent
    0        CNST(11) - Write pitcntrl.plt file?  0=no, 1=yes

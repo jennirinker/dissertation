@@ -13,7 +13,7 @@ import json
 
 # define turbine name
 turb_names = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
-turb_name  = turb_names[3]
+turb_name  = turb_names[0]
 
 # specify the directory to write the files to
 turb_dir = os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \

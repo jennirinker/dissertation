@@ -24,6 +24,7 @@ Jenni Rinker, Duke University
 """
 
 # used modules
+import os
 import numpy as np
 import scipy.io as scio
 
@@ -802,7 +803,7 @@ def getBasedir(dataset,drive='G:'):
         Returns:
             basedir (str): path to top level of data directory
     """
-    import os
+    
     import platform
 
     if (dataset == 'NREL'):
@@ -866,7 +867,7 @@ def listmetadata(dataset,i,list_mats):
         in list_mats
     """
     
-    import os
+    
     
 
     if (dataset in ['NREL','fluela','CM06']):
@@ -1629,7 +1630,7 @@ def metadataFpath(dataset):
         Returns:
             fpath (string): filepath to metadata file
     """
-    import os
+    
     
     base  =  'C:\\Users\\jrinker\\Dropbox\\research\\processed_data'
     fpath = os.path.join(base,dataset + '-metadata.mat')
@@ -2714,7 +2715,7 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
             wr_dir (string): directory to write files to
     """
     
-    import os
+    
     
     # template filename
     tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -2863,7 +2864,7 @@ def CreateTurbineDictionary(turb_name,turb_dir,BModes=1,TModes=1):
         Returns:
             TurbDict (dictionary): turbine parameters in dictionary
     """
-    import os
+    
     
 
     print('\nWriting turbine dictionary' + \
@@ -2965,7 +2966,7 @@ def CreateTurbineDictionary(turb_name,turb_dir,BModes=1,TModes=1):
             
     # ========================== Add tower properties =========================
     
-    # load nacelle data from text file
+    # load tower data from text file
     fTwrName = os.path.join(turb_dir,'parameters\\'+turb_name+'_Tower.txt')
     with open(fTwrName,'r') as f:
         key,i_line = '',0
@@ -2989,9 +2990,24 @@ def CreateTurbineDictionary(turb_name,turb_dir,BModes=1,TModes=1):
     n_skip                 = i_line
     TwrSched               = np.genfromtxt(fTwrName,skip_header=n_skip).tolist()
     
+    # load mode shape data from Modes output if available
+    fModesName = os.path.join(turb_dir,'modes',turb_name+'_TwrModes.mod')
+    TwrModes = np.empty((2,5))
+    TwrModes[:] = np.nan
+    if TModes:
+        with open(fModesName,'r') as f:
+            i_line = 0
+            for line in f:
+                if ((i_line >= 14) and (i_line <= 18)):
+                    for i_mode in range(TwrModes.shape[0]):
+                        TwrModes[i_mode,i_line-14] = float(line.split()[i_mode+1])
+                i_line += 1
+    TwrModes = TwrModes.tolist()
+    
     # save variables
     TurbDict['TwrFile']  = turb_name + '_Tower.dat'
-    TurbDict['TwrSched']   = TwrSched
+    TurbDict['TwrSched'] = TwrSched
+    TurbDict['TwrModes'] = TwrModes
         
     # ======================== Add control properties =========================
     
@@ -3220,11 +3236,12 @@ def writeBlade(fpath_temp,fpath_out,TurbDict):
     
     
     # calculate blade-specific vales
-    TName     = TurbDict['TName']
-    title_str = 'FAST v7.02 blade file for turbine \"{:s}\" (JRinker, Duke University)'.format(TName)
-    Damping   = TurbDict['Rotor']['Damping']
-    RotModes  = np.array(TurbDict['Rotor']['RotModes'])
-    BldInterp = InterpolateRotorParams(TurbDict)[0]
+    TurbName = TurbDict['TurbName']
+    Comment  = 'FAST v7.02 blade file for turbine \"{:s}\"'.format(TurbName) + \
+                ' (JRinker, Duke University)'
+    Damping  = TurbDict['BldDmp']
+    BldSched = TurbDict['BldSched']
+    BldModes = np.array(TurbDict['BldModes'])
     
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
@@ -3232,9 +3249,9 @@ def writeBlade(fpath_temp,fpath_out,TurbDict):
             i_line = 0
             for line in f_temp:
                 if i_line == 2:
-                    f_write.write(line.format(title_str))
+                    f_write.write(line.format(Comment))
                 elif i_line == 4:
-                    f_write.write(line.format(len(BldInterp)))
+                    f_write.write(line.format(len(BldSched)))
                 elif i_line == 6:
                     f_write.write(line.format(Damping[0]))
                 elif i_line == 7:
@@ -3242,11 +3259,11 @@ def writeBlade(fpath_temp,fpath_out,TurbDict):
                 elif i_line == 8:
                     f_write.write(line.format(Damping[2]))
                 elif i_line == 18:
-                    for i_BlNode in range(len(BldInterp)):
-                        f_write.write(line.format(*BldInterp[i_BlNode,:]))
+                    for i_BlNode in range(len(BldSched)):
+                        f_write.write(line.format(*BldSched[i_BlNode]))
                 elif ((i_line >= 20) and (i_line <= 34)):
                     f_write.write(line.format(
-                        RotModes.reshape(RotModes.size)[i_line-20]))
+                        BldModes.reshape(BldModes.size)[i_line-20]))
                 else:
                     f_write.write(line)
                 i_line += 1
@@ -3260,23 +3277,22 @@ def writeTower(fpath_temp,fpath_out,TurbDict):
     
     
     # calculate tower-specific vales
-    TName       = TurbDict['TName']
-    title_str   = 'FAST v7.02 tower file for turbine \"{:s}\" (JRinker, Duke University)'.format(TName)
-    Damping     = TurbDict['Tower']['TowerDamping']
-    TwrModes    = np.array(TurbDict['Tower']['TwrModes'])
-    
-    # interpolate tower structural properties
-    TowerInterp = InterpolateTowerParams(TurbDict)
-    
+    TurbName = TurbDict['TurbName']
+    Comment  = 'FAST v7.02 tower file for turbine \"{:s}\"'.format(TurbName) + \
+                ' (JRinker, Duke University)'
+    Damping  = TurbDict['TwrDmp']
+    TwrModes = np.array(TurbDict['TwrModes'])
+    TwrSched = np.array(TurbDict['TwrSched'])
+        
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
         with open(fpath_out,'w') as f_write:
             i_line = 0
             for line in f_temp:
                 if i_line == 2:
-                    f_write.write(line.format(title_str))
+                    f_write.write(line.format(Comment))
                 elif i_line == 4:
-                    f_write.write(line.format(len(TowerInterp)))
+                    f_write.write(line.format(len(TwrSched)))
                 elif i_line == 6:
                     f_write.write(line.format(Damping[0]))
                 elif i_line == 7:
@@ -3286,8 +3302,8 @@ def writeTower(fpath_temp,fpath_out,TurbDict):
                 elif i_line == 9:
                     f_write.write(line.format(Damping[3]))
                 elif i_line == 21:
-                    for i_TwrNode in range(len(TowerInterp)):
-                        f_write.write(line.format(*TowerInterp[i_TwrNode,:]))
+                    for i_TwrNode in range(len(TwrSched)):
+                        f_write.write(line.format(*TwrSched[i_TwrNode,:]))
                 elif ((i_line >= 23) and (i_line <= 32)):
                     f_write.write(line.format(
                         TwrModes.reshape(TwrModes.size)[i_line-23]))
@@ -3301,16 +3317,17 @@ def writeTower(fpath_temp,fpath_out,TurbDict):
     return
     
     
-def writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict):
+def WriteAeroDynTemplate(fpath_temp,fpath_out,TurbDict):
     """ AeroDyn input file for FAST v7.02
     """
     
     # calculate file-specific vales
     TurbName       = TurbDict['TurbName']
-    Comment1       = 'FAST v7.02 AeroDyn file for turbine ' + \
+    Comment1       = 'AeroDyn v13.00 file for turbine ' + \
                         '\"{:s}\" (JRinker, Duke University)'.format(TurbName)
     WindHH         = TurbDict['TowerHt'] + TurbDict['Twr2Shft'] + \
                         TurbDict['OverHang']*np.sin(TurbDict['ShftTilt']*np.pi/180.)
+    NumFoil        = len(TurbDict['FoilNm'])
     
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
@@ -3329,26 +3346,46 @@ def writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict):
                 elif ('{:' in r_line):
                     field = r_line.split()[1]
                     
-                    # try to load value from turbine dictionary
-                    try:
+                    # special checks for some fields
+                    if (field == 'FoilNm'):
+                        AF_fname = TurbDict[field][0]+'.dat'
+                        AF_fpath = os.path.join('AeroData',AF_fname)
+                        w_line = r_line.format(AF_fpath)
+                        f_write.write(w_line)
+                        for i_foil in range(1,NumFoil):
+                            AF_fname = TurbDict[field][i_foil]+'.dat'
+                            AF_fpath = os.path.join('AeroData',AF_fname)
+                            w_line = '\"{:s}\"\n'.format(AF_fpath)
+                            f_write.write(w_line)
+                            
+                    elif (field == 'BldNodes'):
                         w_line = r_line.format(TurbDict[field])
+                        f_write.write(w_line)
+                        f_write.write('RNodes    AeroTwst  ' + \
+                                        'DRNodes  Chord  NFoil  PrnElm\n')
+                        for i_ADnode in range(int(TurbDict[field])):
+                            w_line = '{:8.5f}{:7.2f}{:12.5f}{:7.3f}{:3.0f}'.format( \
+                                        *TurbDict['ADSched'][i_ADnode]) \
+                                        + '      NOPRINT\n'
+                            f_write.write(w_line)
+                        return
+                            
+                    else:
+                    
+                        # try to load value from turbine dictionary
+                        try:
+                            w_line = r_line.format(TurbDict[field])
+                            
+                        # if key isn't present, check a few conditions
+                        except KeyError:
+                            if (field == 'HH'):
+                                w_line = r_line.format(WindHH)
+                            elif (field == 'NumFoil'):
+                                w_line = r_line.format(NumFoil)
+                            else:
+                                w_line = r_line
                         
-                    # if key isn't present, check a few conditions
-                    except KeyError:
-                        if (field == 'HH'):
-                            w_line = r_line.format(WindHH)
-                            f_write.write(w_line)
-                        elif (field == 'NumFoil'):
-                            # *** ENDED HERE
-                            NumFoil = len(TurbDict['FoilNm'])
-                            w_line = r_line.format(NumFoil)
-                            f_write.write(w_line)
-                            r_line = f.readlin()
-#                            for i_foil in range()
-                        else:
-                            print(field)
-                            w_line = r_line
-                            f_write.write(w_line)
+                        f_write.write(w_line)
                     
                 # copy all other lines without modification
                 else:
@@ -3563,7 +3600,7 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
             TMax (float): maximum simulation time
             
     """
-    import os
+    
     
     
     
@@ -3807,7 +3844,7 @@ def writeSteadyWind(U,wind_dir=''):
             U (float): wind value
             wind_dir (string): optional path to directory with wind files
     """
-    import os
+    
     
     # create path to file
     wind_fname = 'NoShr_'+'{:2.1f}'.format(U).zfill(4)+'.wnd'
@@ -3835,7 +3872,7 @@ def writeStepWind(U0,UF,t_step=40.0,dt_step=0.1,wind_dir=''):
             dt_step (float): optional time step duration
             wind_dir (string): optional path to directory with wind files
     """
-    import os
+    
     
     # create path to file
     U0s, UFs   = '{:2.1f}'.format(U0).zfill(4), '{:2.1f}'.format(UF).zfill(4)
@@ -3875,7 +3912,7 @@ def writeKaimalWind(U,sig,tau,rho,mu,T=600.0,dt=0.05,T_steady=30.0,
             fileID (string): optional unique file identifier
             wind_dir (string): optional path to directory with wind files
     """
-    import os
+    
     
     
     # simulate wind, add time before
@@ -3922,7 +3959,7 @@ def writeHarmonicWind(U,A,freq,T=630.0,dt=0.05,T_steady=30.0,
             fileID (string): optional unique file identifier
             wind_dir (string): optional path to directory with wind files
     """
-    import os
+    
     
     
     # initialize time, wind speed vectors
@@ -4204,7 +4241,7 @@ def time2fpath(dataset,timestamp):
             fpath (string): path to data 
             
     """
-    import os
+    
     import glob
 
     if (dataset in ['NREL','fluela']):

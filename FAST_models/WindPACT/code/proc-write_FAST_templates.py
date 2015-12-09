@@ -11,16 +11,16 @@ import json, os, sys
 
 BldModesInp = 0
 TwrModesInp = 0
-BladeInp    = 0
-ADInp       = 0
-TowerInp    = 0
+BladeInp    = 1
+ADInp       = 1
+TowerInp    = 1
 FASTInp     = 1
-PitchInp    = 0
+PitchInp    = 1
 DISCONInp   = 0
 
 # define turbine name
 turb_names = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
-turb_name  = turb_names[0]
+turb_name  = turb_names[3]
 
 # specify the directory to write the files to
 turb_dir = os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
@@ -106,7 +106,7 @@ if ADInp:
     fpath_out  = os.path.join(turb_dir,'templates',fname_out)
     
     # write blade file
-    jr.writeAeroDynTemplate(fpath_temp,fpath_out,TurbDict)
+    jr.WriteAeroDynTemplate(fpath_temp,fpath_out,TurbDict)
     
     sys.stdout.write('done.\n')
                 
