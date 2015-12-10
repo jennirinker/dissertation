@@ -142,7 +142,8 @@ def loadtimeseries(dataset,field,ID,data_in):
 
         # set data ranges, desired length of time series
         dataRng = dataRanges(dataset,datfield)
-        N, dt   = datasetSpecs(dataset)[:2]
+        specs   = datasetSpecs(dataset)
+        N, dt   = specs['n_t'], specs['dt']
         t       = np.arange(N)*dt
                     
         # determine what kind of data was provided
@@ -218,10 +219,11 @@ def loadtimeseries(dataset,field,ID,data_in):
         outdict['clean'] = x_cl
         outdict['flags'] = flags
         
-    elif (dataset == 'CM06'):
+    elif (dataset == 'PM06'):
 
         # set data ranges, desired length of time series
-        N, dt   = datasetSpecs(dataset)[:2]
+        specs   = datasetSpecs(dataset)
+        N, dt   = specs['n_t'], specs['dt']
         t       = np.arange(N)*dt
                     
         # determine what kind of data was provided
@@ -602,7 +604,7 @@ def metadataFields(dataset):
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','tau_u','tau_v','tau_w', \
               'MO_Length','MO_Length_virt']
-    elif (dataset == 'CM06'):
+    elif (dataset == 'PM06'):
         fields = ['Record_Time','Processed_Time','ID', \
               'Sonic_Cup', 'Sonic_Direction', 'Specific_Humidity',\
               'Mean_Wind_Speed', \
@@ -654,7 +656,7 @@ def check_datfields(dataset,datfield):
                   'Sonic_CupEqHorizSpeed_54m','Sonic_CupEqHorizSpeed_75m',\
                   'Sonic_direction_36m','Sonic_direction_54m',\
                   'Sonic_direction_75m']
-    elif (dataset == 'CM06'):
+    elif (dataset == 'PM06'):
         fields = ['Uy_1_3(1,1)', 'Ux_1_1(1,1)', 'Uz_2_3(1,1)', 'Ux_3_3(1,1)', \
         'rec_numbr_mas_1', 'Ux_2_2(1,1)', 'Ux_3_4(1,1)', 'Uz_2_4(1,1)', \
         'Ts_3_4(1,1)', 'Uy_2_3(1,1)', 'Ux_1_3(1,1)', 'Uy_2_4(1,1)', \
@@ -689,28 +691,30 @@ def datasetSpecs(dataset):
             IDs (numpy array): anemometer IDs (height or number)
     """
     
-
+    specs = {}
+    
     if (dataset == 'NREL'):
-        n_t     = 12000
-        dt      = 0.05
-        IDs     = np.array([15,30,50,76,100,131])
+        specs['n_t']          = 12000
+        specs['dt']           = 0.05
+        specs['IDs']          = np.array([15,30,50,76,100,131])
     elif (dataset == 'fluela'):
-        n_t     = 6000
-        dt      = 0.10
-        IDs     = np.array([36,54,75])
-    elif (dataset == 'CM06'):
-        n_t     = 12000
-        dt      = 0.05
-        IDs     = range(1,13)
+        specs['n_t']          = 6000
+        specs['dt']           = 0.10
+        specs['IDs']          = np.array([36,54,75])
+    elif (dataset == 'PM06'):
+        specs['n_t']          = 12000
+        specs['dt']           = 0.05
+        specs['IDs']          = range(1,13)
+        specs['sonic_offset'] = 120.
     elif (dataset == 'texastech'):
-        n_t     = 30000
-        dt      = 0.02
-        IDs     = np.array([1,2,4,10,17,47,75,116,158,200])
+        specs['n_t']          = 30000
+        specs['dt']           = 0.02
+        specs['IDs']          = np.array([1,2,4,10,17,47,75,116,158,200])
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
 
-    return n_t, dt, IDs
+    return specs
 
 
 def dataRanges(dataset,datfield):
@@ -768,7 +772,7 @@ def dataRanges(dataset,datfield):
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
               
-    elif (dataset == 'CM06'):
+    elif (dataset == 'PM06'):
 
         # define data ranges
         #    Sonic data ranges taken from CSAT 3 specifications
@@ -826,7 +830,7 @@ def getBasedir(dataset,drive='G:'):
             errStr = 'Incorrect or unavailable base ' + \
                      'directory for dataset \"{}\".'.format(dataset)
             raise IOError(errStr)
-    elif (dataset == 'CM06'):
+    elif (dataset == 'PM06'):
         if (platform.system() == 'Linux'):
             basedir = '/media/jrinker/JRinker SeaGate External/data/' + \
                         'plaine-morte/CM06/'
@@ -870,8 +874,8 @@ def listmetadata(dataset,i,list_mats):
     
     
 
-    if (dataset in ['NREL','fluela','CM06']):
-        IDs      = datasetSpecs(dataset)[2]             # instrument IDs
+    if (dataset in ['NREL','fluela','PM06']):
+        IDs      = datasetSpecs(dataset)['IDs']         # instrument IDs
         basedir  = getBasedir(dataset)                  # base directory
         fpath    = os.path.join(basedir,list_mats[i])   # path to mat file
         n_fields = len(metadataFields(dataset))         # list wind parameters
@@ -915,7 +919,7 @@ def struc2metadata(dataset,struc_hf,ID):
     """
     
 
-    if (dataset in ['NREL','fluela','CM06']):
+    if (dataset in ['NREL','fluela','PM06']):
 
         # get list of metadata fieldnames
         md_fields = metadataFields(dataset)
@@ -1122,7 +1126,8 @@ def calculatefield(dataset,struc_hf,ID):
     g, R, kappa = 9.81, 287, 0.41
     
     # number of time steps and time increment
-    N, dt = datasetSpecs(dataset)[:2]
+    specs = datasetSpecs(dataset)
+    N, dt = specs['n_t'], specs['dt']
 
     if (dataset == 'NREL'):
 
@@ -1367,7 +1372,7 @@ def calculatefield(dataset,struc_hf,ID):
         else:
             outdict = {}
             
-    elif (dataset == 'CM06'):
+    elif (dataset == 'PM06'):
         
         # parameters for humidity calculations
         P_1atm = 101325                     # pressure in Pascals at 1 atm
@@ -1434,8 +1439,10 @@ def calculatefield(dataset,struc_hf,ID):
             rhow,muw  = signalPhaseCoherence(wp)
             Tbar_K    = np.nanmean(T_s_K)
             WSbar     = np.nanmean(np.sqrt(ux**2 + uy**2))
+            WD_offset = datasetSpecs(dataset)['sonic_offset']
+            WD        = WD_offset - (np.arctan2(uy,ux)*180./np.pi)
             WDbar     = np.angle(np.nanmean(np.exp( \
-                                    1j*np.arctan2(uy,ux))),deg=1) % 360
+                                    1j*WD*np.pi/180.)),deg=1) % 360
             hum_bar   = np.nanmean(0.5*hum1 + 0.5*hum2)
             rho_air   = P_1atm/(R_dryair * Tbar_K)
             q         = hum_bar / rho_air / 1000
@@ -1499,7 +1506,7 @@ def dcgain(dataset,field,ID):
             
     """
     
-    if (dataset == 'CM06'):
+    if (dataset == 'PM06'):
         # dc_gains from "CM zeros.xls" in "Preparation and Miscellaneous Files"
         # in CM 2006 folder form Dr. Elie Bou-Zeid
         
@@ -4210,7 +4217,7 @@ def fname2time(dataset,fname):
         # convert tuple to float
         time_flt = timetup2flt(time_tup)
         
-    elif (dataset == 'CM06'):
+    elif (dataset == 'PM06'):
 
         # extract date information
         year     = int(fname[6:10])
@@ -4450,7 +4457,7 @@ def field2datfield(dataset,field,ID):
             raise ValueError('Invalid height {} for field {}'\
                              .format(ID,field))
                              
-    elif dataset == 'CM06':
+    elif dataset == 'PM06':
         
         grp_nmbr,inst_nmbr = id2grpnmbr(dataset,ID)
 
@@ -4488,7 +4495,7 @@ def id2grpnmbr(dataset,ID):
             inst_nmbr (int): instrument number
     """
     
-    if (dataset == 'CM06'):
+    if (dataset == 'PM06'):
         grp_nmbr  = (ID-1) / 4 + 1
         inst_nmbr = (ID-1) % 4 + 1
         
