@@ -15,8 +15,8 @@ if (__name__ == '__main__'):
     import JR_Library.main as jr
     
     # variables for later
-    datasets    = ['NREL','fluela','CM06']
-    dataset     = datasets[2]
+#    datasets    = ['NREL','fluela','PM06']
+    dataset     = 'PM06'
     basedir     = jr.getBasedir(dataset)
     njobs       = 4
     fields      = jr.metadataFields(dataset)
@@ -46,7 +46,7 @@ if (__name__ == '__main__'):
             md_list.append(tmp)
         
     # convert list of arrays to metadata
-    n_IDs = len(jr.datasetSpecs(dataset)[2])
+    n_IDs = len(jr.datasetSpecs(dataset)['IDs'])
     metadata = np.empty((n_IDs*n_proc,len(fields)))
     for i in range(n_proc):
         metadata[n_IDs*i:n_IDs*(i+1)] = np.asarray(md_list[i])
@@ -59,4 +59,8 @@ if (__name__ == '__main__'):
         mdict             = {}
         mdict['fields']   = fields
         mdict['metadata'] = metadata
-        scio.savemat(foutname,mdict)
+        scio.savemat(foutpath,mdict)
+        
+        print('\nData saved to {:s}'.format(foutpath))
+        
+    print('\nScript complete.\n')
