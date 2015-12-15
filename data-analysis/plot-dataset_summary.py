@@ -15,8 +15,9 @@ plt.style.use('duke_paper.mplstyle')
 
 # choose which dataset
 #dataset, fignum = 'NREL-mat', 1
-dataset, fignum = 'NREL', 2
+#dataset, fignum = 'NREL', 2
 #dataset, fignum = 'fluela', 3
+dataset, fignum = 'PM06', 4
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -34,7 +35,7 @@ else:
 
 # screen metadata, get measurement heights
 clean = jr.screenmetadata(fields,raw_parms,dataset)
-heights = jr.datasetSpecs(dataset)[2]
+heights = jr.datasetSpecs(dataset)['IDs']
 
 # print sizes
 n_raw, n_clean = raw_parms.shape[0], clean.shape[0]
@@ -45,10 +46,12 @@ print('  Size of clean dataset: {}'.format(n_clean))
 print('  Percent clean:         {:.2f}%'.format(n_clean/float(n_raw)*100.))
 
 # plot distributions
-htCol  = fields.index('Height')
+htCol  = fields.index('ID')
+#htCol  = fields.index('Height')
 UCol   = fields.index('Mean_Wind_Speed')
 sigCol = fields.index('Sigma_u')
-tauCol = fields.index('tau_u')
+tauCol = fields.index('Tau_u')
+#tauCol = fields.index('tau_u')
 rhoCol = fields.index('Concentration_u')
 muCol  = fields.index('Location_u')
 
@@ -63,7 +66,7 @@ ax22 = plt.axes([0.62,0.12,0.35,0.35])
 print('\nHealthy records by height')
 print(  '-------------------------')
 
-for iH in range(heights.size):
+for iH in range(len(heights)):
     
     # isolate parameters for that height
     ht = heights[iH]
@@ -98,5 +101,5 @@ ax12.set_title('$\sigma_u$')
 ax21.set_title('$L/U$')
 #ax21.set_title('$L$')
 ax22.set_title(r'$\rho$')
-ax11.legend(loc=4,fontsize='small')
+#ax11.legend(loc=4,fontsize='small')
 plt.suptitle('Dataset: ' + dataset,fontsize='large')

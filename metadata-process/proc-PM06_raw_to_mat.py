@@ -12,12 +12,14 @@ import numpy as np
 import scipy.io as scio
 
 # define dataset-specific paramters
+dataset = 'PM06'
 rec_mins = 10                       # number of minutes per record
 header_line = 0                     # line number for file header
 fields_line = 1                     # line number for data fields
 units_line  = 2                     # line number for units
 data_line   = 4                     # line number for start of data
-N           = jr.datasetSpecs('CM06')[0]
+specs       = jr.datasetSpecs(dataset)
+N, IDs      = specs['n_t'], specs['IDs']
 
 # specify drive location
 ext_drive = 'G:'
@@ -62,7 +64,7 @@ def PM2numpy(row_str,time_0):
             
     return row_np
 
-# process intermediate mat files
+# ===================== process intermediate mat files ========================
 if proc_intr:
     
     # create intermediate directory if it doesn't exist
@@ -97,7 +99,7 @@ if proc_intr:
                     if i_line == header_line:
                         header = row
                     elif i_line == fields_line:
-                        fields = row
+                        rawfields = row
                     elif i_line == units_line:
                         units = row
                         
@@ -117,15 +119,16 @@ if proc_intr:
             
                         # initialize data parameters
                         i_t  = 0
-                        data = np.empty((N,len(fields)))
-                                            
+                        data = np.empty((N,len(rawfields)))
+                                
+                    # if we're after the header lines
                     elif i_line >= 4:
                         
                         # get the timestamp
                         time_str = row[0]
                         time_dt = timestr2datetime(time_str)
                         
-                        # if the time is greater than the final measurement time, reset
+                        # if time is greater than the final msmnt time, reset
                         if (time_dt >= time_f):
                             
                             # save data if enough time stamps are found in time period
@@ -141,11 +144,11 @@ if proc_intr:
                                 values = data[:i_t,:]
                                 
                                 # create output dictionary
-                                outdict           = {}
-                                outdict['header'] = header
-                                outdict['fields'] = fields
-                                outdict['units']  = units
-                                outdict['values'] = values
+                                outdict              = {}
+                                outdict['header']    = header
+                                outdict['rawfields'] = rawfields
+                                outdict['units']     = units
+                                outdict['values']    = values
                                 
                                 # save output
                                 scio.savemat(fpath,outdict)
@@ -155,7 +158,7 @@ if proc_intr:
                                                                 
                             # reset values
                             i_t = 0
-                            data = np.empty((N,len(fields)))
+                            data = np.empty((N,len(rawfields)))
                             time_0 = time_f
                             time_f += dt.timedelta(minutes=rec_mins)
                             
@@ -175,7 +178,7 @@ if proc_intr:
                             
                     i_line += 1
    
-# combine 3 separate mat files into single mat file         
+# =========== combine 3 separate mat files into single mat file ===============
 if proc_proc:
     
     # delete processed directory if it exsits
@@ -246,13 +249,18 @@ if proc_proc:
                             # load intermediate dictionary
                             intr_dict = scio.loadmat(os.path.join(day_rdir,ufname))
                             intr_data = intr_dict['values']
-                            intr_fields = [s.rstrip() for s in intr_dict['fields']]
+                            rawfields = [s.rstrip() for s in intr_dict['fields']]
+#                            rawfields = [s.rstrip() for s in intr_dict['rawfields']]
                             
-                            # save all fields individually in new dictionary
-                            for i_field in range(len(intr_fields)):
-                                field = intr_fields[i_field]
-                                save_dict[field] = intr_data[:,i_field]
-                        
+                            # save fields individually in new dictionary
+                            for i_field in range(len(rawfields)):
+                                rawfield = rawfields[i_field]
+                                if ('rec' not in rawfield):
+                                    datfield = jr.rawfield2datfield(dataset,
+                                                                    rawfield)
+                                    save_dict[datfield] = intr_data[:,i_field]
+                                   
+                                          
                         # save dictionary
                         scio.savemat(save_fpath,save_dict)
                         
