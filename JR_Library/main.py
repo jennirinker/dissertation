@@ -61,7 +61,7 @@ def loadmetadata(fname):
     elif (fname.endswith('mat')):
 
         struc     = scio.loadmat(fname)         # load structure
-        fields    = [string.rstrip(' ') for \
+        fields    = [str(string.rstrip(' ')) for \
                   string in  struc['fields']]   # load fields, stripping spaces
         metadata  = struc['metadata']
 
@@ -262,7 +262,7 @@ def loadtimeseries(dataset,field,ID,data_in):
         x_cl  = x_raw.astype(float)
                 
         # process time series if not group warning
-        if ('grp' not in datfield):     
+        if ('Grp' not in datfield):     
             
             # get range of acceptable data
             dataRng = dataRanges(dataset,datfield)           
@@ -754,21 +754,17 @@ def check_datfields(dataset,datfield):
                   'Sonic_direction_36m','Sonic_direction_54m',\
                   'Sonic_direction_75m']
     elif (dataset == 'PM06'):
-# TODO: update these datfields
-        datfields = ['Uy_1_3(1,1)', 'Ux_1_1(1,1)', 'Uz_2_3(1,1)', 'Ux_3_3(1,1)', \
-        'rec_numbr_mas_1', 'Ux_2_2(1,1)', 'Ux_3_4(1,1)', 'Uz_2_4(1,1)', \
-        'Ts_3_4(1,1)', 'Uy_2_3(1,1)', 'Ux_1_3(1,1)', 'Uy_2_4(1,1)', \
-        'Ts_2_1(1,1)', 'Ts_2_2(1,1)', 'Uy_1_4(1,1)', 'Uz_1_2(1,1)', \
-        'grp_warning_1(1)', 'Uz_3_2(1,1)', 'Uz_3_1(1,1)', 'Ux_2_3(1,1)', \
-        'Uy_1_2(1,1)', 'Uy_3_3(1,1)', 'Ts_1_2(1,1)', 'rec_numbr_slv_3', \
-        'rec_numbr_slv_2', 'Uy_2_2(1,1)', 'Ts_2_4(1,1)', 'Ts_3_1(1,1)', \
-        'Ux_1_4(1,1)', 'Uz_1_3(1,1)', 'Uz_3_4(1,1)', 'Ux_3_1(1,1)', \
-        'Ts_1_4(1,1)', 'Uz_2_1(1,1)', 'Uy_3_4(1,1)', 'Uz_1_1(1,1)', \
-        'kh2o_1_1', 'Uy_2_1(1,1)', 'grp_warning_3(1)', 'Ux_1_2(1,1)', \
-        'Ts_1_1(1,1)', 'Uy_1_1(1,1)', 'Uy_3_1(1,1)', 'grp_warning_2(1)', \
-        'Ts_2_3(1,1)', 'TIMESTAMP', 'Uy_3_2(1,1)', 'Ts_3_2(1,1)', \
-        'Ux_2_4(1,1)', 'kh2o_2_1', 'Ux_2_1(1,1)', 'Ts_1_3(1,1)', 'Ts_3_3(1,1)', \
-        'Ux_3_2(1,1)', 'Uz_3_3(1,1)', 'Uz_1_4(1,1)', 'Uz_2_2(1,1)']
+        datfields = ['Sonic_z_12', 'Sonic_z_11', 'Sonic_z_10', 'Sonic_T_7', \
+        'Sonic_T_1', 'Sonic_T_3', 'Sonic_T_2', 'Sonic_T_5', 'Sonic_T_4', \
+        'Hygro_1', 'Sonic_T_6', 'Sonic_T_9', 'Sonic_T_8', 'Sonic_y_1', \
+        'Sonic_z_7', 'Sonic_z_4', 'Sonic_T_11', 'Sonic_T_10', 'Sonic_T_12', \
+        'Sonic_x_11', 'Sonic_x_10', 'Sonic_x_12', 'Sonic_y_4', 'Sonic_y_5', \
+        'Sonic_y_6', 'Sonic_y_7', 'Sonic_x_9', 'Sonic_x_8', 'Sonic_y_2', \
+        'Sonic_y_3', 'Sonic_x_5', 'Sonic_x_4', 'Sonic_x_7', 'Sonic_x_6', \
+        'Sonic_x_1', 'Sonic_y_9', 'Sonic_x_3', 'Sonic_x_2', 'Sonic_z_9', \
+        'Sonic_z_8', 'Time', 'Sonic_z_3', 'Sonic_z_2', 'Sonic_z_1', \
+        'Sonic_y_12', 'Sonic_z_6', 'Sonic_y_10', 'Sonic_y_11', 'Sonic_y_8', \
+        'Sonic_z_5', 'GrpWarn_1', 'Hygro_3', 'GrpWarn_3', 'GrpWarn_2', 'Hygro_2']
     elif (dataset == 'texastech'):
         datfields = ['Air_Temp_10m', 'Air_Temp_116m', 'Air_Temp_158m', 'Air_Temp_17m', \
         'Air_Temp_1m', 'Air_Temp_200m', 'Air_Temp_2m', 'Air_Temp_47m', \
@@ -910,15 +906,15 @@ def dataRanges(dataset,datfield):
         # define data ranges
         #    Sonic data ranges taken from CSAT 3 specifications
         #    Hygrometer data from KH20 specifications
-        if ('Ux' in datfield):
+        if ('Sonic_x' in datfield):
             dataRng = [-29.95,29.95]
-        elif ('Uy' in datfield):
+        elif ('Sonic_y' in datfield):
             dataRng = [-29.95,29.95]
-        elif ('Uz' in datfield):
+        elif ('Sonic_z' in datfield):
             dataRng = [-7.95,7.95]
-        elif ('Ts' in datfield):
+        elif ('Sonic_T' in datfield):
             dataRng = [-29.95,49.95]
-        elif ('kh2o' in datfield):
+        elif ('Hygro' in datfield):
             dataRng = [  1.75,19.25] 
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
@@ -1392,7 +1388,7 @@ def calculatefield(dataset,struc_hf,ID):
             # save values
             outdict['Record_Time']     = rec_time
             outdict['Processed_Time']  = calendar.timegm(time.gmtime())   
-            outdict['Height']          = ID
+            outdict['ID']              = ID
             outdict['Wind_Speed_Cup']  = WSbar_in
             outdict['Wind_Direction']  = WDbar_in
             outdict['Precipitation']   = np.nanmean(P)
@@ -1410,10 +1406,10 @@ def calculatefield(dataset,struc_hf,ID):
             outdict['vp_wp']           = vpwp_bar
             outdict['wp_Tp']           = wpTp_bar
             outdict['up_vp']           = upvp_bar
-            outdict['tau_u']           = calculateKaimal(up + \
+            outdict['Tau_u']           = calculateKaimal(up + \
                                                 np.nanmean(u),dt)
-            outdict['tau_v']           = calculateKaimal(vp,dt)
-            outdict['tau_w']           = calculateKaimal(wp,dt)
+            outdict['Tau_v']           = calculateKaimal(vp,dt)
+            outdict['Tau_w']           = calculateKaimal(wp,dt)
             outdict['MO_Length_interp'] = -(Tbar_in_K * ustar**3) \
                                          /(kappa * g * wpTp_bar)
             outdict['MO_Length_near']  = - (Tbar_cl_K * ustar**3)/ \
@@ -1487,7 +1483,7 @@ def calculatefield(dataset,struc_hf,ID):
             # save values
             outdict['Record_Time']     = rec_time
             outdict['Processed_Time']  = calendar.timegm(time.gmtime())   
-            outdict['Height']          = ID
+            outdict['ID']              = ID
             outdict['Sonic_Cup']       = WSbar
             outdict['Sonic_Direction'] = WDbar
             outdict['Mean_Wind_Speed'] = np.nanmean(u)
@@ -1504,10 +1500,10 @@ def calculatefield(dataset,struc_hf,ID):
             outdict['vp_wp']           = vpwp_bar
             outdict['wp_Tp']           = wpTp_bar
             outdict['up_vp']           = upvp_bar
-            outdict['tau_u']           = calculateKaimal(up + \
+            outdict['Tau_u']           = calculateKaimal(up + \
                                                 np.nanmean(u),dt)
-            outdict['tau_v']           = calculateKaimal(vp,dt)
-            outdict['tau_w']           = calculateKaimal(wp,dt)
+            outdict['Tau_v']           = calculateKaimal(vp,dt)
+            outdict['Tau_w']           = calculateKaimal(wp,dt)
             outdict['MO_Length']       = -(Tbar_K * ustar**3) \
                                          /(kappa * g * wpTp_bar)
             outdict['MO_Length_virt']  = - (Tvbar_K * ustar**3)/ \
@@ -1542,6 +1538,7 @@ def calculatefield(dataset,struc_hf,ID):
             if (len(outdict['flags']) == 0):
                 time_series[i,:] = outdict['clean']
             else:
+                print(field,ts_ID,outdict['flags'])
                 clean = 0
                 
         # check grp_warning 
@@ -4539,7 +4536,7 @@ def fname2time(dataset,fname):
             timestamp (float): float representing timestamp
     """
     
-    if (dataset == 'NREL'):
+    if (dataset in ('NREL','fluela')):
 
         # extract date information
         year     = int(fname[6:10])
@@ -4811,20 +4808,22 @@ def field2datfield(dataset,field,ID):
         
         grp_nmbr,inst_nmbr = id2grpnmbr(dataset,ID)
 
-        if   (field == 'Sonic_x'):     datfield = 'Ux_{:d}_{:d}(1,1)'.format(grp_nmbr,inst_nmbr)
-        elif (field == 'Sonic_y'):     datfield = 'Uy_{:d}_{:d}(1,1)'.format(grp_nmbr,inst_nmbr)
-        elif (field == 'Sonic_z'):     datfield = 'Uz_{:d}_{:d}(1,1)'.format(grp_nmbr,inst_nmbr)
-        elif (field == 'Sonic_T'):     datfield = 'Ts_{:d}_{:d}(1,1)'.format(grp_nmbr,inst_nmbr)
-        elif (field == 'Humidity'):    datfield = 'kh2o_{:d}_1'.format(ID)
-        elif (field == 'Grp_Warning'): datfield = 'grp_warning_{:d}(1)'.format(grp_nmbr)
+        if   (field == 'Sonic_x'):     datfield = 'Sonic_x_{:d}'.format(ID)
+        elif (field == 'Sonic_y'):     datfield = 'Sonic_y_{:d}'.format(ID)
+        elif (field == 'Sonic_z'):     datfield = 'Sonic_z_{:d}'.format(ID)
+        elif (field == 'Sonic_T'):     datfield = 'Sonic_T_{:d}'.format(ID)
+        elif (field == 'Humidity'):    datfield = 'Hygro_{:d}'.format(ID)
+        elif (field == 'Grp_Warning'): datfield = 'GrpWarn_{:d}'.format(grp_nmbr)
         else:
             errStr = 'Unknown custom field {} for dataset \"{}\"'.format(field,dataset)
             raise AttributeError(errStr)
             
+# TODO: uncomment check datfield
+            
         # check that datafield is valid
-        if (not check_datfields(dataset,datfield)):
-            raise ValueError('Invalid identifier {:d} for field {:s}'\
-                             .format(ID,field))
+#        if (not check_datfields(dataset,datfield)):
+#            raise ValueError('Invalid identifier {:d} for field {:s}'\
+#                             .format(ID,field))
 
     elif dataset == 'texastech':
 

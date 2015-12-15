@@ -16,7 +16,7 @@ specs       =  jr.datasetSpecs(dataset)
 n_t, dt, heights = specs['n_t'], specs['dt'], specs['IDs']
 
 # specify drive location
-ext_drive = 'G:'
+ext_drive = 'H:'
 
 # define base directory for intermediate data
 baseraw  = ext_drive + '\\data\\texas-tech_raw'
