@@ -26,7 +26,7 @@ n_t, dt, IDs  = specs['n_t'],specs['dt'],specs['IDs']      # sampling heights
 # load test structure
 fname = 'FT2_E05_C01_R00070_D20120121_T1010_TR.mat'
 fpath = os.path.join(basedir,'2012\\01\\21',fname)
-struc_hf = scio.loadmat(fpath)
+struc_hf = scio.loadmat(fpath,squeeze_me=True)
 
 ID = 47
 
