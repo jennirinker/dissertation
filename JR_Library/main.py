@@ -645,6 +645,7 @@ def ReadFASTFile(fname):
         Fields = f.readline().strip('\n').split()
         Units  = f.readline().strip('\n').split()
     Data = np.genfromtxt(fname,skip_header=n_skip,delimiter='\t')
+    Units = [s.replace('\xb7','-') for s in Units]  # replace weird character
     
     # save everything in the dictionary
     FASTDict['Data']   = Data
