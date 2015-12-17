@@ -671,6 +671,8 @@ def metadataFields(dataset):
             fields (list): list of strings defining metadata
                 columns
     """
+    
+    # NOTE: these define the order of the metadata array, so keep order logical
 
     if (dataset == 'NREL'):
         fields = ['Record_Time','Processed_Time','ID','Wind_Speed_Cup', \
@@ -732,30 +734,32 @@ def check_datfields(dataset,datfield):
             fields (list): list of strings defining metadata
                 columns
     """
+    
+    # NOTE: these do not need to be in any particular order
 
     if (dataset == 'NREL'):
         datfields = ['Sonic_u_15m','Sonic_u_30m','Sonic_u_50m','Sonic_u_76m',\
-            'Sonic_u_100m','Sonic_u_131m','Sonic_v_15m','Sonic_v_30m',\
-            'Sonic_v_50m','Sonic_v_76m','Sonic_v_100m','Sonic_v_131m',\
-            'Sonic_w_15m','Sonic_w_30m','Sonic_w_50m','Sonic_w_76m',\
-            'Sonic_w_100m','Sonic_w_131m','Sonic_Temp_rotated_15m',\
-            'Sonic_Temp_rotated_30m','Sonic_Temp_rotated_50m',\
-            'Sonic_Temp_rotated_76m','Sonic_Temp_rotated_100m',\
-            'Sonic_Temp_rotated_131m','Air_Temp_3m','Air_Temp_26m',\
-            'Air_Temp_88m','Cup_WS_10m','Cup_WS_26m','Cup_WS_80m',\
-            'Cup_WS_88m','Cup_WS_134m','Vane_WD_10m','Vane_WD_26m',\
-            'Vane_WD_88m','Vane_WD_134m','PRECIP_INTEN','Dewpt_Temp_3m',\
-            'Dewpt_Temp_26m','Dewpt_Temp_88m','Dewpt_Temp_134m',\
-            'Baro_Presr_3m']
+        'Sonic_u_100m','Sonic_u_131m','Sonic_v_15m','Sonic_v_30m',\
+        'Sonic_v_50m','Sonic_v_76m','Sonic_v_100m','Sonic_v_131m',\
+        'Sonic_w_15m','Sonic_w_30m','Sonic_w_50m','Sonic_w_76m',\
+        'Sonic_w_100m','Sonic_w_131m','Sonic_Temp_rotated_15m',\
+        'Sonic_Temp_rotated_30m','Sonic_Temp_rotated_50m',\
+        'Sonic_Temp_rotated_76m','Sonic_Temp_rotated_100m',\
+        'Sonic_Temp_rotated_131m','Air_Temp_3m','Air_Temp_26m',\
+        'Air_Temp_88m','Cup_WS_10m','Cup_WS_26m','Cup_WS_80m',\
+        'Cup_WS_88m','Cup_WS_134m','Vane_WD_10m','Vane_WD_26m',\
+        'Vane_WD_88m','Vane_WD_134m','PRECIP_INTEN','Dewpt_Temp_3m',\
+        'Dewpt_Temp_26m','Dewpt_Temp_88m','Dewpt_Temp_134m',\
+        'Baro_Presr_3m']
     elif (dataset == 'fluela'):
         datfields = ['Sonic_u_36m','Sonic_u_54m','Sonic_u_75m',\
-                  'Sonic_v_36m','Sonic_v_54m','Sonic_v_75m',\
-                  'Sonic_w_36m','Sonic_w_54m','Sonic_w_75m',\
-                  'Sonic_Temp_rotated_36m','Sonic_Temp_rotated_54m',\
-                  'Sonic_Temp_rotated_75m','Sonic_CupEqHorizSpeed_36m',\
-                  'Sonic_CupEqHorizSpeed_54m','Sonic_CupEqHorizSpeed_75m',\
-                  'Sonic_direction_36m','Sonic_direction_54m',\
-                  'Sonic_direction_75m']
+        'Sonic_v_36m','Sonic_v_54m','Sonic_v_75m',\
+        'Sonic_w_36m','Sonic_w_54m','Sonic_w_75m',\
+        'Sonic_Temp_rotated_36m','Sonic_Temp_rotated_54m',\
+        'Sonic_Temp_rotated_75m','Sonic_CupEqHorizSpeed_36m',\
+        'Sonic_CupEqHorizSpeed_54m','Sonic_CupEqHorizSpeed_75m',\
+        'Sonic_direction_36m','Sonic_direction_54m',\
+        'Sonic_direction_75m']
     elif (dataset == 'PM06'):
         datfields = ['Sonic_z_12', 'Sonic_z_11', 'Sonic_z_10', 'Sonic_T_7', \
         'Sonic_T_1', 'Sonic_T_3', 'Sonic_T_2', 'Sonic_T_5', 'Sonic_T_4', \
@@ -1885,7 +1889,7 @@ def RotateTimeSeries(ux,uy,uz):
     """
     
     # return all NaNs if any component is all nan values
-    if any(np.isnan(ux)*np.isnan(uy)*np.isnan(uz)):
+    if all(np.isnan(ux))*all(np.isnan(uy))*all(np.isnan(uz)):
         u = np.zeros(ux.shape)
         v = np.zeros(uy.shape)
         w = np.zeros(uz.shape)
