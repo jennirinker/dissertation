@@ -289,7 +289,8 @@ def loadtimeseries(dataset,field,ID,data_in):
             # remove spikes/detrend sonics, remove DC gain
             # detrend everything else
             if (len(flags) == 0):
-                if any([key in datfield for key in ('Ux','Uy','Uz','Ts')]):
+                if any([key in datfield for key in ('Sonic_x','Sonic_y',
+                                                    'Sonic_z','Sonic_T')]):
                     # remove spikes, linear detrend
                     x_cl, n_spikes = cleantimeseries(t,x_cl)
                     
@@ -311,7 +312,7 @@ def loadtimeseries(dataset,field,ID,data_in):
         outdict['flags'] = flags
 
     elif (dataset == 'texastech'):
-
+        
         # set data ranges, desired length of time series
 #        dataRng = dataRanges(dataset,datfield)
 # TODO: add in TT data ranges
@@ -326,7 +327,7 @@ def loadtimeseries(dataset,field,ID,data_in):
             fpath = time2fpath(dataset,data_in)
 	    # try to load the structure
 	    try:
-		struc = scio.loadmat(fpath)
+		struc = scio.loadmat(fpath,squeeze_me=True)
 	    except:
 		errStr = 'Corrupt or empty structure for {}'.format(fpath)
 		raise TypeError(errStr)
@@ -340,7 +341,7 @@ def loadtimeseries(dataset,field,ID,data_in):
 
         # try to load time series
         try:
-            x_raw = np.squeeze(struc[datfield][0,0][0])            
+            x_raw = np.squeeze(struc[datfield])            
             # flag 5003: data are all NaNs
             if (np.all(np.isnan(x_raw))):
                 flags.append(5003)                
@@ -700,6 +701,7 @@ def metadataFields(dataset):
     elif (dataset == 'texastech'):
         fields = ['Record_Time','Processed_Time','ID', \
               'Wind_Speed_UVW','Wind_Direction_UVW', \
+              'Wind_Direction_Sonic','Wind_Speed_Sonic', \
               'Sigma_u_UVW','Concentration_u_UVW','Location_u_UVW', \
               'Sigma_v_UVW','Concentration_v_UVW','Location_v_UVW', \
               'Sigma_w_UVW','Concentration_w_UVW','Location_w_UVW', \
@@ -709,7 +711,8 @@ def metadataFields(dataset):
               'Sigma_v','Concentration_v','Location_v', \
               'Sigma_w','Concentration_w','Location_w', \
               'up_wp','vp_wp','wp_Tp','up_vp','Tau_u','Tau_v','Tau_w', \
-              'MO_Length_interp','MO_Length_near','MO_Length_virt']
+              'Specific_Humidity', 'Pressure', \
+              'MO_Length','MO_Length_virt','Tbar_K','Tvbar_K']
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -926,7 +929,7 @@ def dataRanges(dataset,datfield):
     return dataRng
 
 
-def getBasedir(dataset,drive='G:'):
+def getBasedir(dataset,drive):
     """ Get path to directory with high-frequency mat files and check if it 
         exists
 
@@ -1059,7 +1062,7 @@ def struc2metadata(dataset,struc_hf,ID):
     """
     
 
-    if (dataset in ['NREL','fluela','PM06']):
+    if (dataset in ['NREL','fluela','PM06','texastech']):
 
         # get list of metadata fieldnames
         md_fields = metadataFields(dataset)
@@ -1630,6 +1633,7 @@ def calculatefield(dataset,struc_hf,ID):
     elif (dataset == 'texastech'):
         
         # no need to interpolate - temperature and pressure msmnt at all heights
+        clean  = 1                          # initialize clean flag
         
         # set fields of time series to load
         if ID > 8:
@@ -1688,7 +1692,7 @@ def calculatefield(dataset,struc_hf,ID):
             u_p, v_p, w_p = RotateTimeSeries(ux_p,uy_p,uz_p)
                         
             # get dictionary values
-            fname     = struc_hf['name'][0]
+            fname     = struc_hf['name']
             rec_time  = fname2time(dataset,fname)
             T_K       = C2K(T)
             T_s_K     = C2K(T_s)
@@ -1754,8 +1758,8 @@ def calculatefield(dataset,struc_hf,ID):
             outdict['Location_w_UVW']       = muw_p
             outdict['Tau_u_UVW']            = calculateKaimal(up_p + \
                                                 np.nanmean(u_p),dt)
-            outdict['Tau_v_UWV']            = calculateKaimal(vp_p,dt)
-            outdict['Tau_w_UWV']            = calculateKaimal(wp_p,dt)
+            outdict['Tau_v_UVW']            = calculateKaimal(vp_p,dt)
+            outdict['Tau_w_UVW']            = calculateKaimal(wp_p,dt)
             outdict['Mean_Wind_Speed']      = np.nanmean(u_s)
             outdict['Sigma_u']              = np.nanstd(up_s)
             outdict['Concentration_u']      = rhou_s
@@ -4827,9 +4831,9 @@ def field2datfield(dataset,field,ID):
 
     elif dataset == 'texastech':
 
-        if   (field == 'UVW_u'):          datfield = 'UVW_u_{:.0f}m'.format(ID)
-        elif (field == 'UVW_v'):          datfield = 'UVW_v_{:.0f}m'.format(ID)
-        elif (field == 'UVW_w'):          datfield = 'UVW_w_{:.0f}m'.format(ID)
+        if   (field == 'UVW_x'):          datfield = 'UVW_x_{:.0f}m'.format(ID)
+        elif (field == 'UVW_y'):          datfield = 'UVW_y_{:.0f}m'.format(ID)
+        elif (field == 'UVW_z'):          datfield = 'UVW_z_{:.0f}m'.format(ID)
         elif (field == 'Sonic_x'):        datfield = 'Sonic_x_{:.0f}m'.format(ID)
         elif (field == 'Sonic_y'):        datfield = 'Sonic_y_{:.0f}m'.format(ID)
         elif (field == 'Sonic_z'):        datfield = 'Sonic_z_{:.0f}m'.format(ID)

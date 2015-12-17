@@ -14,7 +14,7 @@ import numpy as np
 dataset = 'texastech'
 
 # get base directory with mat files
-basedir = jr.getBasedir(dataset)
+basedir = jr.getBasedir(dataset,'H:')
 
 # generate and save list of mat files in directory
 #listmats = jr.list_matfiles(basedir,save=1)
@@ -28,7 +28,7 @@ fname = 'FT2_E05_C01_R00070_D20120121_T1010_TR.mat'
 fpath = os.path.join(basedir,'2012\\01\\21',fname)
 struc_hf = scio.loadmat(fpath,squeeze_me=True)
 
-ID = 47
+ID = 158
 
 # manually check wind direction calculation
 x  = jr.loadtimeseries(dataset,'Sonic_x',ID,struc_hf)['clean']
@@ -44,22 +44,24 @@ x  = jr.loadtimeseries(dataset,'Sonic_x',ID,struc_hf)['clean']
 #x_cl  = outdict['clean']
 #flags = outdict['flags']
 
-#plt.figure(1)
-#plt.clf()
-#
-#plt.plot(t,x_raw,label='raw')
+plt.figure(1)
+plt.clf()
+
+plt.plot(x,label='raw')
+poop
 #plt.plot(t,x_cl,label='stored clean')
 #plt.legend()
 
-#md_fields = jr.metadataFields(dataset)
-#outdict = jr.calculatefield(dataset,struc_hf,ID)
-#row = jr.struc2metadata(dataset,struc_hf,ID)
-#
-#for i_field in range(len(md_fields)):
-#    key = md_fields[i_field]
-#    print('{:20s} {:15.3f} {:15.3f}'.format(key,
-#                  outdict[key],
-#                  row[i_field]))
+# compare calculate fieldand struc2metadata outputs
+md_fields = jr.metadataFields(dataset)
+outdict = jr.calculatefield(dataset,struc_hf,ID)
+row = jr.struc2metadata(dataset,struc_hf,ID)
+
+for i_field in range(len(md_fields)):
+    key = md_fields[i_field]
+    print('{:20s} {:15.3f} {:15.3f}'.format(key,
+                  outdict[key],
+                  row[i_field]))
 
 #print()
 

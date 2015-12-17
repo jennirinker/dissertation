@@ -19,8 +19,10 @@ n_t, dt, heights = specs['n_t'], specs['dt'], specs['IDs']
 ext_drive = 'H:'
 
 # define base directory for intermediate data
-baseraw  = ext_drive + '\\data\\texas-tech_raw'
-baseproc = ext_drive + '\\data\\texas-tech'
+#baseraw  = ext_drive + '\\data\\texas-tech_raw'
+#baseproc = ext_drive + '\\data\\texas-tech'
+baseraw  = ext_drive + '\\texas-tech_raw'
+baseproc = ext_drive + '\\texas-tech'
 
 # conversion factors
 mph2mps     = 1./2.2369362920544    # mph to meters/s
@@ -41,7 +43,8 @@ if os.path.isdir(baseproc):
 os.makedirs(baseproc)
 
 # get raw data field names
-raw_field_fpath = 'G:\\data\\texas-tech_raw\\Documentation\\raw_fieldnames.csv'
+#raw_field_fpath = 'G:\\data\\texas-tech_raw\\Documentation\\raw_fieldnames.csv'
+raw_field_fpath = 'H:\\texas-tech_raw\\Documentation\\raw_fieldnames.csv'
 with open(raw_field_fpath,'r') as csvfile:
     csvreader = csv.reader(csvfile)
     raw_fields_all = [[],[],[],[]]

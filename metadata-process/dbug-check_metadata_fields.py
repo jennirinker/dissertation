@@ -8,10 +8,14 @@ if (libpath not in sys.path): sys.path.append(libpath)
 
 import JR_Library.main as jr
 import scipy.io as scio
+import os
 
 # pick dataset
 #datasets = ['NREL','fluela','PM06','texastech']
-dataset = 'PM06'
+dataset = 'texastech'
+
+# if metadata is calculated
+md_calc = 0
 
 # load high-frequency structure
 if dataset == 'NREL':
@@ -23,30 +27,34 @@ elif dataset == 'PM06':
     fpath_hf = 'G:\\data\\plaine-morte\\CM06\\2006\\02\\' + \
                     '02\\02_02_2006_1440_TS_WND.mat'
 elif dataset == 'texastech':
-    fpath_hf = ''
-struc_hf = scio.loadmat(fpath_hf)
+    fname_hf = 'FT2_E05_C01_R00070_D20120121_T1010_TR.mat'
+    fpath_hf  = os.path.join(jr.getBasedir(dataset,'H:'),'2012\\01\\21',fname_hf)
+struc_hf = scio.loadmat(fpath_hf,squeeze_me=True)
 
 print('\nComparing metadata fields for dataset {:s}'.format(dataset))
 
 # calculate fields in output dictionary
 IDs = jr.datasetSpecs(dataset)['IDs']
-outdict = jr.calculatefield(dataset,struc_hf,IDs[-1])
+outdict = jr.calculatefield(dataset,struc_hf,IDs[-2])
 dict_keys = outdict.keys()
 
 # load fields stored in module
 mod_keys = jr.metadataFields(dataset)
-
-# load fields stored in metadata
-fpath = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
-            'processed_data\\{:s}-metadata.mat'.format(dataset)
-fields, raw_md = jr.loadmetadata(fpath)
-md_keys = fields
 
 # print intersection
 print('\nDifference between calculatfield and metadataFields:')
 print('----------------------------------------------------')
 print(set(dict_keys) ^ set(mod_keys))
 
-print('\nDifference between stored fields and metadataFields:')
-print('----------------------------------------------------')
-print(set(md_keys) ^ set(mod_keys))
+if md_calc:
+    
+    # load fields stored in metadata
+    fpath = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
+                'processed_data\\{:s}-metadata.mat'.format(dataset)
+    fields, raw_md = jr.loadmetadata(fpath)
+    md_keys = fields
+    
+    
+    print('\nDifference between stored fields and metadataFields:')
+    print('----------------------------------------------------')
+    print(set(md_keys) ^ set(mod_keys))

@@ -14,7 +14,7 @@ import numpy as np
 dataset = 'PM06'
 
 # get base directory with mat files
-basedir = jr.getBasedir(dataset)
+basedir = jr.getBasedir(dataset,'G:')
 
 # generate and save list of mat files in directory
 #listmats = jr.list_matfiles(basedir,save=1)
@@ -42,13 +42,15 @@ struc_hf = scio.loadmat(fpath)
 ID = 4
 
 # manually check wind direction calculation
-x  = jr.loadtimeseries(dataset,'Sonic_x',ID,struc_hf)['clean']
-y  = jr.loadtimeseries(dataset,'Sonic_y',ID,struc_hf)['clean']
+outdictx  = jr.loadtimeseries(dataset,'Sonic_x',ID,struc_hf)
+x, xflags = outdictx['clean'], outdictx['flags']
+outdicty  = jr.loadtimeseries(dataset,'Sonic_y',ID,struc_hf)
+y, yflags = outdicty['clean'], outdicty['flags']
 #WD_sonic = np.arctan2(y,x)
 #WD = sonic_offset*np.pi/180 - WD_sonic
 #WDbar = np.angle(np.nanmean(np.exp(1j*WD)),deg=1)
 #print('Manual wind direction [deg]: {:.1f}'.format(WDbar))
-WSbar = np.nanmean(np.sqart(x**2 + y**2))
+WSbar = np.nanmean(np.sqrt(x**2 + y**2))
 
 #t = outdict['time']
 #x_raw = outdict['raw']

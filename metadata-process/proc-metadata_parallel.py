@@ -15,13 +15,18 @@ if (__name__ == '__main__'):
     import JR_Library.main as jr
     
     # variables for later
-#    datasets    = ['NREL','fluela','PM06']
-    dataset     = 'PM06'
-    basedir     = jr.getBasedir(dataset)
-    njobs       = 4
-    fields      = jr.metadataFields(dataset)
-    save_data   = 1
-    in_parallel = 1
+#    datasets       = ['NREL','fluela','PM06']
+    dataset        = 'PM06'
+    basedir        = jr.getBasedir(dataset)
+    njobs          = 2
+    fields         = jr.metadataFields(dataset)
+    save_data      = 1
+    in_parallel    = 1
+    regen_listmats = 0
+    
+    # create list of matfiles
+    if regen_listmats:
+        jr.list_matfiles(basedir,save=1)
     
     # load saved list of mat files
     lmats_fname = [fp for fp in os.listdir(basedir) if 'listmats' in fp][0]
