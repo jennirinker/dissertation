@@ -933,7 +933,7 @@ def dataRanges(dataset,datfield):
     return dataRng
 
 
-def getBasedir(dataset,drive):
+def getBasedir(dataset):
     """ Get path to directory with high-frequency mat files and check if it 
         exists
 
@@ -946,71 +946,45 @@ def getBasedir(dataset,drive):
     """
     
     import platform
-
+    
+    # define platform-specific drives to search      
+    if (platform.system() == 'Linux'):
+        drives = ['/media/jrinkerJRinker SeaGate External/',
+                  '/media/jrinkerSeagate Backup Plus Drive/']
+        
+    elif (platform.system() == 'Windows'):
+        drives = ['E:/','G:/','H:/']
+        
+    # get string list of drives for possible error message
+    drives_str = ''
+    for i in range(len(drives)-1): drives_str += drives[i] + ', '
+    drives_str += 'or {:s}'.format(drives[-1])
+                    
+    # define dataset locations on drive
     if (dataset == 'NREL'):
-        if (platform.system() == 'Linux'):
-            basedir = '/media/jrinker/JRinker SeaGate External/' + \
-                        'data/nrel-20Hz/'
-        elif (platform.system() == 'Windows'):
-            basedir = drive + '\\data\\nrel-20Hz'
-        if not os.path.exists(basedir):
-            errStr = 'Incorrect or unavailable base ' + \
-                     'directory for dataset \"{}\".'.format(dataset)
-            raise IOError(errStr)
+        dataset_loc = 'data/nrel-20Hz'
+            
     elif (dataset == 'fluela'):
-        if (platform.system() == 'Linux'):
-            basedir = '/media/jrinker/JRinker SeaGate External/' + \
-                        'data/fluela-high_freq/'
-        elif (platform.system() == 'Windows'):
-            basedir = drive + '\\data\\fluela-high_freq'
-        if not os.path.exists(basedir):
-            errStr = 'Incorrect or unavailable base ' + \
-                     'directory for dataset \"{}\".'.format(dataset)
-            raise IOError(errStr)
+        dataset_loc = 'data/fluela-high_freq/'
+            
     elif (dataset == 'PM06'):
-        if (platform.system() == 'Linux'):
-            basedir = '/media/jrinker/JRinker SeaGate External/data/' + \
-                        'plaine-morte/CM06/'
-        elif (platform.system() == 'Windows'):
-            basedir = drive + '\\data\\plaine-morte\\CM06'
-        if not os.path.exists(basedir):
-            errStr = 'Incorrect or unavailable base ' + \
-                     'directory for dataset \"{}\".'.format(dataset)
-            raise IOError(errStr)
+        dataset_loc = 'data/plaine-morte/CM06/'
+            
     elif (dataset == 'texastech'):
-        if (platform.system() == 'Linux'):
-            basedir = '/media/jrinker/JRinker SeaGate External/data/' + \
-                        'texas-tech/'
-        elif (platform.system() == 'Windows'):
-            basedir = drive + '\\data\\texas-tech'
-        if not os.path.exists(basedir):
-            errStr = 'Incorrect or unavailable base ' + \
-                     'directory for dataset \"{}\".'.format(dataset)
-            raise IOError(errStr)
+        dataset_loc = 'data/texas-tech/'
+        
+    # loop through drives, searcing for dataset
+    for drive in drives:
+        basedir = drive + dataset_loc
+        if os.path.exists(basedir):
+            return basedir
 
-    else:
-        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-        raise AttributeError(errStr)
+    # if dataset not found on any drives, print error
+    errStr = 'Unable to locate data for dataset \"{:s}\"'.format(dataset) \
+                + ' in drives {:s}'.format(drives_str)
+    raise IOError(errStr)
 
-    return basedir
-
-
-#def makemetadata(dataset):
-#    """ Construct metadata table
-#    """
-#
-#    # get base directory, check it exists
-#    basedir = getBasedir(dataset)
-#
-#    # process NREL dataset
-#    if (dataset == 'NREL'):
-#        metadata = makeNRELmetadata(basedir)
-#
-#    else:
-#        errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
-#        raise AttributeError(errStr)
-#
-#    return metadata
+    return
 
 
 def listmetadata(dataset,i,list_mats):
