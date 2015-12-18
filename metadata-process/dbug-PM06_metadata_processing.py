@@ -14,7 +14,7 @@ import numpy as np
 dataset = 'PM06'
 
 # get base directory with mat files
-basedir = jr.getBasedir(dataset,'G:')
+basedir = jr.getBasedir(dataset)
 
 # generate and save list of mat files in directory
 #listmats = jr.list_matfiles(basedir,save=1)
@@ -42,18 +42,18 @@ struc_hf = scio.loadmat(fpath)
 ID = 4
 
 # manually check wind direction calculation
-outdictx  = jr.loadtimeseries(dataset,'Sonic_x',ID,struc_hf)
-x, xflags = outdictx['clean'], outdictx['flags']
-outdicty  = jr.loadtimeseries(dataset,'Sonic_y',ID,struc_hf)
-y, yflags = outdicty['clean'], outdicty['flags']
-outdictz  = jr.loadtimeseries(dataset,'Sonic_z',ID,struc_hf)
-z, zflags = outdicty['clean'], outdicty['flags']
-u,v,w = jr.RotateTimeSeries(x,y,z)
+#outdictx  = jr.loadtimeseries(dataset,'Sonic_x',ID,struc_hf)
+#x, xflags = outdictx['clean'], outdictx['flags']
+#outdicty  = jr.loadtimeseries(dataset,'Sonic_y',ID,struc_hf)
+#y, yflags = outdicty['clean'], outdicty['flags']
+#outdictz  = jr.loadtimeseries(dataset,'Sonic_z',ID,struc_hf)
+#z, zflags = outdicty['clean'], outdicty['flags']
+#u,v,w = jr.RotateTimeSeries(x,y,z)
 #WD_sonic = np.arctan2(y,x)
 #WD = sonic_offset*np.pi/180 - WD_sonic
 #WDbar = np.angle(np.nanmean(np.exp(1j*WD)),deg=1)
 #print('Manual wind direction [deg]: {:.1f}'.format(WDbar))
-WSbar = np.nanmean(np.sqrt(x**2 + y**2))
+#WSbar = np.nanmean(np.sqrt(x**2 + y**2))
 
 #t = outdict['time']
 #x_raw = outdict['raw']
@@ -69,13 +69,13 @@ WSbar = np.nanmean(np.sqrt(x**2 + y**2))
 
 md_fields = jr.metadataFields(dataset)
 outdict = jr.calculatefield(dataset,struc_hf,ID)
-#row = jr.struc2metadata(dataset,struc_hf,ID)
-#
-#for i_field in range(len(md_fields)):
-#    key = md_fields[i_field]
-#    print('{:20s} {:15.3f} {:15.3f}'.format(key,
-#                  outdict[key],
-#                  row[i_field]))
+row = jr.struc2metadata(dataset,struc_hf,ID)
+
+for i_field in range(len(md_fields)):
+    key = md_fields[i_field]
+    print('{:20s} {:15.3f} {:15.3f}'.format(key,
+                  outdict[key],
+                  row[i_field]))
 
 #print()
 

@@ -953,7 +953,7 @@ def getBasedir(dataset):
                   '/media/jrinkerSeagate Backup Plus Drive/']
         
     elif (platform.system() == 'Windows'):
-        drives = ['E:/','G:/','H:/']
+        drives = ['E:/','G:/','H:/','T:/','V:/']
         
     # get string list of drives for possible error message
     drives_str = ''
@@ -979,7 +979,7 @@ def getBasedir(dataset):
         if os.path.exists(basedir):
             return basedir
 
-    # if dataset not found on any drives, print error
+    # if dataset not found on any drives, throw error
     errStr = 'Unable to locate data for dataset \"{:s}\"'.format(dataset) \
                 + ' in drives {:s}'.format(drives_str)
     raise IOError(errStr)

@@ -17,7 +17,7 @@ if (__name__ == '__main__'):
     # variables for later
 #    datasets       = ['NREL','fluela','PM06']
     dataset        = 'PM06'
-    basedir        = jr.getBasedir(dataset,'G:')
+    basedir        = jr.getBasedir(dataset)
     njobs          = 2
     fields         = jr.metadataFields(dataset)
     save_data      = 1

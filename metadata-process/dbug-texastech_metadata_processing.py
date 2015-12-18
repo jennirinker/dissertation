@@ -14,7 +14,7 @@ import numpy as np
 dataset = 'texastech'
 
 # get base directory with mat files
-basedir = jr.getBasedir(dataset,'H:')
+basedir = jr.getBasedir(dataset)
 
 # generate and save list of mat files in directory
 #listmats = jr.list_matfiles(basedir,save=1)
@@ -48,7 +48,7 @@ plt.figure(1)
 plt.clf()
 
 plt.plot(x,label='raw')
-poop
+
 #plt.plot(t,x_cl,label='stored clean')
 #plt.legend()
 
