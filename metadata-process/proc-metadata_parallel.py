@@ -15,21 +15,22 @@ if (__name__ == '__main__'):
     import JR_Library.main as jr
     
     # variables for later
-#    datasets       = ['NREL','fluela','PM06']
-    dataset        = 'PM06'
+#    datasets       = ['NREL','fluela','PM06','texastech']
+    dataset        = 'texastech'
     basedir        = jr.getBasedir(dataset)
     njobs          = 2
     fields         = jr.metadataFields(dataset)
-    save_data      = 1
-    in_parallel    = 1
-    regen_listmats = 0
+    save_data      = 0
+    in_parallel    = 0
     
-    # create list of matfiles
-    if regen_listmats:
+    # see if list of mat files exists, create it if it doesn't
+    lmats_fname = [fp for fp in os.listdir(basedir) if 'listmats' in fp]
+    if not lmats_fname:
         jr.list_matfiles(basedir,save=1)
-    
-    # load saved list of mat files
-    lmats_fname = [fp for fp in os.listdir(basedir) if 'listmats' in fp][0]
+        lmats_fname = [fp for fp in os.listdir(basedir) if 'listmats' in fp]
+    lmats_fname = lmats_fname[0]
+        
+    # load list of mat files
     lmats_fpath = os.path.join(basedir,lmats_fname)
     with open(lmats_fpath,'r') as f:
         list_mats = json.load(f)
@@ -37,6 +38,7 @@ if (__name__ == '__main__'):
     
     # number of files to process (make small for debugging)
     n_proc = n_files                            # no. files to process
+    n_proc = 2                            # no. files to process
         
     # process files in parallel
     if in_parallel:

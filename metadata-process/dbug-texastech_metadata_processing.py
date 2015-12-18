@@ -28,7 +28,7 @@ fname = 'FT2_E05_C01_R00070_D20120121_T1010_TR.mat'
 fpath = os.path.join(basedir,'2012\\01\\21',fname)
 struc_hf = scio.loadmat(fpath,squeeze_me=True)
 
-ID = 158
+ID = 1
 
 # manually check wind direction calculation
 x  = jr.loadtimeseries(dataset,'Sonic_x',ID,struc_hf)['clean']

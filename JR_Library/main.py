@@ -995,7 +995,7 @@ def listmetadata(dataset,i,list_mats):
     
     
 
-    if (dataset in ['NREL','fluela','PM06']):
+    if (dataset in ['NREL','fluela','PM06','texastech']):
         IDs      = datasetSpecs(dataset)['IDs']         # instrument IDs
         basedir  = getBasedir(dataset)                  # base directory
         fpath    = os.path.join(basedir,list_mats[i])   # path to mat file
@@ -1003,7 +1003,7 @@ def listmetadata(dataset,i,list_mats):
         
         # try to load the high-frequency structure, return arrays of NaNs if failed
         try:
-            struc = scio.loadmat(fpath)
+            struc = scio.loadmat(fpath,squeeze_me=True)
         except Exception as e:
             print('Cannot load {}'.format(fpath))
             print('  ' + str(e))
@@ -1083,6 +1083,10 @@ def calculateKaimal(x,dt):
     if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
         errStr = 'calculateKaimal only works on 1D arrays'
         raise ValueError(errStr)
+        
+    # if time series is all NaNs, return nan
+    if all(np.isnan(x)):
+        return np.nan
 
     # squeeze to 1D, interpolate NaN values
     x_1D = np.squeeze(x)
@@ -1656,9 +1660,9 @@ def calculatefield(dataset,struc_hf,ID):
                 uy_p = time_series[8,:]            # propellor anemometer - y
                 uz_p = time_series[9,:]            # propellor anemometer - z
             else:
-                ux_p = np.zeros(ux.shape)
-                uy_p = np.zeros(uy.shape)
-                uz_p = np.zeros(uz.shape)
+                ux_p = np.zeros(ux_s.shape)
+                uy_p = np.zeros(uy_s.shape)
+                uz_p = np.zeros(uz_s.shape)
                 ux_p[:] = np.nan
                 uy_p[:] = np.nan
                 uz_p[:] = np.nan
