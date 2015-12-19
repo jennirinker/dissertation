@@ -9,7 +9,7 @@ if (libpath not in sys.path): sys.path.append(libpath)
 import JR_Library.main as jr
 import matplotlib.pyplot as plt
 import numpy as np
-from JR_Library.rainflow.rainflow import determine_peaks
+from WISDEM_rainflow.rainflow import determine_peaks
 from JR_Library.peakdetect import peakdetect
 
 # make plots pretty
@@ -18,7 +18,7 @@ plt.style.use('C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
                 'duke_presentation.mplstyle')
 
 # choose whether to reload FAST dictionary
-reload = 1
+reload_dict = 1
 
 # time to look ahead for gist algorithm
 t_lookahead = 0.5
@@ -31,7 +31,7 @@ fpath_fast = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation\\' + \
                 'FAST_models\\FAST7\\WP0.75A08V00_equil\\WP0.75A08V00_24134.out'
 
 # reload dictionary if requested
-if reload:
+if reload_dict:
     fast_dict = jr.ReadFASTFile(fpath_fast)
     
 # get time series from dictionary
