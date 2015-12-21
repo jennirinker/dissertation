@@ -1,9 +1,9 @@
 
-:: =================================== Simulation 1 ======================
+:: ====================== Simulation 1 ========================
 
-@SET SMSSFILE="testing.mes"
-@ECHO  ========= Simulation 1 >  %SMSSFILE%
-@ECHO  Running FAST for case \DLC1.1\DLC1.1_0001_Land_04.0V0_S01.  >> %SMSSFILE%
+@SET SMSSFILE="Bat0001.mes"
+@ECHO  ========= Simulation 1 ========= >  %SMSSFILE%
+@ECHO  Running FAST for case \DLC1.1\DLC1.1_0001_Land_04.0V0_S01.fst  >> %SMSSFILE%
 
 %FAST% \DLC1.1\DLC1.1_0001_Land_04.0V0_S01.fst                   >> %SMSSFILE%
    IF ERRORLEVEL 1 GOTO :ERROR1
