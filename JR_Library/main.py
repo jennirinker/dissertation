@@ -3193,7 +3193,7 @@ def CreateTurbineDictionary(turb_name,turb_dir,BModes=1,TModes=1):
     
 
     print('\nWriting turbine dictionary' + \
-        ' for {:s} to {:s}'.format(turb_name,turb_dir))
+        ' for {:s} from {:s}'.format(turb_name,turb_dir))
     
     # ===================== Initialize turbine dictionary =====================
     TurbDict = {}
