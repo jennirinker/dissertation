@@ -170,7 +170,7 @@ False        SumPrint    - Print summary data to "<RootName>.fsm" (flag)
 1           OutFileFmt  - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
 True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "ES10.3E2"  OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!]
-  0.0      TStart      - Time to begin tabular output (s)
+  30.0      TStart      - Time to begin tabular output (s)
   10        DecFact     - Decimation factor for tabular output {1: output every time step} (-)
    1.0      SttsTime    - Amount of time between screen status messages (sec)
    0.0      NcIMUxn     - Downwind distance from the tower-top to the nacelle IMU (meters)

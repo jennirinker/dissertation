@@ -100,7 +100,9 @@ with open(RunAllPath,'w') as RunAll:
                     SimID = str(iInd+1).zfill(IndDigits)
                     IndBatName = '{:s}_{:s}_S{:s}.bat'.format(RunName,FastName,SimID)
                     IndBatPath = os.path.join(BatDir,IndBatName)
-                    FastOutName = os.path.splitext(IndBatName)[0] + '.out'
+                    FastInName = FastName+ '.fst'
+                    FastInPath = os.path.join(FastDir,FastInName)
+                    FastOutName = FastName+ '.out'
                     FastOutPath = os.path.join(FastDir,FastOutName)
                     
                     # ------------ write simulation to group bat file ------------
@@ -135,7 +137,7 @@ with open(RunAllPath,'w') as RunAll:
                     iInd += 1
                     
         # write group bat to run all
-        Line = 'start /b job submit /scheduler:monsoon /jobname:{:s} \"\{:s}"\n'.format( \
+        Line = 'start /b job submit /scheduler:monsoon /jobname:{:s} \"{:s}"\n'.format( \
                         GrpBatName,GrpBatPath)
         RunAll.write(Line)
 

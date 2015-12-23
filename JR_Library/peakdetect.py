@@ -4,7 +4,7 @@ https://gist.github.com/sixtenbe/1178136
 """
 import numpy as np
 from math import pi, log
-import pylab
+#import matplotlib.pyplot as plt
 from scipy import fft, ifft
 from scipy.optimize import curve_fit
 
@@ -270,15 +270,15 @@ def peakdetect_fft(y_axis, x_axis, pad_len = 5):
             peak_fit_tmp.append([x_fit_lim, y_fit_lim])
         fitted_wave.append(peak_fit_tmp)
     
-    #pylab.plot(range(len(fft_data)), fft_data)
-    #pylab.show()
-    
-    pylab.plot(x_axis, y_axis)
-    pylab.hold(True)
-    pylab.plot(x_axis_ifft, y_axis_ifft)
-    #for max_p in max_peaks:
-    #    pylab.plot(max_p[0], max_p[1], 'xr')
-    pylab.show()
+#    #plt.plot(range(len(fft_data)), fft_data)
+#    #plt.show()
+#    
+#    plt.plot(x_axis, y_axis)
+#    plt.hold(True)
+#    plt.plot(x_axis_ifft, y_axis_ifft)
+#    #for max_p in max_peaks:
+#    #    plt.plot(max_p[0], max_p[1], 'xr')
+#    plt.show()
     return [max_peaks, min_peaks]
     
     
@@ -331,15 +331,15 @@ def peakdetect_parabole(y_axis, x_axis, points = 9):
     min_fitted = map(lambda x: x[-1], min_)
     
     
-    #pylab.plot(x_axis, y_axis)
-    #pylab.hold(True)
+    #plt.plot(x_axis, y_axis)
+    #plt.hold(True)
     #for max_p, max_f in zip(max_peaks, max_fitted):
-    #    pylab.plot(max_p[0], max_p[1], 'x')
-    #    pylab.plot(max_f[0], max_f[1], 'o', markersize = 2)
+    #    plt.plot(max_p[0], max_p[1], 'x')
+    #    plt.plot(max_f[0], max_f[1], 'o', markersize = 2)
     #for min_p, min_f in zip(min_peaks, min_fitted):
-    #    pylab.plot(min_p[0], min_p[1], 'x')
-    #    pylab.plot(min_f[0], min_f[1], 'o', markersize = 2)
-    #pylab.show()
+    #    plt.plot(min_p[0], min_p[1], 'x')
+    #    plt.plot(min_f[0], min_f[1], 'o', markersize = 2)
+    #plt.show()
     
     return [max_peaks, min_peaks]
     
@@ -462,15 +462,15 @@ def peakdetect_sine(y_axis, x_axis, points = 9, lock_frequency = False):
     min_fitted = map(lambda x: x[-1], fitted_peaks[1])
     
     
-    #pylab.plot(x_axis, y_axis)
-    #pylab.hold(True)
+    #plt.plot(x_axis, y_axis)
+    #plt.hold(True)
     #for max_p, max_f in zip(max_peaks, max_fitted):
-    #    pylab.plot(max_p[0], max_p[1], 'x')
-    #    pylab.plot(max_f[0], max_f[1], 'o', markersize = 2)
+    #    plt.plot(max_p[0], max_p[1], 'x')
+    #    plt.plot(max_f[0], max_f[1], 'o', markersize = 2)
     #for min_p, min_f in zip(min_peaks, min_fitted):
-    #    pylab.plot(min_p[0], min_p[1], 'x')
-    #    pylab.plot(min_f[0], min_f[1], 'o', markersize = 2)
-    #pylab.show()
+    #    plt.plot(min_p[0], min_p[1], 'x')
+    #    plt.plot(min_f[0], min_f[1], 'o', markersize = 2)
+    #plt.show()
     
     return [max_peaks, min_peaks]
 
@@ -696,25 +696,25 @@ def _test_graph():
     xn = [p[0] for p in _min]
     yn = [p[1] for p in _min]
     
-    plot = pylab.plot(x,y)
-    pylab.hold(True)
-    pylab.plot(xm, ym, 'r+')
-    pylab.plot(xn, yn, 'g+')
+#    plot = plt.plot(x,y)
+#    plt.hold(True)
+#    plt.plot(xm, ym, 'r+')
+#    plt.plot(xn, yn, 'g+')
     
     _max, _min = peak_det_bad.peakdetect(y, 0.7, x)
     xm = [p[0] for p in _max]
     ym = [p[1] for p in _max]
     xn = [p[0] for p in _min]
     yn = [p[1] for p in _min]
-    pylab.plot(xm, ym, 'y*')
-    pylab.plot(xn, yn, 'k*')
-    pylab.show()
+#    plt.plot(xm, ym, 'y*')
+#    plt.plot(xn, yn, 'k*')
+#    plt.show()
     
     
     
 if __name__ == "__main__":
     from math import pi
-    import pylab
+    import plt
     
     i = 10000
     x = np.linspace(0,3.7*pi,i)
@@ -728,10 +728,10 @@ if __name__ == "__main__":
     xn = [p[0] for p in _min]
     yn = [p[1] for p in _min]
     
-    plot = pylab.plot(x, y)
-    pylab.hold(True)
-    pylab.plot(xm, ym, 'ro', ms=10, lw=2)
-    pylab.plot(xn, yn, 'go', ms=10, lw=2)
-    
-    
-    pylab.show()
+#    plot = plt.plot(x, y)
+#    plt.hold(True)
+#    plt.plot(xm, ym, 'ro', ms=10, lw=2)
+#    plt.plot(xn, yn, 'go', ms=10, lw=2)
+#    
+#    
+#    plt.show()

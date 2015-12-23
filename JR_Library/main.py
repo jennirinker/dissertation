@@ -28,6 +28,8 @@ import os
 import numpy as np
 import scipy.io as scio
 import re
+from peakdetect import peakdetect
+from rainflow import rainflow
 
 # %%===========================================================================
 # FILE I/O
@@ -4347,6 +4349,139 @@ def GetFirstWind(wind_fpath):
 
     return u0
     
+    
+def CalculateDELs(x,m,
+                 lookahead=2,EqFreq=1.,T_DEL=600.,PSF=1.):
+    """ Damage equivalent load for time series with given SN slopes
+    
+        Args:
+            x (numpy.ndarray): time series
+            m (float/numpy.ndarray/list): SN-slopes
+            lookahead (int): steps to look ahead in peak detect [opt]
+            EqFreq (float): equivalent frequency, Hz [opt]
+            T_DEL (float): time span of DEL calc, s [opt]
+            PSF (float): partial safety factor [opt]
+            
+        Returns:
+            DEL (float/numpy.ndarray): damage equivalent loads
+    """
+    
+    # change m to 1D array if float passed in
+    InFloat = 0
+    if (type(m) in ['float']):
+        m = np.array(m)
+        InFloat = 1
+    
+    # get extremal values from time series
+    maxinfo, mininfo = peakdetect(x, 
+                                  lookahead=lookahead)
+    ipeaks = np.array([tup[0] for tup in maxinfo] + [tup[0] for tup in mininfo])
+    xpeaks = np.array([tup[1] for tup in maxinfo] + [tup[1] for tup in mininfo])
+    
+    # re-sort algorithm into increasing indices
+    isort  = ipeaks.argsort()
+    ipeaks = ipeaks[isort]
+    xpeaks = xpeaks[isort]
+    
+    # do rainflow counting
+    rf_counts = rainflow(xpeaks)
+    
+    # calculate DELs
+    N_eq = T_DEL * EqFreq                       # equivalent cycles
+    n, S = rf_counts[3,:], rf_counts[2,:]       # cycle counts and amplitudes
+    DEL = np.empty(len(m))
+    for i_m in range(len(m)):                   # loop through slope values
+        DEL[i_m] = ( np.sum(n * ( S )**m[i_m]) / ( N_eq ) ) ** \
+                        (1. / m[i_m]) * PSF
+    
+    # turn back to float if that's what was given
+    if InFloat: DEL = float(DEL)
+        
+    return DEL
+    
+
+def CalculateDELsAll(FastPath,
+                     m_comp=[8.,10.,12.],m_metal=[3.,4.,5.],
+                     t_lookahead=0.1):
+    """ Calculate all DELs for FAST file
+    
+        Args:
+            FastPath (string): path to output FAST file
+            m_comp (float/list/np.ndarray): SN slopes for composite material [opt]
+            m_metal (float/list/np.ndarray): SN slopes for metal material [opt]
+            t_lookahead (float): lookahead time for peak detect algorithm [opt]
+            
+        Returns:
+            DELDict (dictionary): dictionary with DEL information
+    """
+    
+    # load FAST file
+    FastDict = ReadFASTFile(FastPath)
+    fields = FastDict['Fields']
+    units  = FastDict['Units']
+    data   = FastDict['Data']
+    
+    # get lookahead in number of steps
+    time = data[:,fields.index('Time')]
+    dt = (time[2] - time[0]) / 2.
+    lookahead = int(np.round(t_lookahead / (dt)))
+    
+    # get list of keys that are forces/moments
+    idcs_FM = [i for i in range(len(fields)) if ('N' in units[i])]
+    fields_FM = [fields[i] for i in idcs_FM]
+    
+    # iteratively calculate DELs
+    DELkeys  = []
+    DELunits = []
+    DELs     = []
+    for i_key in range(len(idcs_FM)):
+        
+        # get key, time series, and key units
+        key    = fields_FM[i_key]
+        x      = data[:,fields.index(key)]
+        kunits = units[fields.index(key)]
+        
+        # key corresponds to composite item
+        if any([s in key for s in ('Root','Spn')]):
+            
+            # get DELs for all slopes
+            m_all = np.array(m_comp)
+            DELs_key = CalculateDELs(x,m_all,
+                                      lookahead=lookahead)
+                                      
+            # save DEL key, units, and value
+            for i_m in range(len(m_all)):
+                m = m_all[i_m]
+                DELkey = '{:s}_m={:.1f}'.format(key,m)
+                DELkeys.append(DELkey)
+                DELunits.append(kunits)
+                DELs.append(DELs_key[i_m])
+                                
+        # key corresponds to metal item
+        elif any([s in key for s in ('LSS','HSS','YawBr','Twr')]):
+            
+            # get DELs for all slopes
+            m_all = np.array(m_metal)
+            DELs_key = CalculateDELs(x,m_all,
+                                      lookahead=lookahead)
+                                      
+            # save DEL key, units, and value
+            for i_m in range(len(m_all)):
+                m = m_all[i_m]
+                DELkey = '{:s}_m={:.1f}'.format(key,m)
+                DELkeys.append(DELkey)
+                DELunits.append(kunits)
+                DELs.append(DELs_key[i_m])
+                
+    # save DEL data in dictionary
+    DELDict = {}
+    DELDict['Keys']  = DELkeys
+    DELDict['Units'] = DELunits
+    DELDict['DELs']   = DELs
+    
+    return DELDict
+                         
+
 
 # %%===========================================================================
 # MAPPINGS
@@ -5367,3 +5502,7 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     plt.register_cmap(cmap=newcmap)
 
     return newcmap
+    
+            
+        
+        

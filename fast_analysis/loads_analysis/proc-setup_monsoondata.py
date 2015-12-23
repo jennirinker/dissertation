@@ -32,7 +32,7 @@ TmplDir = 'C:\\Users\\jrinker\\Documents\\GitHub\\public\\' + \
 #WindDir = 'P:\\'
 #ModlDir_Wr       = os.path.join('\\\\monsoon-data\\Public\\JRinker\\' + \
 #                    'fast_simulations\\ModlDir',TurbName)
-#WrDir_FastADTmpl = os.path.join(ModlDir_Wr,'templates')
+FastADTmplDir = os.path.join(ModlDir,'templates')
 WindDir = os.path.join('\\\\monsoon-data\\Public\\JRinker\\' + \
                             'fast_simulations\\WindDir',TurbName)
 FastDir = os.path.join('\\\\monsoon-data\\Public\\JRinker\\' + \
@@ -46,15 +46,15 @@ TurbDict = jr_fast.CreateFAST7Dict(os.path.join(TurbDir,FastName))
 TurbDict['TurbName'] = TurbName
 
 # write templates for files that depend on wind file (FAST and AeroDyn)
-jr_fast.WriteFAST7Template(TurbDict,TmplDir,ModlDir)
+jr_fast.WriteFAST7Template(TurbDict,TmplDir,ModlDir,FastADTmplDir)
 jr_fast.WriteAeroDynTemplate(TurbDict,TmplDir,
-                             ModlDir,AeroDir)
+                             ModlDir,AeroDir,FastADTmplDir)
 
 # write wind-independent files (blade files, tower files, and pitch file)
 jr_fast.WriteBladeFiles(TurbDict,TmplDir,ModlDir)
 jr_fast.WriteTowerFile(TurbDict,TmplDir,ModlDir)
 if (TurbDict['PCMode'] == 1):
-    jr_fast.WritePitchCntrl(TurbDict,TmplDir,ModlDir)
+    jr_fast.WritePitchCntrl(TurbDict,TmplDir,FastDir)
     
 
 # write wind-dependent files (FAST and AeroDyn files) for all wind files in
