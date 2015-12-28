@@ -994,10 +994,35 @@ def listmetadata(dataset,i,list_mats):
         in list_mats
     """
     
-    
-    
+    # Andy-processed files can't have squeeze_me=True
+    if (dataset in ['NREL','fluela']):
+        IDs      = datasetSpecs(dataset)['IDs']         # instrument IDs
+        basedir  = getBasedir(dataset)                  # base directory
+        fpath    = os.path.join(basedir,list_mats[i])   # path to mat file
+        n_fields = len(metadataFields(dataset))         # list wind parameters
+        
+        # try to load the high-frequency structure, return arrays of NaNs if failed
+        try:
+            struc = scio.loadmat(fpath)
+        except Exception as e:
+            print('Cannot load {}'.format(fpath))
+            print('  ' + str(e))
+            parms    = np.empty(n_fields)
+            parms[:] = np.nan
+            return [parms for _ in range(IDs.size)]
 
-    if (dataset in ['NREL','fluela','PM06','texastech']):
+        # loop through sonic heights
+        h_parms = []
+        for ID in IDs:
+            
+            # calculate parameters
+            row = struc2metadata(dataset,struc,ID)
+
+            # append to list of structure parametsr
+            h_parms.append(row)
+            
+    # ones I processed need squeeze_me=True
+    elif (dataset in ['PM06','texastech']):
         IDs      = datasetSpecs(dataset)['IDs']         # instrument IDs
         basedir  = getBasedir(dataset)                  # base directory
         fpath    = os.path.join(basedir,list_mats[i])   # path to mat file

@@ -11,13 +11,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # choose plot style
-plt.style.use('duke_paper.mplstyle')
+plt.style.use('C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
+            '2016-02-15_dissertation\\figure_code\\duke_paper.mplstyle')
 
 # choose which dataset
 #dataset, fignum = 'NREL-mat', 1
-#dataset, fignum = 'NREL', 2
+dataset, fignum = 'NREL', 2
 #dataset, fignum = 'fluela', 3
-dataset, fignum = 'PM06', 4
+#dataset, fignum = 'PM06', 4
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
