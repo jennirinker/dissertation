@@ -3369,8 +3369,11 @@ def CreateTurbineDictionary(turb_name,turb_dir,BModes=1,TModes=1):
         for line in f:
             row = line.strip('\n').rstrip().split()
             if row:
-                key          = row[0]
-                value        = float(row[1])
+                key = row[0]
+                if ('P2P' in key):
+                    value = [float(s) for s in row[1:]]
+                else:
+                    value = float(row[1])
                 TurbDict[key] = value
                 
     return TurbDict
@@ -3501,39 +3504,38 @@ def InterpolateTowerParams(TurbDict):
     return TowerInterp
 
 
-def writeBldModes(fpath_temp,fpath_out,TurbDict):
+def writeBldModes(fpath_temp,fpath_out,TurbDict,BldIdx):
     """ Blade input file for Modes v22
     """
     
     
     # get interpolated blade structural parameters
-    BldInterp = InterpolateRotorParams(TurbDict)[0]
-    
-    # calculate modes-specific vales
-    RotorRad = TurbDict['Rotor']['RotDiam']/2.
-    SSAngVel = TurbDict['Nacelle']['RatedTipSpeed']/2/np.pi/RotorRad*60.
-    HubRad   = TurbDict['Rotor']['HubDiam']/2
-    
+    BldSched = TurbDict['BldSched_{:.0f}'.format(BldIdx)]
+    RatedRPM = TurbDict['CNST(2)']
+    TipRad   = TurbDict['TipRad']
+    HubRad   = TurbDict['HubRad']
+        
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
         with open(fpath_out,'w') as f_write:
             i_line = 0
             for line in f_temp:
                 if i_line == 1:
-                    f_write.write(line.format(SSAngVel))
+                    f_write.write(line.format(RatedRPM))
                 elif i_line == 3:
-                    f_write.write(line.format(RotorRad))
+                    f_write.write(line.format(TipRad))
                 elif i_line == 4:
                     f_write.write(line.format(HubRad))
                 elif i_line == 5:
                     f_write.write(line.format(0.0))
                 elif i_line == 8:
-                    f_write.write(line.format(len(BldInterp)))
+                    f_write.write(line.format(len(BldSched)))
                 elif i_line == 12:
-                    for i_BlNode in range(len(BldInterp)):
-                        row = [BldInterp[i_BlNode,0],0.,
-                               BldInterp[i_BlNode,3],
-                               BldInterp[i_BlNode,4],BldInterp[i_BlNode,5]]
+                    for i_BlNode in range(len(BldSched)):
+                        row = [BldSched[i_BlNode][0],0.,
+                               BldSched[i_BlNode][3],
+                               BldSched[i_BlNode][4],
+                               BldSched[i_BlNode][5]]
                         f_write.write(line.format(*row))
                 else:
                     f_write.write(line)
@@ -3546,18 +3548,10 @@ def writeTwrModes(fpath_temp,fpath_out,TurbDict):
     """ Tower input file for Modes v22
     """
     
-    # calulate interpolated tower structural properties
-    TowerInterp   = InterpolateTowerParams(TurbDict)
-    
-    # load/calculate tower-modes-specific vales
-    MainframeMass = TurbDict['Nacelle']['MainFrameMass']
-    GenShaftMass  = TurbDict['Nacelle']['GenShaftMass']
-    RotShaftMass  = TurbDict['Nacelle']['RotShaftMass']
-    HubMass       = TurbDict['Nacelle']['HubMass']
-    HubHeight     = TurbDict['Nacelle']['HubHeight']
-    HHtoTT        = TurbDict['Tower']['HHtoTop']
-    TowerHeight   = HubHeight - HHtoTT
-    TowerTopMass  = MainframeMass + GenShaftMass + RotShaftMass + HubMass
+    # load tower-modes-specific vales
+    TwrSched   = TurbDict['TwrSched']
+    TowerHt       = TurbDict['TowerHt']
+    TTMass        = TurbDict['NacMass'] + TurbDict['HubMass']
     
     # open template file and file to write to
     with open(fpath_temp,'r') as f_temp:
@@ -3565,16 +3559,17 @@ def writeTwrModes(fpath_temp,fpath_out,TurbDict):
             i_line = 0
             for line in f_temp:
                 if i_line == 3:
-                    f_write.write(line.format(TowerHeight))
+                    f_write.write(line.format(TowerHt))
                 elif i_line == 5:
-                    f_write.write(line.format(TowerTopMass))
+                    f_write.write(line.format(TTMass))
                 elif i_line == 8:
-                    f_write.write(line.format(len(TowerInterp)))
+                    f_write.write(line.format(len(TwrSched)))
                 elif i_line == 12:
-                    for i_BlNode in range(len(TowerInterp)):
-                        row = [TowerInterp[i_BlNode,0],
-                               TowerInterp[i_BlNode,1],
-                               TowerInterp[i_BlNode,2],TowerInterp[i_BlNode,3]]
+                    for i_TwrNode in range(len(TwrSched)):
+                        row = [TwrSched[i_TwrNode][0],
+                               TwrSched[i_TwrNode][1],
+                               TwrSched[i_TwrNode][2],
+                               TwrSched[i_TwrNode][3]]
                         f_write.write(line.format(*row))
                 else:
                     f_write.write(line)

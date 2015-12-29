@@ -20,7 +20,7 @@ DISCONInp   = 0
 
 # define turbine name
 turb_names = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
-turb_name  = turb_names[3]
+turb_name  = turb_names[0]
 
 # specify the directory to write the files to
 turb_dir = os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\' + \
@@ -54,7 +54,8 @@ if BldModesInp:
     fpath_out  = os.path.join(turb_dir,'modes',fname_out)
     
     # write blade file
-    jr.writeBldModes(fpath_temp,fpath_out,TurbDict)
+    BldIdx = 1
+    jr.writeBldModes(fpath_temp,fpath_out,TurbDict,BldIdx)
     
     sys.stdout.write('done.\n')
   
