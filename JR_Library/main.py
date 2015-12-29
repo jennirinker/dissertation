@@ -316,7 +316,7 @@ def loadtimeseries(dataset,field,ID,data_in):
     elif (dataset == 'texastech'):
         
         # set data ranges, desired length of time series
-#        dataRng = dataRanges(dataset,datfield)
+        dataRng = dataRanges(dataset,datfield)
 # TODO: add in TT data ranges
         specs   = datasetSpecs(dataset)
         N, dt   = specs['n_t'], specs['dt']
@@ -848,6 +848,11 @@ def datasetSpecs(dataset):
         specs['n_t']          = 30000
         specs['dt']           = 0.02
         specs['IDs']          = np.array([1,2,4,10,17,47,75,116,158,200])
+        specs['sonic_offset'] = 30.
+        specs['UVW_offset']   = 75.
+        specs['WSlim']        = 3.0
+        specs['dir1']         = 210.
+        specs['dir2']         = 30.
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
@@ -927,6 +932,26 @@ def dataRanges(dataset,datfield):
             dataRng = [  1.75,19.25] 
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
+              
+    elif (dataset == 'texastech'):
+
+        # define data ranges
+        #    Sonic data ranges taken from CSAT 3 specifications
+        #    Hygrometer data from KH20 specifications
+        if ('Sonic_x' in datfield):
+            dataRng = [-29.95,29.95]
+        elif ('Sonic_y' in datfield):
+            dataRng = [-29.95,29.95]
+        elif ('Sonic_z' in datfield):
+            dataRng = [-7.95,7.95]
+        elif ('Sonic_T' in datfield):
+            dataRng = [-29.95,49.95]
+#        elif ('Hygro' in datfield):
+#            dataRng = [  1.75,19.25] 
+#        else:
+#              raise KeyError('Field {} not recognized.'.format(datfield))
+        else:
+            dataRng = [-float('Inf'), float('Inf')]
 
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -2046,6 +2071,27 @@ def screenmetadata(fields,metadata,dataset):
         cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
         cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
                                         < (dir2 - dir1) % 360.)]
+                                        
+    elif (dataset == 'texastech'):
+        CSLim  = specs['WSlim']             # lower cup speed limit
+        dir1   = specs['dir1']              # CCW edge for direction range
+        dir2   = specs['dir2']              # CW edge for direction range
+        
+        # column indices for each value
+        CScol   = fields.index('Wind_Speed_Sonic')
+        dirCol  = fields.index('Wind_Direction_Sonic')
+        
+        # filter out the rows with NaN values
+        metadata = metadata[np.logical_not( \
+            np.any(np.isnan(metadata),axis=1)),:]
+        
+        # screen remaining data
+        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
+        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
+                                        < (dir2 - dir1) % 360.)]
+                                        
+        # manually screen for data with 999s
+        cleandata = metadata[np.where(metadata[:,CScol] < 30.)]
         
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)

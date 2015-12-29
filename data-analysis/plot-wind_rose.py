@@ -16,12 +16,12 @@ plt.style.use('C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
             '2016-02-15_dissertation\\figure_code\\duke_paper.mplstyle')
 
 # choose which dataset
-#datasets  = ['NREL','fluela','PM06']
-dataset   = 'PM06'
+#datasets  = ['NREL','fluela','PM06','texastech']
+dataset   = 'NREL'
 
 # toggles
-screen_data = 0
-plot_screen = 1
+screen_data = 1
+plot_screen = 0
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -46,7 +46,11 @@ fieldname_spd = [s for s in fields if ('Cup' in s)][0]
 # instrument names
 specs = jr.datasetSpecs(dataset)
 IDs = specs['IDs']
-dir1, dir2 = specs['dir1'], specs['dir2']
+if screen_data:
+    dir1, dir2 = specs['dir1'], specs['dir2']
+    clean      = jr.screenmetadata(fields,raw_parms,dataset)
+else:
+    clean = raw_parms
 n_instr = len(IDs)
 
 # custom figuze sizes for different datasets
@@ -93,9 +97,9 @@ cb_ax = [0.5,1+cb_dy/figsize[1],0.4,cb_ht/figsize[1]]
 cmap  = plt.cm.Reds
 
 # get theta, wind speed, ID data
-ID_data   = raw_parms[:,fields.index(fieldname_ID)]
-wind_spds = raw_parms[:,fields.index(fieldname_spd)]
-wind_dirs = raw_parms[:,fields.index(fieldname_dir)] % 360
+ID_data   = clean[:,fields.index(fieldname_ID)]
+wind_spds = clean[:,fields.index(fieldname_spd)]
+wind_dirs = clean[:,fields.index(fieldname_dir)] % 360
 
 # remove potential nan values
 idcs_notnan = np.logical_and(np.logical_not(np.isnan(wind_spds)),
