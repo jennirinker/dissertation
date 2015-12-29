@@ -8,9 +8,7 @@ libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\public\\nwtc_python_tools'
 if (libpath not in sys.path): sys.path.append(libpath)
 
 import JR_Library.main as jr
-import jr_fast
-import os
-import json
+import json, os, jr_fast
 
 
 
@@ -44,7 +42,7 @@ TurbDict = jr_fast.CreateFAST7Dict(DefFastPath)
 # load custom parameters
 NewDict = jr.CreateTurbineDictionary(turb_name,turb_dir,
                                       BModes=BModes,TModes=TModes)
-                                      
+
 # overwrite parameters in default dictionary
 for key in NewDict.keys():
     if (key in TurbDict.keys()):
