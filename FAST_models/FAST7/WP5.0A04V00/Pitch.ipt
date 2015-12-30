@@ -1,4 +1,4 @@
-Pitch controller for turbine "WP5.0A04V00" (J. Rinker, Duke University, 29-Dec-15)
+Pitch controller for turbine "WP5.0A04V00" (J. Rinker, Duke University, 30-Dec-15)
    3        CntrlRgn - Control region {2 = power control, 3 = speed control}
   11        NCSNT    - Number of constants used in controls
   -1.0      CNST(1)  - Gain on TF 1

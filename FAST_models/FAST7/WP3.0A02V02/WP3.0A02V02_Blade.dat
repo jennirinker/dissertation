@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 ---------------------- FAST INDIVIDUAL BLADE FILE ------------------------------
-FAST v7.02 blade file for turbine "WP3.0A02V02" (J. Rinker, Duke University, 29-Dec-15)
+FAST v7.02 blade file for turbine "WP3.0A02V02" (J. Rinker, Duke University, 30-Dec-15)
 ---------------------- BLADE PARAMETERS ----------------------------------------
   21        NBlInpSt    - Number of blade input stations (-)
 False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode shapes from below, F: use mode shapes from below} [CURRENTLY IGNORED] (flag)
@@ -17,14 +17,14 @@ False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode
 BlFract  AeroCent  StrcTwst  BMassDen  FlpStff      EdgStff      GJStff       EAStff       Alpha  FlpIner  EdgIner  PrecrvRef  PreswpRef  FlpcgOf  EdgcgOf  FlpEAOf  EdgEAOf
 (-)      (-)       (deg)     (kg/m)    (Nm^2)       (Nm^2)       (Nm^2)       (N)            (-)  (kg m)   (kg m)   (m)        (m)        (m)      (m)      (m)      (m)
 0.00000  0.250     11.10     2514.27   2.5916E+10   2.5916E+10   8.9665E+09   2.8944E+10	
-0.02105  0.250     11.10      378.46   4.9957E+09   4.9957E+09   1.7457E+09   5.6352E+09	
-0.05263  0.229     11.10      382.96   4.4058E+09   4.8142E+09   1.4653E+09   5.5857E+09	
+0.02105  0.250     11.10      378.46   4.9958E+09   4.9958E+09   1.7457E+09   5.6352E+09	
+0.05263  0.229     11.10      382.96   4.4058E+09   4.8142E+09   1.4653E+09   5.5856E+09	
 0.10526  0.201     11.10      390.46   3.4226E+09   4.5115E+09   9.9797E+08   5.5030E+09	
 0.15790  0.179     11.10      397.96   2.4394E+09   4.2088E+09   5.3064E+08   5.4204E+09	
 0.21053  0.160     11.10      405.46   1.4562E+09   3.9062E+09   6.3313E+07   5.3378E+09	
-0.26316  0.165      9.50      388.30   1.2374E+09   3.3225E+09   5.5747E+07   5.1154E+09	
+0.26316  0.165      9.50      388.30   1.2374E+09   3.3226E+09   5.5747E+07   5.1154E+09	
 0.31579  0.170      7.90      371.13   1.0187E+09   2.7389E+09   4.8181E+07   4.8931E+09	
-0.36842  0.176      6.30      353.96   7.9990E+08   2.1553E+09   4.0614E+07   4.6707E+09	
+0.36842  0.176      6.30      353.96   7.9990E+08   2.1553E+09   4.0614E+07   4.6708E+09	
 0.42105  0.183      4.70      336.79   5.8113E+08   1.5716E+09   3.3048E+07   4.4484E+09	
 0.47368  0.190      3.10      319.62   3.6236E+08   9.8801E+08   2.5482E+07   4.2261E+09	
 0.52632  0.194      2.60      283.57   3.0106E+08   8.3897E+08   2.1407E+07   3.7374E+09	

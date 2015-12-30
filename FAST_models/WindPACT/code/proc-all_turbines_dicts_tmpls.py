@@ -23,26 +23,23 @@ DefFastPath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation\\' + \
 TmplDir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
             'public\\nwtc_python_tools\\templates'
             
-# load default dictionary
-TurbDict = jr_fast.CreateFAST7Dict(DefFastPath)
 
 for TurbName in TurbNames:
     
     # ========================= create dictionary ===========================
+    
+    # load default dictionary
+    TurbDict = jr_fast.CreateFAST7Dict(DefFastPath)
     
     # directory for that turbine
     TurbDir = os.path.join(BaseDir,TurbName)
     
     # load custom parameters
     NewDict = jr.CreateTurbineDictionary(TurbName,TurbDir)
-    
+
     # overwrite parameters in default dictionary
     for key in NewDict.keys():
-        if (key in TurbDict.keys()):
-            TurbDict[key] = NewDict[key]
-        else:
-            print(key)
-#            raise ValueError('Wrong key {:s}'.format(key))
+        TurbDict[key] = NewDict[key]
                                      
     fTDictName = os.path.join(TurbDir,'parameters\\'+ TurbName + '_Dict.dat')
     with open(fTDictName,'w') as f:

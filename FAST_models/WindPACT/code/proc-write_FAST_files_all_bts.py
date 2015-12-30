@@ -12,7 +12,7 @@ import jr_fast
 
 # turbine names
 turb_names = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
-TurbName = turb_names[1]
+TurbName = turb_names[3]
 #TurbName = 'WP1500'
 
 # specity turbine name, read directory, and write directory

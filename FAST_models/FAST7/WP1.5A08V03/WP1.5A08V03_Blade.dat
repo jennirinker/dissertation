@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 ---------------------- FAST INDIVIDUAL BLADE FILE ------------------------------
-FAST v7.02 blade file for turbine "WP1.5A08V03" (J. Rinker, Duke University, 29-Dec-15)
+FAST v7.02 blade file for turbine "WP1.5A08V03" (J. Rinker, Duke University, 30-Dec-15)
 ---------------------- BLADE PARAMETERS ----------------------------------------
   21        NBlInpSt    - Number of blade input stations (-)
 False       CalcBMode   - Calculate blade mode shapes internally {T: ignore mode shapes from below, F: use mode shapes from below} [CURRENTLY IGNORED] (flag)

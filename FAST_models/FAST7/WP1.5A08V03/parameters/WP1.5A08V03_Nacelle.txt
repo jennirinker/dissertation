@@ -5,7 +5,9 @@ NacCMzn	1.384518
 TowerHt	82.390000
 Twr2Shft	1.610000
 ShftTilt	-5.000000
-PreCone	0.000000
+PreCone(1)	0.000000
+PreCone(2)	0.000000
+PreCone(3)	0.000000
 NacMass	52838.908260
 HubMass	19186.870178
 NacYIner	45376.990834
@@ -16,3 +18,5 @@ GBRatio	87.9645943
 DTTorSpr	4.83E+08
 DTTorDmp	1.36E+06
 RatedPwr	1500000
+TipRad	35
+HubRad	1.75

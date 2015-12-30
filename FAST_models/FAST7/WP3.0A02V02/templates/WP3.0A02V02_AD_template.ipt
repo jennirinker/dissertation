@@ -1,4 +1,4 @@
-FAST v7.02 AeroDyn file for turbine "WP3.0A02V02" (J. Rinker, Duke University, 29-Dec-15)
+FAST v7.02 AeroDyn file for turbine "WP3.0A02V02" (J. Rinker, Duke University, 30-Dec-15)
 SI                                     SysUnits - System of units for used for input and output [must be SI for FAST] (unquoted string)
 BEDDOES                                StallMod - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
 NO_CM                                  UseCm    - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
@@ -15,7 +15,7 @@ PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [P
    1.225                               AirDens  - Air density (kg/m^3)
  1.46390E-05                           KinVisc  - Kinematic air viscosity (m^2/sec)
    0.005                               DTAero   - Time interval for aerodynamic calculations (sec)
-   1                                   NumFoil  - Number of airfoil files (-)
+   4                                   NumFoil  - Number of airfoil files (-)
 "C:\Users\jrinker\Documents\GitHub\dissertation\FAST_models\FAST7\WP3.0A02V02\AeroData\cylinder.dat"    FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
 "C:\Users\jrinker\Documents\GitHub\dissertation\FAST_models\FAST7\WP3.0A02V02\AeroData\s818_2703.dat"
 "C:\Users\jrinker\Documents\GitHub\dissertation\FAST_models\FAST7\WP3.0A02V02\AeroData\s825_2103.dat"

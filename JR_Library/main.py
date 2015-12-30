@@ -3201,7 +3201,8 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
 # FAST ANALYSIS
 # =============================================================================
 
-def CreateTurbineDictionary(TurbName,turb_dir,BModes=1,TModes=1):
+def CreateTurbineDictionary(TurbName,turb_dir,
+                            BModes=1,TModes=1,verbose=0):
     """ Convert information in text files to dictionary containing all of the
         turbine parameters necessary to create all FAST files for a WindPACT 
         turbine
@@ -3219,9 +3220,9 @@ def CreateTurbineDictionary(TurbName,turb_dir,BModes=1,TModes=1):
     """
     
     
-
-    print('\nWriting turbine dictionary' + \
-        ' for {:s} from {:s}'.format(TurbName,turb_dir))
+    if verbose:
+        print('\nWriting turbine dictionary' + \
+            ' for {:s} from {:s}'.format(TurbName,turb_dir))
     
     # ===================== Initialize turbine dictionary =====================
     TurbDict = {}
@@ -3252,17 +3253,13 @@ def CreateTurbineDictionary(TurbName,turb_dir,BModes=1,TModes=1):
         while (key != 'DistBldProps'):
             row = f.readline().strip('\n').rstrip().split()
             key = row[0]
-            if (key == 'DistBldProps'):
-                values = row[1:]
-            else:
-                values = [float(x) for x in row[1:]]
+            if (key != 'DistBldProps'):
+                value = float(row[1])
+                for i_bl in range(3):
+                    key_bl = '{:s}_{:d}'.format(key,i_bl+1)
+                    TurbDict[key_bl] = value
                 
-            # if list is single element, pull out that element
-            if (len(values) == 1):
-                values = values[0]
-                
-            # save extracted value
-            TurbDict[key] = values
+            # update line count
             i_line += 1
             
     # calculate blade schedule from remaining table
@@ -3308,17 +3305,10 @@ def CreateTurbineDictionary(TurbName,turb_dir,BModes=1,TModes=1):
         while (key != 'TwrSchedFields'):
             row = f.readline().strip('\n').rstrip().split()
             key = row[0]
-            if (key == 'TwrSchedFields'):
-                values = [s.split('.')[0] for s in row[1:]]
-            else:
-                values = [float(x) for x in row[1:]]
+            if (key != 'TwrSchedFields'):
+                value = float(row[1])
+                TurbDict[key] = value
                 
-            # if list is single element, pull out that element
-            if (len(values) == 1):
-                values = values[0]
-                
-            # save extracted value
-            TurbDict[key] = values
             i_line += 1
             
     # calculate tower schedule from remaining table
@@ -3342,10 +3332,14 @@ def CreateTurbineDictionary(TurbName,turb_dir,BModes=1,TModes=1):
     # save variables
     TurbDict['TwrFile']  = TurbName + '_Tower.dat'
     TurbDict['TwrSched'] = TwrSched
-    TurbDict['TwrModes'] = TwrModes
     TurbDict['TwrCmnt']  = 'FAST v7.02 tower file for turbine ' + \
                 '\"{:s}\" (J. Rinker, Duke University, {:s})'.format(TurbName,Date)
-        
+    for i_coeff in range(5):
+        TurbDict['TwFAM1Sh({:d})'.format(i_coeff+2)] = TwrModes[0][i_coeff]
+        TurbDict['TwFAM2Sh({:d})'.format(i_coeff+2)] = TwrModes[1][i_coeff]
+        TurbDict['TwSSM1Sh({:d})'.format(i_coeff+2)] = TwrModes[0][i_coeff]
+        TurbDict['TwSSM2Sh({:d})'.format(i_coeff+2)] = TwrModes[1][i_coeff]
+           
     # ==================== Add AeroDyn properties ==================
     
     # load AeroDyn data from text file
@@ -3357,21 +3351,17 @@ def CreateTurbineDictionary(TurbName,turb_dir,BModes=1,TModes=1):
             key = row[0]
             if (key == 'FoilNm'):
                 values = row[1:]
-            elif (key == 'ADSchedFields'):
-                values = row[1:]
-            else:
-                values = [float(x) for x in row[1:]]
-                
-            # if list is single element, pull out that element
-            if (len(values) == 1):
-                values = values[0]
-                             
+                TurbDict[key] = values
+                TurbDict['NumFoil'] = len(values)
+            elif (key != 'ADSchedFields'):
+                values = float(row[1])
+                TurbDict[key] = values
+                          
             # save extracted value
-            TurbDict[key] = values
             i_line += 1
             
         # calculate AeroDyn schedule from remaining table
-            ADSched = []
+        ADSched = []
         for i_AD in range(int(TurbDict['BldNodes'])):
             row = f.readline().strip('\n').rstrip().split()
             ADSchedRow = [float(x) for x in row[:-1]] + [row[-1]]

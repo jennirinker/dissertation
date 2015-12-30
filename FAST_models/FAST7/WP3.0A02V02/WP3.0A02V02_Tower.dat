@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 ---------------------- FAST TOWER FILE -----------------------------------------
-FAST v7.02 tower file for turbine "WP3.0A02V02" (J. Rinker, Duke University, 29-Dec-15)
+FAST v7.02 tower file for turbine "WP3.0A02V02" (J. Rinker, Duke University, 30-Dec-15)
 ---------------------- TOWER PARAMETERS ----------------------------------------
   10        NTwInpSt    - Number of input stations to specify tower geometry
 False       CalcTMode   - Calculate tower mode shapes internally {T: ignore mode shapes from below, F: use mode shapes from below} [CURRENTLY IGNORED] (flag)
@@ -30,26 +30,26 @@ HtFract  TMassDen  TwFAStif    TwSSStif    TwGJStif    TwEAStif   TwFAIner  TwSS
 0.88889  1395.636   7.720e+10   7.720e+10   5.938e+10   3.538e+10	
 1.00000  1091.275   4.734e+10   4.734e+10   3.642e+10   2.766e+10	
 ---------------------- TOWER FORE-AFT MODE SHAPES ------------------------------
-   0.8565   TwFAM1Sh(2) - Mode 1, coefficient of x^2 term
-   0.3405   TwFAM1Sh(3) -       , coefficient of x^3 term
-  -0.3646   TwFAM1Sh(4) -       , coefficient of x^4 term
-   0.4347   TwFAM1Sh(5) -       , coefficient of x^5 term
-  -0.2671   TwFAM1Sh(6) -       , coefficient of x^6 term
- -21.2343   TwFAM2Sh(2) - Mode 2, coefficient of x^2 term
-   9.1047   TwFAM2Sh(3) -       , coefficient of x^3 term
-  10.9918   TwFAM2Sh(4) -       , coefficient of x^4 term
-  20.7935   TwFAM2Sh(5) -       , coefficient of x^5 term
- -18.6557   TwFAM2Sh(6) -       , coefficient of x^6 term
+   0.7027   TwFAM1Sh(2) - Mode 1, coefficient of x^2 term
+   0.5003   TwFAM1Sh(3) -       , coefficient of x^3 term
+  -0.6986   TwFAM1Sh(4) -       , coefficient of x^4 term
+   1.0585   TwFAM1Sh(5) -       , coefficient of x^5 term
+  -0.5628   TwFAM1Sh(6) -       , coefficient of x^6 term
+ -23.6164   TwFAM2Sh(2) - Mode 2, coefficient of x^2 term
+  14.9349   TwFAM2Sh(3) -       , coefficient of x^3 term
+ -21.7838   TwFAM2Sh(4) -       , coefficient of x^4 term
+  71.2400   TwFAM2Sh(5) -       , coefficient of x^5 term
+ -39.7747   TwFAM2Sh(6) -       , coefficient of x^6 term
 ---------------------- TOWER SIDE-TO-SIDE MODE SHAPES --------------------------
-   0.8565   TwSSM1Sh(2) - Mode 1, coefficient of x^2 term
-   0.3405   TwSSM1Sh(3) -       , coefficient of x^3 term
-  -0.3646   TwSSM1Sh(4) -       , coefficient of x^4 term
-   0.4347   TwSSM1Sh(5) -       , coefficient of x^5 term
-  -0.2671   TwSSM1Sh(6) -       , coefficient of x^6 term
- -21.2343   TwSSM2Sh(2) - Mode 2, coefficient of x^2 term
-   9.1047   TwSSM2Sh(3) -       , coefficient of x^3 term
-  10.9918   TwSSM2Sh(4) -       , coefficient of x^4 term
-  20.7935   TwSSM2Sh(5) -       , coefficient of x^5 term
- -18.6557   TwSSM2Sh(6) -       , coefficient of x^6 term
+   0.7027   TwSSM1Sh(2) - Mode 1, coefficient of x^2 term
+   0.5003   TwSSM1Sh(3) -       , coefficient of x^3 term
+  -0.6986   TwSSM1Sh(4) -       , coefficient of x^4 term
+   1.0585   TwSSM1Sh(5) -       , coefficient of x^5 term
+  -0.5628   TwSSM1Sh(6) -       , coefficient of x^6 term
+ -23.6164   TwSSM2Sh(2) - Mode 2, coefficient of x^2 term
+  14.9349   TwSSM2Sh(3) -       , coefficient of x^3 term
+ -21.7838   TwSSM2Sh(4) -       , coefficient of x^4 term
+  71.2400   TwSSM2Sh(5) -       , coefficient of x^5 term
+ -39.7747   TwSSM2Sh(6) -       , coefficient of x^6 term
 
 
