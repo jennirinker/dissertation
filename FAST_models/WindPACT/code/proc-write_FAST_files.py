@@ -13,17 +13,17 @@ import JR_Library.main as jr
 TMax = 630
 
 # ******** set directory and turbine name ********
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+turb_dir,TurbName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
     'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#turb_dir,TurbName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#turb_dir,TurbName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_stiffblds','WP0.75A08V00'
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#turb_dir,TurbName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#turb_dir,TurbName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#turb_dir,TurbName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
     
 # set turbine version if necessary
@@ -40,15 +40,17 @@ wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #wind_fname  = '5m_TCno.bts'
 #wind_fname  = 'Harmonic_11.7_3.0_0.2.wnd'
 #wind_dir,fileID = turb_dir,'24134'
-wind_dir = os.path.join(wind_dir,TName)
+wind_dir = os.path.join(wind_dir,TurbName)
 fileID = ['24134', '24142', '42331', '91242'][0]
-wind_fname = TName + '_' + fileID + '.bts'    
+wind_fname = TurbName + '_' + fileID + '.bts'    
 
 
     
  # run FAST
-jr.writeFASTFiles(turb_dir,TName,wind_fname,
+jr.writeFASTFiles(turb_dir,TurbName,wind_fname,
                    wind_dir=wind_dir,fileID=fileID,TMax=TMax)
+
+jr_fast.WriteFastADAll(TurbName,ModlDir,WindDir,FastDir)
 
 ## ******** set directory and turbine name turbine 1 ********
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \

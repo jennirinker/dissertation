@@ -16,7 +16,7 @@ plt.style.use('C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
 
 # choose which dataset
 #dataset, fignum = 'NREL-mat', 1
-dataset, fignum = 'NREL', 2
+#dataset, fignum = 'NREL', 2
 #dataset, fignum = 'fluela', 3
 #dataset, fignum = 'PM06', 4
 

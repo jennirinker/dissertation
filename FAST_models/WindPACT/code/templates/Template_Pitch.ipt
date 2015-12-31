@@ -1,4 +1,4 @@
- Speed controller for ADAMS WindPACT 15A1001 model April, 2002.
+{:s} PitchCmnt
    3        CntrlRgn - Control region {2 = power control, 3 = speed control}
   11        NCSNT    - Number of constants used in controls
   -1.0      CNST(1)  - Gain on TF 1
