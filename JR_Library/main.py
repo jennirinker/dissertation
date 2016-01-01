@@ -32,8 +32,8 @@ from peakdetect import peakdetect
 from rainflow import rainflow
 import datetime
 
-# %%===========================================================================
-# FILE I/O
+# =============================================================================
+# ---------------------------- FILE I/O ---------------------------------------
 # =============================================================================
 
 def loadmetadata(fname):
@@ -659,9 +659,9 @@ def ReadFASTFile(fname):
     return FASTDict
 
 
-# %%============================================================================
-# METADATA PROCESSING
-# ==============================================================================
+# =============================================================================
+# ------------------------ METADATA PROCESSING --------------------------------
+# =============================================================================
 
 
 def metadataFields(dataset):
@@ -1949,9 +1949,9 @@ def RotateTimeSeries(ux,uy,uz):
     return u,v,w
     
 
-# %%============================================================================
-# METADATA ANALYSIS
-# ==============================================================================
+# =============================================================================
+# ----------------------- METADATA ANALYSIS -----------------------------------
+# =============================================================================
 
 
 def metadataFpath(dataset):
@@ -2877,9 +2877,9 @@ def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
     return out_dict
     
 
-# ==============================================================================
-# TURBSIM ANALYSIS
-# ==============================================================================
+# =============================================================================
+# ---------------------------- TURBSIM ANALYSIS -------------------------------
+# =============================================================================
 
 def vectorSpatCoh(Xi,Xj,df):
     """ Takes [n_f] x [n_p] arrays Xi and Xj, where n_p is the number of pairs 
@@ -3059,22 +3059,19 @@ def TurbSimHHPDDs(fname):
     return (dthetau,dthetav,dthetaw)
 
 
-def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
+def WriteTurbSimInputs(InpName,TSDict,TmplDir,WrDir):
     """ Write .inp and .spc (if UserSpec) files given TurbSim parameters
     
         Args:
-            fname_inp (string): name of desired .inp file with extension
+            InpName (string): name of desired .inp file with extension
             TSDict (dictionary): dictionary with TurbSim parameters
-            wr_dir (string): directory to write files to
+            TmplDir (string): directory with input template files
+            WrDir (string): directory to write files to
     """
-    
-    
-    
+        
     # template filename
-    tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            'templates')
-    spctemp = os.path.join(tmpl_dir,'Template_UsrSpc.spc')
-    TStemp  = os.path.join(tmpl_dir,'Template_TurbSim.inp')
+    spctemp = os.path.join(TmplDir,'Template_UsrSpc.spc')
+    TStemp  = os.path.join(TmplDir,'Template_TurbSim.inp')
     
     # convert items in dictionary to variables for coding convenience
     T,dt,R1,R2         = TSDict['T'],TSDict['dt'],TSDict['R1'],TSDict['R2']
@@ -3087,7 +3084,7 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
     if (TurbModel == 'USRINP'):
         sig_u,sig_v,sig_w  = TSDict['sig_u'],TSDict['sig_v'],TSDict['sig_w']
         L_u,L_v,L_w        = TSDict['L_u'],TSDict['L_v'],TSDict['L_w']
-        fname_spc          = TSDict['fname_spc']
+        fname_spc          = TSDict['SpcName']
         IECTurbc           = 'unused'
     elif (TurbModel == 'IECKAI'):
         IECTurbc           = TSDict['IECTurbc']
@@ -3121,7 +3118,7 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
 #        Scale1,Scale2,Scale3 = alpha1,alpha2,alpha3         # set scale factors
         Scale1,Scale2,Scale3 = 1,1,1         # set scale factors
         
-        fpath_spc = os.path.join(wr_dir,fname_spc)
+        fpath_spc = os.path.join(WrDir,fname_spc)
         with open(fpath_spc,'w') as f_out:
             with open(spctemp,'r') as f_temp:
                 
@@ -3148,7 +3145,7 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
     
     
     # create TurbSim input file
-    fpath_inp = os.path.join(wr_dir,fname_inp)
+    fpath_inp = os.path.join(WrDir,InpName)
     with open(fpath_inp,'w') as f_out:
         with open(TStemp,'r') as f_temp: 
     
@@ -3175,7 +3172,7 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
                 elif i_line == 30:
                     f_out.write(line.format('\"'+TurbModel+'\"'))
                 elif i_line == 31:
-                    f_out.write(line.format('\"'+fname_spc+'\"'))
+                    f_out.write(line.format('\"'+fpath_spc+'\"'))
                 elif i_line == 33:
                     f_out.write(line.format('\"'+IECTurbc+'\"'))
                 elif i_line == 36:
@@ -3197,8 +3194,57 @@ def WriteTurbSimInputs(fname_inp,TSDict,wr_dir):
     return
 
 
-# %%===========================================================================
-# FAST ANALYSIS
+def MakeTSDict(TurbName,URef,sig_u,L_u,rho_u,R1,R2):
+    """ Create TurbSim dictionary for turbine
+    """
+    import numpy as np
+    
+    # values that are consistent across all simulations
+    T    = 630.0
+    dt   = 0.05
+    ZRef = 100.0
+    mu   = np.pi
+    
+    # grid parameters 
+    ZHub,DZ,DY,n_z,n_y = Turb2Grid(TurbName)
+    
+    # initialize dictionary
+    TS = {}
+
+    #    wind parameters
+    TS['ZRef']  = ZRef
+    TS['URef']  = URef
+    TS['sig_u'] = sig_u
+    TS['sig_v'] = 0.8*sig_u
+    TS['sig_w'] = 0.5*sig_u
+    TS['L_u']   = L_u
+    TS['L_v']   = L_u/8.1*2.7
+    TS['L_w']   = L_u/8.1*0.66
+    TS['rho_u'] = rho_u
+    TS['rho_v'] = rho_u
+    TS['rho_w'] = rho_u
+    TS['mu_u']  = mu
+    TS['mu_v']  = mu
+    TS['mu_w']  = mu
+
+    #    simulation parameters
+    TS['R1']        = R1
+    TS['R2']        = R2
+    TS['ZHub']      = ZHub
+    TS['DY']        = DY
+    TS['DZ']        = DZ
+    TS['n_z']       = n_z
+    TS['n_y']       = n_y
+    TS['T']         = T
+    TS['dt']        = dt
+    TS['TurbModel'] = 'USRINP'
+    TS['ProfType']  = 'PL'
+
+    return TS
+
+
+# =============================================================================
+# --------------------------- FAST ANALYSIS -----------------------------------
 # =============================================================================
 
 def CreateTurbineDictionary(TurbName,turb_dir,
@@ -4523,8 +4569,8 @@ def CalculateDELsAll(FastPath,
                          
 
 
-# %%===========================================================================
-# MAPPINGS
+# =============================================================================
+# ---------------------------------- MAPPINGS ---------------------------------
 # =============================================================================
     
 def X2Sk(X):
@@ -5543,6 +5589,41 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
 
     return newcmap
     
-            
+
+
+def Turb2Grid(TurbName):
+    """ Load grid parameters for given turbine
+    """	
+    if TurbName == 'WP0.75A08V00':
+        ZHub = 60.
+        DZ   = 56.
+        DY   = 56.
+        n_z  = 15
+        n_y  = 15
+    elif TurbName == 'WP1.5A08V03':
+        ZHub = 84.
+        DZ   = 80.
+        DY   = 80.
+        n_z  = 17
+        n_y  = 17
+
+    elif TurbName == 'WP3.0A02V02':
+        ZHub = 119.
+        DZ   = 120.
+        DY   = 120.
+        n_z  = 17
+        n_y  = 17
+
+    elif TurbName == 'WP5.0A04V00':
+        ZHub = 154.
+        DZ   = 140.
+        DY   = 140.
+        n_z  = 15
+        n_y  = 15
+
+    else:
+        IOError('Turbine {:s} is not coded.'.format(TurbName))
+
+    return (ZHub,DZ,DY,n_z,n_y)          
         
         

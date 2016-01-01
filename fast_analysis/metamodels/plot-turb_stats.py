@@ -17,13 +17,13 @@ tis  = [0.1,0.2,0.3,0.4,0.5]
 ls   = [10**1.5,10**2.,10**2.5,10**3]
 rhos = [0.,0.1,0.2,0.3,0.4]
 
-U_Ti = 0    # 0: L/rho, 1: U/Ti
+U_Ti = 1    # 0: L/rho, 1: U/Ti
 
 # define statistics and parameter to plot
+stat = 'min'
+parm = 'OoPDefl1'
 #stat = 'max'
-#parm = 'OoPDefl1'1
-stat = 'max'
-parm = 'RootMFlp1'
+#parm = 'RootMFlp1'
 #stat = 'max'
 #parm = 'TTDspFA'
 #stat = 'max'
@@ -33,7 +33,8 @@ parm = 'RootMFlp1'
 savefig = 0
 #u_lo,u_hi = 8.5,10.5                          # wind velocity mask
 if U_Ti:
-    x_lo,x_hi = 0,30                          # wind velocity mask
+#    x_lo,x_hi = 0,30                          # wind velocity mask
+    x_lo,x_hi = 0,9                          # wind velocity mask
 else:
     x_lo, x_hi = 1, 4
 cmap = cm.Reds
@@ -100,8 +101,12 @@ for i_turb in range(len(turb_names)):
         yplot = y_mask[idx]
         zplot = z_mask[idx]
         
+#        ax.scatter(xplot, yplot, zplot, s=9,
+#                   c=cmap(i_c/float(n_c)), 
+#                   edgecolors='none',
+#                   label=r'$\rho_{:d}$'.format(i_c))  
         ax.scatter(xplot, yplot, zplot, s=9,
-                   c=cmap(i_c/float(n_c)), 
+                   c='k', 
                    edgecolors='none',
                    label=r'$\rho_{:d}$'.format(i_c))    
                       
