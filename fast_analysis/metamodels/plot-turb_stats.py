@@ -6,10 +6,13 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.cm as cm
+import os
 
 # define turbine name
 turb_names = ['WP0.75A08V00','WP1.5A08V03',
               'WP3.0A02V02','WP5.0A04V00']
+DictDir,offst = 'old_stats\\original_peregrine_run',5
+#DictDir,offst = '', 0
 
 # define list of parameters
 us   = [5,7,9,10,10.5,11,11.5,12,13,16,19,22]
@@ -20,7 +23,7 @@ rhos = [0.,0.1,0.2,0.3,0.4]
 U_Ti = 1    # 0: L/rho, 1: U/Ti
 
 # define statistics and parameter to plot
-stat = 'min'
+stat = 'max'
 parm = 'OoPDefl1'
 #stat = 'max'
 #parm = 'RootMFlp1'
@@ -34,7 +37,8 @@ savefig = 0
 #u_lo,u_hi = 8.5,10.5                          # wind velocity mask
 if U_Ti:
 #    x_lo,x_hi = 0,30                          # wind velocity mask
-    x_lo,x_hi = 0,9                          # wind velocity mask
+    x_lo,x_hi = 0,9.01                          # wind velocity mask
+    y_lo,y_hi = 0,0.11                          # TI mask
 else:
     x_lo, x_hi = 1, 4
 cmap = cm.Reds
@@ -45,7 +49,9 @@ for i_turb in range(len(turb_names)):
     turb_name = turb_names[i_turb]
 
     # load data
-    stats_dict = scio.loadmat(turb_name+'_stats.mat',squeeze_me=True)
+    DictName   = turb_name+'_stats.mat'
+    DictPath    = os.path.join(DictDir,DictName)
+    stats_dict = scio.loadmat(DictPath,squeeze_me=True)
     proc_stats = stats_dict['proc_stats']
     calc_stats = [s.rstrip() for s in stats_dict['calc_stats']]
     fnames     = [s.rstrip() for s in stats_dict['fnames']]
@@ -84,13 +90,16 @@ for i_turb in range(len(turb_names)):
             ylabel = 'Rho'
 
     # mask data to only plot certain portion
-    x_mask = np.ma.masked_outside(xs,x_lo,x_hi)
-    y_mask = np.ma.masked_where(np.ma.getmask(x_mask),ys)
-    z_mask = np.ma.masked_where(np.ma.getmask(x_mask),zs)
-    c_mask = np.ma.masked_where(np.ma.getmask(x_mask),c_idx)
+    idcs_mskx = np.logical_and(xs >= x_lo, xs <= x_hi)
+    idcs_msky = np.logical_and(ys >= y_lo, ys <= y_hi)
+    idcs_msk  = np.logical_and(idcs_mskx,idcs_msky)
+    x_mask = xs[np.where(idcs_msk)]
+    y_mask = ys[np.where(idcs_msk)]
+    z_mask = zs[np.where(idcs_msk)]
+    c_mask = c_idx[np.where(idcs_msk)]
 
     # initialize figure
-    fig = plt.figure(i_turb+1,figsize=(6,6))
+    fig = plt.figure(i_turb+1+offst,figsize=(6,6))
     plt.clf()
     ax = fig.add_subplot(111, projection='3d')
 
