@@ -4622,6 +4622,93 @@ def CalculateDELsAll(FastPath,
     return DELDict
                          
 
+def polyregression(x,y,p_i):
+    """ Fit multi-dimensional polynomial surface to input data and output data
+        given individual polynomial powers p_i and excluding cross terms with
+        combined power larger than max(p_i).
+        
+        Args:
+            x (list/numpy array): input data
+            y (list/numpy array): output data
+            p_i (list/numpy array): highest powers of surface for input vars
+            
+        Returns:
+            coeffs (numpy array): 
+    """
+    import numpy as np
+    
+    # convert all input to numpy arrays in case list is fed in
+    x   = np.array(x)
+    y   = np.array(y)
+    p_i = np.array(p_i)
+    
+    # if only 1D in x, reshape to 2D column array
+    if len(x.shape) == 1:
+        x = x.reshape((x.size,1))
+                
+    # get max power and check dimension compatibility
+    p_max = p_i.max()
+    n_x = x.shape[1]
+    n_y = x.shape[0]    
+    if (y.size != n_y):
+        errStr = 'Dimensions of x and y are not compatible'
+        raise ValueError(errStr)
+    if (len(p_i) != n_x):
+        errStr = 'Dimensions of x and p_i are not compatible'
+        raise ValueError(errStr)
+        
+    # get all possible lists of powers with cross terms
+    n_all = np.prod(p_i+1.)                 # total number of poss. power combos
+    p = []                                  # list of ind. powers (0,1,2,...)
+    for i in range(n_x):
+        p.append(np.arange(p_i[i]+1))
+    P = np.meshgrid(*p)                     # arrays of cross-powers
+    ps = np.empty((n_all,n_x))              # convert arrays to vectors
+    for i in range(n_x):
+        ps[:,i] = P[i].reshape(n_all)       # save vectors in total array
+
+    # remove combinations of powers with total power > p_max
+    ps = ps[np.sum(ps,axis=1) <= p_max]   
+    
+    # create Vandermonde matrix
+    A = myvander(x,ps)
+        
+    # solve least squares problem to get coefficients
+    coeffs = np.linalg.lstsq(A,y)[0]
+    
+    return (coeffs,ps)
+    
+    
+def myvander(x,ps):
+    """ A sort-of Vandermonde matrix with the powres defined in array ps. Used
+        in polyregression routine.
+        
+        Args:
+            x (numpy array): input data
+            ps (numpy array): array of powers
+            
+        Returns:
+            A (numpy array): 2D array of x raised to powers in ps
+    """
+    import numpy as np
+    
+    # if only 1D in x or p, reshape to 2D array
+    if len(x.shape) == 1:
+        x = x.reshape((x.size,1))
+    if len(ps.shape) == 1:
+        ps = ps.reshape((1,ps.size))
+        
+    # define dimension parameters
+    n_y = x.shape[0]
+    n_coeff = ps.shape[0]        
+        
+    # creaate matrix
+    A = np.empty((n_y,n_coeff))
+    for i in range(n_coeff):
+        A[:,i] = np.prod(x ** ps[i,:], axis=1)
+        
+    return A
+    
 
 # =============================================================================
 # ---------------------------------- MAPPINGS ---------------------------------

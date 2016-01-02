@@ -59,81 +59,11 @@ def switchedSDOFresponse(t_u,u,As,zetas,wns):
     ForcedMassSpring = lambda state, t: \
         MassSpring(state,t,t_u,u,As,wns,zetas)
     
-    x = odeint(ForcedMassSpring, x0, t)
+    x = odeint(ForcedMassSpring, x0, t_u)
     y = x[:,0]
     
     return y
     
-# define function to fit the polynomial to data
-def polyregression(x,y,p_i):
-    """ Fit multi-dimensional polynomial to input data x, output data y, and 
-        individual polynomial powers p_i
-    """
-    import numpy as np
-    
-    # if only 1D in x, reshape to 2D array
-    if len(x.shape) == 1:
-        x = x.reshape((x.size,1))
-            
-    # convert possible list of individual powers to array
-    p_i = np.asarray(p_i)
-    
-    # get max power and check dimension compatibility
-    p_max = p_i.max()
-    n_x = x.shape[1]
-    n_y = x.shape[0]    
-    if (y.size != n_y):
-        errStr = 'Dimensions of x and y are not compatible'
-        raise ValueError(errStr)
-    if (len(p_i) != n_x):
-        errStr = 'Dimensions of x and p_i are not compatible'
-        raise ValueError(errStr)
-        
-    # get all possible lists of powers
-    n_all = np.prod(p_i+1.)
-    p = []                                  # list of ind. powers (0,1,2,...)
-    for i in range(n_x):
-        p.append(np.arange(p_i[i]+1))
-    P = np.meshgrid(*p)                     # arrays of cross-powers
-    ps = np.empty((n_all,n_x))              # convert arrays to vectors
-    for i in range(n_x):
-        ps[:,i] = P[i].reshape(n_all)       # save vectors in total array
-
-    # remove combinations of powers with total power > p_max
-    ps = ps[np.sum(ps,axis=1) <= p_max]   
-    
-    # create Vandermonde matrix
-    A = myvander(x,ps)
-        
-    # solve least square to get coefficients
-    coeffs = np.linalg.lstsq(A,y)[0]
-    
-    return (coeffs,ps)
-    
-# create my version of a vandermonde matrix
-def myvander(x,ps):
-    """ A sort-of Vandermonde matrix with the powres defined in array ps
-    """
-    import numpy as np
-    
-    # if only 1D in x or p, reshape to 2D array
-    if len(x.shape) == 1:
-        x = x.reshape((x.size,1))
-    if len(ps.shape) == 1:
-        ps = ps.reshape((1,ps.size))
-        
-    # define dimension parameters
-    n_y = x.shape[0]
-    n_coeff = ps.shape[0]        
-        
-    # creaate matrix
-    A = np.empty((n_y,n_coeff))
-    for i in range(n_coeff):
-        A[:,i] = np.prod(x ** ps[i,:], axis=1)
-        
-    return A
-    
-
 # define inputs for system
 L   = 340.
 n_s = 3
@@ -152,7 +82,8 @@ wns = [2*np.pi*1,2*np.pi*1.5]
 ##I = 0.15
 ##rhovec = np.array([0,0.1,0.3,0.5,0.7])
 
-## generate responses
+## ============ THIS TAKES LONG -- COMMENT OUT ONCE GENERATED
+# generate responses
 #n_all = Uvec.size * Ivec.size * n_s
 #x = np.empty((n_all,2))
 #y_resp = np.empty(n_all)
@@ -180,7 +111,7 @@ wns = [2*np.pi*1,2*np.pi*1.5]
 #        print(i_all/float(n_all))
     
 # fit polynomial surface
-coeffs, ps = polyregression(x,y_resp,p_i)  
+coeffs, ps = jr.polyregression(x,y_resp,p_i)  
 
 # calculate surface values at data points
 Iplot = np.linspace(0.05,0.20,5)
@@ -190,7 +121,7 @@ Uplot = np.linspace(Uvec[0],Uvec[-1],5)
 Iplot_arr, Uplot_arr = np.meshgrid(Iplot,Uplot)
 xplot = np.hstack((Uplot_arr.reshape((Uplot_arr.size,1)),
                    Iplot_arr.reshape((Iplot_arr.size,1))))
-A = myvander(xplot,ps)                
+A = jr.myvander(xplot,ps)                
 #A = myvander(x,ps)
 y_surf = np.dot(A,coeffs)
 
