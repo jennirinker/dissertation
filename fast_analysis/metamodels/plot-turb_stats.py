@@ -11,10 +11,17 @@ import os
 # define turbine name
 turb_names = ['WP0.75A08V00','WP1.5A08V03',
               'WP3.0A02V02','WP5.0A04V00']
-DictDir,offst = 'old_stats\\original_peregrine_run',5
-#DictDir,offst = '', 0
+DictDir,figoffst = 'old_stats\\original_peregrine_run',5
+#DictDir,figoffst = '', 0
 
-# define list of parameters
+# directory where stats are stored
+#StatDir,figoffst = '', 0
+#us   = [7.0, 9.0, 10.0, 11.0, 13.0, 19.0]
+#tis  = [0.1,0.3,0.5]
+#ls   = [2.0]
+#rhos = [0.4]
+
+StatDir,figoffst = 'old_stats\\original_peregrine_run', 5
 us   = [5,7,9,10,10.5,11,11.5,12,13,16,19,22]
 tis  = [0.1,0.2,0.3,0.4,0.5]
 ls   = [10**1.5,10**2.,10**2.5,10**3]
@@ -49,8 +56,7 @@ for i_turb in range(len(turb_names)):
     turb_name = turb_names[i_turb]
 
     # load data
-    DictName   = turb_name+'_stats.mat'
-    DictPath    = os.path.join(DictDir,DictName)
+    DictPath = os.path.join(StatDir,turb_name+'_stats.mat')
     stats_dict = scio.loadmat(DictPath,squeeze_me=True)
     proc_stats = stats_dict['proc_stats']
     calc_stats = [s.rstrip() for s in stats_dict['calc_stats']]
@@ -99,7 +105,7 @@ for i_turb in range(len(turb_names)):
     c_mask = c_idx[np.where(idcs_msk)]
 
     # initialize figure
-    fig = plt.figure(i_turb+1+offst,figsize=(6,6))
+    fig = plt.figure(i_turb+1 + figoffst,figsize=(6,6))
     plt.clf()
     ax = fig.add_subplot(111, projection='3d')
 

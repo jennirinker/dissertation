@@ -22,16 +22,16 @@ wind_dir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 # set directory and turbine name
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
-turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR','WP0.75A08V00'
+#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+#    'dissertation\\FAST_models\\FAST7\\WP0.75A08V00','WP0.75A08V00'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1500_FAST_v7','WP1500'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP1.5A08V03','WP1.5A08V03'
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP3.0A02V02','WP3.0A02V02'
-#turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-#    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
+turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
+    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
 
 # initialize look-up table
 fSSname = TName + '_SS.mat'
@@ -50,8 +50,12 @@ T_ss      = 60.0
 os.chdir(turb_dir)
 
 # set first initial conditions
-BlPitch0  = 2.6*np.ones(3)
-RotSpeed0 = 6.0
+ICDict = {}
+ICDict['BlPitch(1)'],ICDict['BlPitch(2)'],ICDict['BlPitch(3)'] = 2.6,2.6,2.6
+ICDict['OoPDefl'],ICDict['IPDefl'],ICDict['TeetDefl'] = 0.,0.,0.
+ICDict['Azimuth'],ICDict['RotSpeed'],ICDict['NacYaw'] = 0.,6.,0.
+ICDict['TTDspFA'],ICDict['TTDspSS'] = 0.,0.
+ICDict['TMax'],ICDict['TStart'] = 120., 0.
 
 # initialize stuff for plotting
 PlotFields = ['WindVxi','RotSpeed','GenPwr',
@@ -76,8 +80,8 @@ for i_WS in range(wind_speeds.size):
             
     # create FAST files
     jr.writeFASTFiles(turb_dir,TName,wind_fname,
-               BlPitch0=BlPitch0,RotSpeed0=RotSpeed0,
-               wind_dir=wind_dir,fileID=fileID,TMax=TMax)
+               wind_dir=wind_dir,fileID=fileID,
+               **ICDict)
                
     # run FAST
     print('Processing wind speed {:.1f}'.format(wind_speed))

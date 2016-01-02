@@ -22,7 +22,7 @@ BaseTurbDir = '\\\\monsoon-data\\Public\\JRinker\\fast_simulations\\' + \
 #                'FAST_models\\FAST7',TurbName)
 
 # if save dictionary
-SaveDict = 0
+SaveDict = 1
 
 # =========== should not need to change =========== 
 

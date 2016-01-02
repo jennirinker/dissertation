@@ -4041,9 +4041,9 @@ def writeDISCON(fpath_temp,fpath_out,TurbDict):
     
     
 def writeFASTFiles(turb_dir,TName,wind_fname,
-                   BlPitch0=None,RotSpeed0=None,
-                   wind_dir=None,fileID=None,TMax=630.0,
-                   wr_dir=None):
+                   wind_dir=None,fileID=None,
+                   wr_dir=None,
+                   **kwargs):
     """ Copy FAST template files from subfolder ``templates'' in turb_dir and
         place into turb_dir, pasting in nessecary initial conditions and
         simulation values as necessary.
@@ -4069,9 +4069,16 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
     
     print('Writing FAST files for \"{:s}\" '.format(TName) + \
             'with wind file {:s}'.format(wind_fpath))
+            
+    # default ICDict
+    ICDict = {}
+    ICDict['BlPitch(1)'],ICDict['BlPitch(2)'],ICDict['BlPitch(3)'] = 2.6,2.6,2.6
+    ICDict['OoPDefl'],ICDict['IPDefl'],ICDict['TeetDefl'] = 0.,0.,0.
+    ICDict['Azimuth'],ICDict['RotSpeed'],ICDict['NacYaw'] = 0.,6.,0.
+    ICDict['TTDspFA'],ICDict['TTDspSS'] = 0.,0.
+    ICDict['GenDOF'],ICDict['TMax'],ICDict['TStart'] = 'True',630.,30.
     
     # set optional values as necessary
-    GenDOF = 'True'
     if wind_dir is None:
         wind_dir = os.path.join(turb_dir,'Wind')
     if wr_dir is None:
@@ -4082,26 +4089,19 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
     else:
         fAD_name  = TName+'_'+fileID+'_AD.ipt'
         fFST_name = TName+'_'+fileID+'.fst'
-    if BlPitch0 is None:
-        mdict = scio.loadmat(os.path.join(turb_dir,'steady_state',
-                                        TName+'_SS.mat'),squeeze_me=True)
-        LUT        = mdict['SS']
-        saveFields = [str(s).strip() for s in mdict['Fields']]
-        BlPitch0 = np.interp(u0,LUT[:,saveFields.index('WindVxi')],
-                            LUT[:,saveFields.index('BldPitch1')])*np.ones(3)
-    if RotSpeed0 is None:
-        mdict = scio.loadmat(os.path.join(turb_dir,'steady_state',
-                                        TName+'_SS.mat'),squeeze_me=True)
-        LUT        = mdict['SS']
-        saveFields = [str(s).strip() for s in mdict['Fields']]
-        RotSpeed0 = np.interp(u0,LUT[:,saveFields.index('WindVxi')],
-                            LUT[:,saveFields.index('RotSpeed')])
+        
+    # load passed-in ICs
+    for key in kwargs.keys():
+        if key in ICDict.keys():
+            ICDict[key] = kwargs[key]
 
     # create filenames
-    fAD_temp  = os.path.join(turb_dir,'templates',TName+'_AD.ipt')
+    fAD_temp  = os.path.join(turb_dir,'templates',TName+'_AD_template.ipt')
     fAD_out   = os.path.join(wr_dir,fAD_name)
-    fFST_temp = os.path.join(turb_dir,'templates',TName+'.fst')
+    fFST_temp = os.path.join(turb_dir,'templates',TName+'_template.fst')
     fFST_out  = os.path.join(wr_dir,fFST_name)
+    
+    ICDict['ADFile'] = fAD_out
     
     # write AeroDyn file
     with open(fAD_temp,'r') as f_temp:
@@ -4119,22 +4119,30 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
         with open(fFST_out,'w') as f_write:
             i_line = 0
             for line in f_temp:
-                if i_line == 9:
-                    f_write.write(line.format(TMax))
-                elif i_line == 45:
-                    f_write.write(line.format(BlPitch0[0]))
-                elif i_line == 46:
-                    f_write.write(line.format(BlPitch0[1]))
-                elif i_line == 47:
-                    f_write.write(line.format(BlPitch0[2]))
-                elif i_line == 59:
-                    f_write.write(line.format(GenDOF))
-                elif i_line == 72:
-                    f_write.write(line.format(RotSpeed0))
-                elif i_line == 160:
-                    f_write.write(line.format(fAD_name))
-                else:
-                    f_write.write(line)
+                if ('{:' in line):
+                    key    = line.split()[1]
+                    valfmt = line.split()[0]
+                    cmnt  = line.split(valfmt)[1]
+                    if key in ICDict.keys():
+                        valstr = valfmt.format(ICDict[key])
+                        line = ''.join([valstr,cmnt])
+                    else:
+                        print('**** NO VALUE FOR KEY {:s} ****'.format(key))
+#                if i_line == 9:
+#                    f_write.write(line.format(TMax))
+#                elif i_line == 45:
+#                    f_write.write(line.format(BlPitch0[0]))
+#                elif i_line == 46:
+#                    f_write.write(line.format(BlPitch0[1]))
+#                elif i_line == 47:
+#                    f_write.write(line.format(BlPitch0[2]))
+#                elif i_line == 59:
+#                    f_write.write(line.format(GenDOF))
+#                elif i_line == 72:
+#                    f_write.write(line.format(RotSpeed0))
+#                elif i_line == 160:
+#                    f_write.write(line.format(fAD_name))
+                f_write.write(line)
                 i_line += 1
                 
     return
