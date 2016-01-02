@@ -5322,9 +5322,42 @@ def K2C(T_k):
     return T_k - 273.15
 
 
-# ==============================================================================
-# MISCELLANEOUS
-# ==============================================================================
+def RunName2WindParms(RunName):
+    """ Simulation parameters for given run name
+        
+        Args:
+            RunName (string): key for run of interest
+            
+        Returns:
+            Parms (dictionary): dictionary of wind parameters
+    """
+    
+    Parms = {}    
+    if (RunName == 'Peregrine'):
+        Parms['URefs']  = [5,7,9,10,10.5,11,11.5,12,13,16,19,22]
+        Parms['Is']     = [0.1,0.2,0.3,0.4,0.5]
+        Parms['Ls']     = [10**1.5,10**2.,10**2.5,10**3]
+        Parms['rhos']   = [0.,0.1,0.2,0.3,0.4]
+        Parms['n_dups'] = 5
+    elif (RunName == 'TestRun'):
+        Parms['URefs']  = [7.0, 9.0, 13.0]
+        Parms['Is']     = [0.3]
+        Parms['Ls']     = [10**2.0]
+        Parms['rhos']   = [0.4]
+        Parms['n_dups'] = 10
+    elif (RunName == 'SmallRun'):
+        Parms['URefs']  = [7.0, 9.0, 10.0, 11.0, 13.0, 19.0]
+        Parms['Is']     = [0.1,0.3,0.5]
+        Parms['Ls']     = [10**2.0]
+        Parms['rhos']   = [0.4]
+        Parms['n_dups'] = 10
+        
+    return Parms
+
+
+# =============================================================================
+# --------------------------- MISCELLANEOUS -----------------------------------
+# =============================================================================
 
 def wrap(theta):
     """ Wrap angle to [-pi,pi).
