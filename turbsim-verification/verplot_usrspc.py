@@ -19,15 +19,18 @@ nticks = 4
 # name of file to load
 ##dname   = '3-PDDs/TS/'
 #dname,fignum   = '5-specify_allvals/TS/',1
-dname,fignum,vsn = '6-allrho_newsamp/TS/',2,'Linux'
+#dname,fignum,vsn = '6-allrho_newsamp/TS/',2,'Linux'
 #dname,fignum,vsn = '6-allrho_newsamp_Windows/TS/',3,'Windows'
 ##fname,fignum   = '5pts_NoSc',1
-fname   = '5pts_Usr'
+#fname   = '5pts_Usr'
 #dname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #            'dissertation\\FAST_models\\WindPACT\\code\\linux_bts'
 #fname,fignum   = 'WP0.75A08V00_b1333_rho0.0',1
 #fname,fignum   = 'WP0.75A08V00_b1333_rho0.3',2
 #fname,fignum   = 'WP0.75A08V00_b1333_afterPP',1
+dname = '\\\\monsoon-data\\Public\\JRinker\\fast_simulations\\WindDir\\' + \
+        'SmallRun\\WP0.75A08V00'
+fname,fignum,vsn   = 'WP0.75A08V00_00000',1,'SmallRun'
 
 # save image in directory?
 saveimg = 0

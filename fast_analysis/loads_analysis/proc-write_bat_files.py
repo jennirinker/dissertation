@@ -1,5 +1,5 @@
 """
-Write bat file for monsoon simulation
+Write bat file for monsoon simulation: just TSRun and FSRun
 """
 import sys
 libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\public\\nwtc_python_tools'
@@ -8,7 +8,7 @@ if (libpath not in sys.path): sys.path.append(libpath)
 import os
 import datetime
 import shutil
-import random
+#import random
 
 # define turbine name, turbine dictionary
 TurbNames = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
@@ -17,12 +17,18 @@ TurbNames = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
 
 # run specifics
 DateFmt = '%a %b %d %H:%M:%S %Y'            # date format
-RunName = 'SmallRun'                        # run name
-URefs  = [7.0, 9.0, 10.0, 11.0, 13.0, 19.0]
-Is     = [0.1,0.3,0.5]
-logLs  = [2.0]
-rhos   = [0.4]
-n_dups = 10
+#RunName = 'SmallRun'                        # run name
+#URefs  = [7.0, 9.0, 10.0, 11.0, 13.0, 19.0]
+#Is     = [0.1,0.3,0.5]
+#logLs  = [2.0]
+#rhos   = [0.4]
+#n_dups = 10
+RunName = 'BigRun1'                        # run name
+URefs  = [5,7,9,10,10.5,11,12,14,17,22]
+Is     = [0.1,0.2,0.3,0.4,0.5]
+Ls     = [10**1.5,10**2.,10**2.5,10**3]
+rhos   = [0.,0.1,0.2,0.3,0.4]
+n_dups = 5
 
 # directories
 BaseBatDir = os.path.join('\\\\monsoon-data\\Public\\JRinker' + \
@@ -36,16 +42,8 @@ BaseWindDir = os.path.join('\\\\monsoon-data\\Public\\JRinker' + \
 BaseFastDir = os.path.join('\\\\monsoon-data\\Public\\JRinker\\' + \
             'fast_simulations\\FastDir',RunName)
 BaseModlDir = '\\\\monsoon-data\\Public\\JRinker\\fast_simulations\\ModlDir'
-#TurbSimInpExePath = os.path.join(ExeDir,'TurbSimInp.py')
-#TurbSimExePath = os.path.join(ExeDir,'TurbSim.exe')
-#FastInpExePath = os.path.join(ExeDir,'FastInp.py')
-#FastExePath    = os.path.join(ExeDir,'FAST.exe')
-TurbSimInpExePath = 'S:\\\\TurbSimInp.py'
-TurbSimExePath = 'S:\\\\TurbSim.exe'
-FastInpExePath = 'S:\\\\FastInp.py'
-FastExePath    = 'S:\\\\FAST.exe'
-ExeNames = ['TurbSimInp.py','TurbSim.exe','FastInp.py','FAST.exe']
-ExeIDs   = ['TSInp','RunTS','FSInp','RunFS']
+ExeNames = ['TurbSim.exe','FAST.exe']
+ExeIDs   = ['RunTS','RunFS']
                     
 # -----------------------------------------------------------------------------
 
@@ -56,8 +54,6 @@ if os.path.exists(BaseBatDir): shutil.rmtree(BaseBatDir)
 os.mkdir(BaseBatDir)
 if os.path.exists(BaseFastDir): shutil.rmtree(BaseFastDir)
 os.mkdir(BaseFastDir)
-if os.path.exists(BaseWindDir): shutil.rmtree(BaseWindDir)
-os.mkdir(BaseWindDir)
     
 # paths to bat template
 BatTmplPath = os.path.join(TmplDir,'Template.bat')
@@ -83,6 +79,7 @@ for iExe in range(len(ExeNames)):
         # unmap used drives
         RunAll.write('net use A: /delete\n')
         RunAll.write('net use S: /delete\n')
+        RunAll.write('@ECHO Off\n')
         
         # loop through turbines
         for TurbName in TurbNames:
@@ -109,22 +106,22 @@ for iExe in range(len(ExeNames)):
             # iterate over all wind parameters
             for iU,iI,iL,iR in [(a,b,c,d) for a in range(len(URefs)) \
                                         for b in range(len(Is)) \
-                                        for c in range(len(logLs)) \
+                                        for c in range(len(Ls)) \
                                         for d in range(len(rhos))]:
-                URef,I,L,rho = URefs[iU],Is[iI],10**logLs[iL],rhos[iR]
+#                URef,I,L,rho = URefs[iU],Is[iI],Ls[iL],rhos[iR]
                                             
                 # loop through duplicates               
                 for iS in range(n_dups):
-    
-                    # generate random seeds
-                    R1 = random.randint(-2147483648,2147483647)
-                    R2 = random.randint(-2147483648,2147483647)
-    
-                    # create parameter string
-                    ParmStr = '\"{:.2f} {:.3f} {:.1f}'.format(\
-                                URef,I*URef,L)  + \
-                        ' {:.2f} {:d} {:d}\"'.format(\
-                            rho,R1,R2)
+#    
+#                    # generate random seeds
+#                    R1 = random.randint(-2147483648,2147483647)
+#                    R2 = random.randint(-2147483648,2147483647)
+#    
+#                    # create parameter string
+#                    ParmStr = '\"{:.2f} {:.3f} {:.1f}'.format(\
+#                                URef,I*URef,L)  + \
+#                        ' {:.2f} {:d} {:d}\"'.format(\
+#                            rho,R1,R2)
     
                     # create file ID
                     FileID = format(iU,'x')+format(iI,'x')+ \
@@ -146,15 +143,8 @@ for iExe in range(len(ExeNames)):
         
                     # exectuable command
                     if (iExe == 0):
-                        ExeCmnd = 'python %EXE% ' + \
-                                    '{:s} {:s} {:s} {:s}'.format(TurbName,
-                                                        RunName,FileID,ParmStr)
-                    elif (iExe == 1):
                         ExeCmnd = '%EXE% {:s}'.format(TurbSimInpPath)
-                    elif (iExe == 2):
-                        ExeCmnd = 'python %EXE% {:s} {:s} {:s}'.format( \
-                                    TurbName,RunName,TurbSimOutPath)
-                    elif (iExe == 3):
+                    elif (iExe == 1):
                         ExeCmnd = '%EXE% {:s}'.format(FastInpPath)
         
                     # open the full run bat file, loop through lines
@@ -175,11 +165,8 @@ for iExe in range(len(ExeNames)):
                                 
                             
                     # write group bat to run all
-                    if (iExe % 2):
-                        Line = 'start /b job submit /scheduler:monsoon' + \
-                            ' /jobname:{:s} \"{:s}"\n'.format(BatName,BatPath)
-                    else:
-                        Line = 'start /b {:s}\n'.format(BatPath)
+                    Line = 'start /b job submit /scheduler:monsoon' + \
+                        ' /jobname:{:s} \"{:s}"\n'.format(BatName,BatPath)
                     RunAll.write(Line)
                     
         RunAll.write('@ECHO All runs for {:s} complete\n'.format(ExeID))

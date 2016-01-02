@@ -14,10 +14,6 @@ TurbName = sys.argv[1]
 FileID   = sys.argv[2]
 ParmStr  = sys.argv[3].rstrip('\"').lstrip('\"')
 
-#TurbName = 'WP0.75A08V00'
-#FileID   = '00000'
-#ParmStr = '10 1.7 340 0.4 2 3'
-#TurbName = 'WP0.75A08V00'  '00000' '10 1.7 340 0.4 2 3'
 
 TmplDir = 'C:\\Users\\jrinker\\Documents\\GitHub\\public\\' + \
             'nwtc_python_tools\\templates'

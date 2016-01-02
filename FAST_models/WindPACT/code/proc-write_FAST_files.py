@@ -3,10 +3,10 @@ taking turbine template files, specifying wind files and initial rotor speeds
 and blade pitch angles
 """
 import sys,os
-libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\public\\nwtc_python_tools'
 if (libpath not in sys.path): sys.path.append(libpath)
 
-import JR_Library.main as jr
+import jr_fast
 
 # specify a file ID and total simulation time
 #fileID = '00000'
@@ -27,7 +27,7 @@ turb_dir,TurbName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
 #    'dissertation\\FAST_models\\FAST7\\WP5.0A04V00','WP5.0A04V00'
     
 # set turbine version if necessary
-ext = '_equil'
+ext = ''
 turb_dir += ext
     
 # ******** set directory for wind ********
@@ -47,10 +47,10 @@ wind_fname = TurbName + '_' + fileID + '.bts'
 
     
  # run FAST
-jr.writeFASTFiles(turb_dir,TurbName,wind_fname,
-                   wind_dir=wind_dir,fileID=fileID,TMax=TMax)
+#jr.writeFASTFiles(turb_dir,TurbName,wind_fname,
+#                   wind_dir=wind_dir,fileID=fileID,TMax=TMax)
 
-jr_fast.WriteFastADAll(TurbName,ModlDir,WindDir,FastDir)
+jr_fast.WriteFastADAll(TurbName,turb_dir,turb_dir,turb_dir)
 
 ## ******** set directory and turbine name turbine 1 ********
 #turb_dir,TName = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
