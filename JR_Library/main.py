@@ -4647,7 +4647,6 @@ def polyregression(x,y,p_i):
         x = x.reshape((x.size,1))
                 
     # get max power and check dimension compatibility
-    p_max = p_i.max()
     n_x = x.shape[1]
     n_y = x.shape[0]    
     if (y.size != n_y):
@@ -4657,19 +4656,9 @@ def polyregression(x,y,p_i):
         errStr = 'Dimensions of x and p_i are not compatible'
         raise ValueError(errStr)
         
-    # get all possible lists of powers with cross terms
-    n_all = np.prod(p_i+1.)                 # total number of poss. power combos
-    p = []                                  # list of ind. powers (0,1,2,...)
-    for i in range(n_x):
-        p.append(np.arange(p_i[i]+1))
-    P = np.meshgrid(*p)                     # arrays of cross-powers
-    ps = np.empty((n_all,n_x))              # convert arrays to vectors
-    for i in range(n_x):
-        ps[:,i] = P[i].reshape(n_all)       # save vectors in total array
-
-    # remove combinations of powers with total power > p_max
-    ps = ps[np.sum(ps,axis=1) <= p_max]   
-    
+    # get list of powers
+    ps = GetAllPowers(p_i)
+          
     # create Vandermonde matrix
     A = myvander(x,ps)
         
@@ -4677,6 +4666,38 @@ def polyregression(x,y,p_i):
     coeffs = np.linalg.lstsq(A,y)[0]
     
     return (coeffs,ps)
+    
+
+def GetAllPowers(p_i):
+    """ Array of all powers for maximum powers in p_i
+    
+        Args:
+            p_i (list/numpy array): maximal power for each individual term
+            
+        Returns:
+            ps (list/numpy array): list of powers with cross-terms
+    """
+    
+    # convert input to numpy arrays in case list is fed in
+    p_i = np.array(p_i)
+           
+    # get max power
+    p_max = p_i.max()
+
+    # get all possible lists of powers with cross terms
+    n_all = np.prod(p_i+1.)                 # total number of poss. power combos
+    p = []                                  # list of ind. powers (0,1,2,...)
+    for i in range(len(p_i)):
+        p.append(np.arange(p_i[i]+1))
+    P = np.meshgrid(*p)                     # arrays of cross-powers
+    ps = np.empty((n_all,len(p_i)))         # convert arrays to vectors
+    for i in range(len(p_i)):
+        ps[:,i] = P[i].reshape(n_all)       # save vectors in total array
+
+    # remove combinations of powers with total power > p_max
+    ps = ps[np.sum(ps,axis=1) <= p_max] 
+    
+    return ps
     
     
 def myvander(x,ps):
@@ -4708,6 +4729,108 @@ def myvander(x,ps):
         A[:,i] = np.prod(x ** ps[i,:], axis=1)
         
     return A
+    
+    
+
+def DiscreteOpt(ErrFnc,p0,
+                max_iters=1000,err_thresh=1e-10,
+                derr_thresh=0.01,n_last=4,
+                verbose=0):
+    """ Optmize discrete error given initial guess p0
+    
+        Args:
+            ErrFnc (function): function to return error given guess p
+            p0 (list/np.array): initial guess
+            max_iters (int): maximum number of iterations [opt]
+            err_thresh (float): minimum threshold for error [opt]
+            derr_thresh (float): threshold for error diff over last few iters [opt]
+            n_last (int): number of iterations to look back, see if decreasing [opt]
+            verbose (int): flag to print iteration updates
+            
+        Returns:
+            results (dictionary): optimization results
+    """
+    
+    print('\nRunning optimization...')
+    
+    # initialize variables
+    p          = p0                     # array of optimization variables
+    iter_count = 1                      # iteration counter
+    stop       = 0                      # flag to stop iterations
+    curr_err   = ErrFnc(p)              # current error value
+    last_errs  = (1e16)*np.ones(n_last) # errors for last several iterations
+    n_x        = len(p0)                # number of optimization variables
+    last_ps    = np.empty((n_last,n_x)) # last set of guesses
+    results    = {}                     # dictionary for output
+    
+    # iterate until converge
+    last_ps[0,:] = p0
+    while(not stop):
+        
+        if verbose:
+            print('Iteration {:d}. Error = {:.2f}'.format(iter_count,curr_err) + \
+                    ' p_init = [{:s}]'.format(','.join([str(x) for x in p])))
+            
+        # iteratively increment each variable, calculating and saving error    
+        iter_errs = np.empty(n_x)
+        for i_x in range(n_x):
+            ptest = np.copy(p)
+            ptest[i_x] += 1
+            iter_errs[i_x] = ErrFnc(ptest)
+            
+        # determine variable to increment
+        i_incr = iter_errs.argmin()
+        min_err = iter_errs[i_incr]
+        
+        if verbose:
+            print('  incrementing x{:d} (new_err = {:.1f})'.format(i_incr,min_err))
+                                 
+        # if new min error is 5% larger than current error, save current and stop
+        if (min_err >= 1.05*curr_err):
+            print('\nOptimization halting: local minimum achieved\n')
+            results['num_iters'] = iter_count
+            results['p_out']     = p
+            results['error']     = curr_err
+            results['exit_code'] = 0
+            return results
+            
+        # if new min error is smaller than error threshold
+        if (min_err <= err_thresh):
+            print('\nOptimization halting: error is below threshold\n')
+            results['num_iters'] = iter_count
+            results['p_out']     = p
+            results['error']     = curr_err
+            results['exit_code'] = 0
+            return results
+            
+        # if there is only a small change in error for the last few iterations
+        if (np.abs((curr_err - last_errs[-1])/curr_err) <= derr_thresh):
+            print('\nOptimization halting: no large reduction in error\n')
+            results['num_iters'] = iter_count - n_last
+            results['p_out']     = last_ps[-1,:]
+            results['error']     = last_errs[-1]
+            results['exit_code'] = 0
+            return results
+            
+        # if max number of iterations reached
+        if iter_count >= max_iters:
+            print('\nOptimization halting: maximum iteration count reached\n')
+            results['num_iters'] = iter_count
+            results['p_out']     = p
+            results['error']     = curr_err
+            results['exit_code'] = 1
+            return results
+            
+        # update values
+        p[i_incr]    += 1
+        curr_err      = min_err
+        iter_count   += 1
+        last_errs[1:] = last_errs[:-1]
+        last_errs[0]  = curr_err
+        last_ps[1:,:] = last_ps[:-1,:]
+        last_ps[0,:]  = p
+            
+    return results
     
 
 # =============================================================================
