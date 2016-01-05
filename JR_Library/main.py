@@ -4128,20 +4128,6 @@ def writeFASTFiles(turb_dir,TName,wind_fname,
                         line = ''.join([valstr,cmnt])
                     else:
                         print('**** NO VALUE FOR KEY {:s} ****'.format(key))
-#                if i_line == 9:
-#                    f_write.write(line.format(TMax))
-#                elif i_line == 45:
-#                    f_write.write(line.format(BlPitch0[0]))
-#                elif i_line == 46:
-#                    f_write.write(line.format(BlPitch0[1]))
-#                elif i_line == 47:
-#                    f_write.write(line.format(BlPitch0[2]))
-#                elif i_line == 59:
-#                    f_write.write(line.format(GenDOF))
-#                elif i_line == 72:
-#                    f_write.write(line.format(RotSpeed0))
-#                elif i_line == 160:
-#                    f_write.write(line.format(fAD_name))
                 f_write.write(line)
                 i_line += 1
                 
@@ -5474,6 +5460,18 @@ def RunName2WindParms(RunName):
         Parms['Ls']     = [10**2.0]
         Parms['rhos']   = [0.4]
         Parms['n_dups'] = 10
+    elif (RunName == 'TestBig'):
+        Parms['URefs']  = [5,7,9,10]
+        Parms['Is']     = [0.1,0.2]
+        Parms['Ls']     = [10**1.5]
+        Parms['rhos']   = [0.]
+        Parms['n_dups'] = 1
+    elif (RunName == 'BigRun1'):
+        Parms['URefs']  = [5,7,9,10,10.5,11,12,14,17,22]
+        Parms['Is']     = [0.1,0.2,0.3,0.4,0.5]
+        Parms['Ls']     = [10**1.5,10**2.,10**2.5,10**3]
+        Parms['rhos']   = [0.,0.1,0.2,0.3,0.4]
+        Parms['n_dups'] = 5
         
     return Parms
 

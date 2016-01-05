@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def StatsSSE(x,y,p_i):
+def StatsErr(x,y,p_i):
     """ Sum-of-squared-error for data x and y with polynomial orders p_i
     """
     
@@ -26,9 +26,10 @@ def StatsSSE(x,y,p_i):
     
     # get residuals and sum
     e    = y - yhat
-    SSE  = np.sum(e ** 2)
+#    err  = np.mean(e ** 2)
+    err  = np.mean(np.abs(e))
     
-    return SSE
+    return err
 
 # define turbine name and run name
 #TurbNames = ['WP0.75A08V00','WP1.5A08V03',
@@ -51,6 +52,7 @@ WindParms = jr.RunName2WindParms(RunName)
 URefs, Is, Ls, rhos, n_dups = WindParms['URefs'],WindParms['Is'], \
                               WindParms['Ls'],WindParms['rhos'], \
                               WindParms['n_dups']
+WindParmsList = [URefs,Is,np.log10(Ls),rhos]
 
 # load the stats data
 DictPath   = os.path.join(BaseStatDir,RunName,TurbName + '_stats.mat')
@@ -75,22 +77,24 @@ y = proc_stats[:,calc_stats.index(stat)*n_fields + \
 x = np.empty((y.size,4))
 for i_f in range(y.size):
     file_id =  fnames[i_f].rstrip('.out').split('_')[1]
-    x[i_f,0] = URefs[int(file_id[0],16)]
-    x[i_f,1] = Is[int(file_id[1],16)]
-    x[i_f,2] = Ls[int(file_id[2],16)]
-    x[i_f,3] = rhos[int(file_id[3],16)]
+    for i_p in range(len(WindParmsList)):
+        x[i_f,i_p] = WindParmsList[i_p][int(file_id[i_p],16)]   # hex to int
+#    x[i_f,1] = Is[int(file_id[1],16)]
+##    x[i_f,2] = Ls[int(file_id[2],16)]
+#    x[i_f,2] = np.log10(Ls[int(file_id[2],16)])
+#    x[i_f,3] = rhos[int(file_id[3],16)]
     
 
 # ================= optimize polynomial coefficients =====================
 
-# parameterize function for data
-ErrFunc = lambda p: StatsSSE(x,y,p)
-
+## parameterize function for data
+#ErrFunc = lambda p: StatsErr(x,y,p)
+#
 #p0 = np.zeros(x.shape[1])
 #results = jr.DiscreteOpt(ErrFunc,p0,
 #                         verbose=1)
-#print(results['p_out'])
 #p_i = results['p_out']
+#print(p_i)
 
 # ============== plot data and polynomial surface ======================
 
@@ -99,8 +103,11 @@ betas, ps = jr.polyregression(x,y,p_i)
 
 # --------------------------- U vs. Ti -------------------------------------
 
-# indices for L and rho
-i1,i2 = 3,1
+# indices for plotting and masking
+ip1,ip2   = 0, 1                # plot U and Ti
+im1,im2   = 2, 3                # mask by L and rho
+im1i,im2i = 1, 1                # mask by 2nd L and rho values
+FigNum    = 1                   # figure number
 
 # initialize figure
 fig = plt.figure(FigNum,figsize=(10,10))
@@ -108,18 +115,23 @@ plt.clf()
 ax = fig.add_subplot(111, projection='3d')
 
 # mask data to single value of L/rho
-mask = np.logical_and(x[:,2] == Ls[i1],x[:,3] == rhos[i2])
+mask = np.logical_and(x[:,im1] == WindParmsList[im1][im1i],
+                      x[:,im2] == WindParmsList[im2][im2i])
+#mask = np.logical_and(x[:,2] == Ls[i1],x[:,3] == rhos[i2])
 
 # create scatterplot
-xplot = x[mask,0]
-yplot = x[mask,1]
+xplot = x[mask,ip1]
+yplot = x[mask,ip2]
 zplot = y[mask]
 ax.scatter(xplot, yplot, zplot, s=9,
            c='k', 
            edgecolors='none')  
 
 # polyfit
-X1,X2,X3,X4  = np.meshgrid(URefs,Is,Ls[i1],rhos[i2])
+#X1,X2,X3,X4  = np.meshgrid(URefs,Is,Ls[i1],rhos[i2])
+X1,X2,X3,X4  = np.meshgrid(WindParmsList[ip1],WindParmsList[ip2],
+                           WindParmsList[im1][im1i],
+                           WindParmsList[im2][im2i])
 xplot = np.hstack((X1.reshape((X1.size,1)),
                    X2.reshape((X2.size,1)),
                    X3.reshape((X3.size,1)),
@@ -134,35 +146,42 @@ ax.plot_wireframe(X1,X2,Z)
 
 # --------------------------- rho vs. L -------------------------------------
 
-# indices for U and Ti
-i1, i2 = 3,0
+# indices for plotting and masking
+ip1,ip2   = 2, 3
+im1,im2   = 0, 1
+im1i,im2i = 3, 0
+FigNum    = 2                   # figure number
 
 # initialize figure
-fig = plt.figure(FigNum+1,figsize=(10,10))
+fig = plt.figure(FigNum,figsize=(10,10))
 plt.clf()
 ax = fig.add_subplot(111, projection='3d')
 
 # mask data to single value of L/rho
-mask = np.logical_and(x[:,0] == URefs[i1],x[:,1] == Is[i2])
+mask = np.logical_and(x[:,im1] == WindParmsList[im1][im1i],
+                      x[:,im2] == WindParmsList[im2][im2i])
 
 # create scatterplot
-xplot = np.log10(x[mask,2])
-yplot = x[mask,3]
+xplot = x[mask,ip1]
+yplot = x[mask,ip2]
 zplot = y[mask]
 ax.scatter(xplot, yplot, zplot, s=9,
            c='k', 
            edgecolors='none')  
 
-# polyfit
-X1,X2,X3,X4  = np.meshgrid(URefs[i1],Is[i2],Ls,rhos)
+# polyfit ************************************* different than above
+X1,X2,X3,X4  = np.meshgrid(WindParmsList[im1][im1i],
+                           WindParmsList[im2][im2i],
+                           WindParmsList[ip1],
+                           WindParmsList[ip2])
 xplot = np.hstack((X1.reshape((X1.size,1)),
                    X2.reshape((X2.size,1)),
                    X3.reshape((X3.size,1)),
                    X4.reshape((X4.size,1))))
 A     = jr.myvander(xplot,ps)
 z_RSM = np.dot(A,betas)
-Z     = z_RSM.reshape(X1.shape)
-X1 = np.log10(np.squeeze(X3))
-X2 = np.squeeze(X4)
+Z     = z_RSM.reshape(X3.shape)
+X1 = np.squeeze(X3)                 # ************************
+X2 = np.squeeze(X4)                 # ************************
 Z = np.squeeze(Z)
 ax.plot_wireframe(X1,X2,Z)
