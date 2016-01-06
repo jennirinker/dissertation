@@ -2081,6 +2081,7 @@ def screenmetadata(fields,metadata,dataset):
         # column indices for each value
         CScol   = fields.index('Wind_Speed_Sonic')
         dirCol  = fields.index('Wind_Direction_Sonic')
+        sigCol  = fields.index('Sigma_u')
         
         # filter out the rows with NaN values
         metadata = metadata[np.logical_not( \
@@ -2091,8 +2092,9 @@ def screenmetadata(fields,metadata,dataset):
         cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
                                         < (dir2 - dir1) % 360.)]
                                         
-        # manually screen for data with 999s
+        # manually screen for data with 999s and for too-high sigma
         cleandata = metadata[np.where(metadata[:,CScol] < 30.)]
+        cleandata = metadata[np.where(metadata[:,sigCol] < 20.)]
         
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -4650,6 +4652,63 @@ def polyregression(x,y,p_i):
         
     # solve least squares problem to get coefficients
     coeffs = np.linalg.lstsq(A,y)[0]
+    
+    return (coeffs,ps)
+                         
+
+def weightedpolyregression(x,y,p_i,w_i):
+    """ Fit weighted multi-dimensional polynomial surface to input data and
+        output data given individual polynomial powers p_i and excluding cross
+        terms with combined power larger than max(p_i).
+        
+        Args:
+            x (list/numpy array): input data
+            y (list/numpy array): output data
+            p_i (list/numpy array): highest powers of surface for input vars
+            w_i (list/numpy array): individual weights for terms
+            
+        Returns:
+            coeffs (numpy array): 
+    """
+    import numpy as np
+    
+    # convert all input to numpy arrays in case list is fed in
+    x   = np.array(x)
+    y   = np.array(y)
+    p_i = np.array(p_i)
+    w_i = np.array(w_i)
+    
+    # if only 1D in x, reshape to 2D column array
+    if len(x.shape) == 1:
+        x = x.reshape((x.size,1))
+                
+    # get max power and check dimension compatibility
+    n_x = x.shape[1]
+    n_y = x.shape[0]    
+    if (y.size != n_y):
+        errStr = 'Dimensions of x and y are not compatible'
+        raise ValueError(errStr)
+    if (len(p_i) != n_x):
+        errStr = 'Dimensions of x and p_i are not compatible'
+        raise ValueError(errStr)
+        
+    # get list of powers
+    ps = GetAllPowers(p_i)
+          
+    # create Vandermonde matrix
+    A = myvander(x,ps)
+    
+    # create weighting matrix
+    W = np.zeros((len(ps),len(ps)))
+    for i_w in range(len(ps)):
+#        W[i_w,i_w] = (ps[i_w])/float(np.sum(ps[i_w])) * w_i
+        W[i_w,i_w] = 1
+        
+    # solve least squares problem to get coefficients
+#    coeffs = np.dot(np.dot(np.dot(np.linalg.inv(np.dot(np.dot(A.T,W),A)),
+#                    A.T),W),y)
+    print(A.shape,W.shape)
+    coeffs = np.linalg.inv(np.dot(np.dot(A.T,W),A))
     
     return (coeffs,ps)
     

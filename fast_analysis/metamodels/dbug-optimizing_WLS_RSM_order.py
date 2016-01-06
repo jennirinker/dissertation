@@ -87,20 +87,22 @@ for i_f in range(y.size):
 
 # ================= optimize polynomial coefficients =====================
 
-# parameterize function for data
-ErrFunc = lambda p: StatsErr(x,y,p)
-
-p0 = np.zeros(x.shape[1])
-results = jr.DiscreteOpt(ErrFunc,p0,
-                         verbose=1)
-p_i = results['p_out']
-print(p_i)
+## parameterize function for data
+#ErrFunc = lambda p: StatsErr(x,y,p)
+#
+#p0 = np.zeros(x.shape[1])
+#results = jr.DiscreteOpt(ErrFunc,p0,
+#                         verbose=1)
+#p_i = results['p_out']
+#print(p_i)
+p_i = [8, 3, 3, 3]
 
 # ============== plot data and polynomial surface ======================
 
 # get optimal polynomial surface
 betas, ps = jr.polyregression(x,y,p_i)
-
+betas, ps = jr.weightedpolyregression(x,y,p_i,np.ones(len(p_i)))
+poop
 # --------------------------- U vs. Ti -------------------------------------
 
 # indices for plotting and masking
@@ -143,9 +145,6 @@ X1 = np.squeeze(X1)
 X2 = np.squeeze(X2)
 Z = np.squeeze(Z)
 ax.plot_wireframe(X1,X2,Z)
-ax.set_title('{:s} {:s}'.format(stat,parm),fontsize='x-large')
-ax.set_xlabel('U',fontsize='x-large')
-ax.set_ylabel('I',fontsize='x-large')
 
 # --------------------------- rho vs. L -------------------------------------
 
@@ -171,9 +170,6 @@ zplot = y[mask]
 ax.scatter(xplot, yplot, zplot, s=9,
            c='k', 
            edgecolors='none')  
-ax.set_title('{:s} {:s}'.format(stat,parm),fontsize='x-large')
-ax.set_xlabel('log10 L',fontsize='x-large')
-ax.set_ylabel('rho',fontsize='x-large')
 
 # polyfit ************************************* different than above
 X1,X2,X3,X4  = np.meshgrid(WindParmsList[im1][im1i],
