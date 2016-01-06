@@ -34,9 +34,9 @@ def StatsErr(x,y,p_i):
 # define turbine name and run name
 #TurbNames = ['WP0.75A08V00','WP1.5A08V03',
 #              'WP3.0A02V02','WP5.0A04V00']
-#RunNames = ['Peregrine','TestRun','SmallRun']
-TurbName = 'WP5.0A04V00'
-RunName  = 'Peregrine'
+#RunNames = ['Peregrine','TestRun','SmallRun','BigRun2']
+TurbName = 'WP3.0A02V02'
+RunName  = 'BigRun2'
 
 FigNum = 1
 
@@ -79,15 +79,10 @@ for i_f in range(y.size):
     file_id =  fnames[i_f].rstrip('.out').split('_')[1]
     for i_p in range(len(WindParmsList)):
         x[i_f,i_p] = WindParmsList[i_p][int(file_id[i_p],16)]   # hex to int
-#    x[i_f,1] = Is[int(file_id[1],16)]
-##    x[i_f,2] = Ls[int(file_id[2],16)]
-#    x[i_f,2] = np.log10(Ls[int(file_id[2],16)])
-#    x[i_f,3] = rhos[int(file_id[3],16)]
-    
 
 # ================= optimize polynomial coefficients =====================
 
-## parameterize function for data
+# parameterize function for data
 #ErrFunc = lambda p: StatsErr(x,y,p)
 #
 #p0 = np.zeros(x.shape[1])
@@ -95,8 +90,28 @@ for i_f in range(y.size):
 #                         verbose=1)
 #p_i = results['p_out']
 #print(p_i)
+p_i = [7,2,2,2]
 
 # ============== plot data and polynomial surface ======================
+
+# get mean and standard deviation of data
+n_uniq = len(x)/n_dups
+x_uniq = np.empty((n_uniq,4))
+y_mean = np.empty(n_uniq)
+y_std  = np.empty(n_uniq)
+parmidcs = [(iU,iI,iL,irho) for iU in range(len(URefs)) for iI in range(len(Is)) \
+                 for iL in range(len(Ls)) for irho in range(len(rhos))]
+i_d = 0
+for (iU,iI,iL,irho) in parmidcs:
+    Ui,Ii,Li,rhoi = WindParmsList[0][iU],WindParmsList[1][iI], \
+                    WindParmsList[2][iL],WindParmsList[3][irho]
+    mask = np.logical_and(np.logical_and(np.logical_and(x[:,0]==Ui,x[:,1]==Ii),
+                                         x[:,2]==Li),
+                          x[:,3]==rhoi)
+    y_mean[i_d] = np.mean(y[mask])
+    y_std[i_d]  = np.std(y[mask])
+    x_uniq[i_d] = [Ui,Ii,Li,rhoi]
+    i_d += 1
 
 # get optimal polynomial surface
 betas, ps = jr.polyregression(x,y,p_i)
@@ -115,17 +130,25 @@ plt.clf()
 ax = fig.add_subplot(111, projection='3d')
 
 # mask data to single value of L/rho
-mask = np.logical_and(x[:,im1] == WindParmsList[im1][im1i],
-                      x[:,im2] == WindParmsList[im2][im2i])
+mask = np.logical_and(x_uniq[:,im1] == WindParmsList[im1][im1i],
+                      x_uniq[:,im2] == WindParmsList[im2][im2i])
 #mask = np.logical_and(x[:,2] == Ls[i1],x[:,3] == rhos[i2])
 
-# create scatterplot
-xplot = x[mask,ip1]
-yplot = x[mask,ip2]
-zplot = y[mask]
+# plot mean
+xplot = x_uniq[mask,ip1]
+yplot = x_uniq[mask,ip2]
+zplot = y_mean[mask]
+zerr  = y_std[mask]
 ax.scatter(xplot, yplot, zplot, s=9,
            c='k', 
            edgecolors='none')  
+
+# plot error
+for i in range(len(yplot)):
+    ax.plot([xplot[i], xplot[i]], [yplot[i], yplot[i]], \
+            [zplot[i]-zerr[i], zplot[i]+zerr[i]],
+            color='k',marker='_')
+    
 
 # polyfit
 #X1,X2,X3,X4  = np.meshgrid(URefs,Is,Ls[i1],rhos[i2])
@@ -144,6 +167,7 @@ X2 = np.squeeze(X2)
 Z = np.squeeze(Z)
 ax.plot_wireframe(X1,X2,Z)
 
+
 # --------------------------- rho vs. L -------------------------------------
 
 # indices for plotting and masking
@@ -158,16 +182,23 @@ plt.clf()
 ax = fig.add_subplot(111, projection='3d')
 
 # mask data to single value of L/rho
-mask = np.logical_and(x[:,im1] == WindParmsList[im1][im1i],
-                      x[:,im2] == WindParmsList[im2][im2i])
+mask = np.logical_and(x_uniq[:,im1] == WindParmsList[im1][im1i],
+                      x_uniq[:,im2] == WindParmsList[im2][im2i])
 
 # create scatterplot
-xplot = x[mask,ip1]
-yplot = x[mask,ip2]
-zplot = y[mask]
+xplot = x_uniq[mask,ip1]
+yplot = x_uniq[mask,ip2]
+zplot = y_mean[mask]
+zerr  = y_std[mask]
+
+for i in range(len(yplot)):
+    ax.plot([xplot[i], xplot[i]], [yplot[i], yplot[i]], \
+            [zplot[i]-zerr[i], zplot[i]+zerr[i]],
+            color='0.7',marker='_')
 ax.scatter(xplot, yplot, zplot, s=9,
            c='k', 
            edgecolors='none')  
+
 
 # polyfit ************************************* different than above
 X1,X2,X3,X4  = np.meshgrid(WindParmsList[im1][im1i],

@@ -4652,6 +4652,52 @@ def polyregression(x,y,p_i):
     coeffs = np.linalg.lstsq(A,y)[0]
     
     return (coeffs,ps)
+                         
+
+def weightedpolyred(x,y,p_i,w_i):
+    """ Fit multi-dimensional polynomial surface to input data and output data
+        given individual polynomial powers p_i and excluding cross terms with
+        combined power larger than max(p_i).
+        
+        Args:
+            x (list/numpy array): input data
+            y (list/numpy array): output data
+            p_i (list/numpy array): highest powers of surface for input vars
+            
+        Returns:
+            coeffs (numpy array): 
+    """
+    import numpy as np
+    
+    # convert all input to numpy arrays in case list is fed in
+    x   = np.array(x)
+    y   = np.array(y)
+    p_i = np.array(p_i)
+    
+    # if only 1D in x, reshape to 2D column array
+    if len(x.shape) == 1:
+        x = x.reshape((x.size,1))
+                
+    # get max power and check dimension compatibility
+    n_x = x.shape[1]
+    n_y = x.shape[0]    
+    if (y.size != n_y):
+        errStr = 'Dimensions of x and y are not compatible'
+        raise ValueError(errStr)
+    if (len(p_i) != n_x):
+        errStr = 'Dimensions of x and p_i are not compatible'
+        raise ValueError(errStr)
+        
+    # get list of powers
+    ps = GetAllPowers(p_i)
+          
+    # create Vandermonde matrix
+    A = myvander(x,ps)
+        
+    # solve least squares problem to get coefficients
+    coeffs = np.linalg.lstsq(A,y)[0]
+    
+    return (coeffs,ps)
     
 
 def GetAllPowers(p_i):
@@ -5442,7 +5488,7 @@ def RunName2WindParms(RunName):
     """
     
     Parms = {}    
-    if (RunName == 'Peregrine'):
+    if (RunName in ('Peregrine','BigRun2')):
         Parms['URefs']  = [5,7,9,10,10.5,11,11.5,12,13,16,19,22]
         Parms['Is']     = [0.1,0.2,0.3,0.4,0.5]
         Parms['Ls']     = [10**1.5,10**2.,10**2.5,10**3]
@@ -5466,12 +5512,12 @@ def RunName2WindParms(RunName):
         Parms['Ls']     = [10**1.5]
         Parms['rhos']   = [0.]
         Parms['n_dups'] = 1
-    elif (RunName == 'BigRun1'):
-        Parms['URefs']  = [5,7,9,10,10.5,11,12,14,17,22]
-        Parms['Is']     = [0.1,0.2,0.3,0.4,0.5]
-        Parms['Ls']     = [10**1.5,10**2.,10**2.5,10**3]
-        Parms['rhos']   = [0.,0.1,0.2,0.3,0.4]
-        Parms['n_dups'] = 5
+#    elif (RunName == 'BigRun1'):
+#        Parms['URefs']  = [5,7,9,10,10.5,11,12,14,17,22]
+#        Parms['Is']     = [0.1,0.2,0.3,0.4,0.5]
+#        Parms['Ls']     = [10**1.5,10**2.,10**2.5,10**3]
+#        Parms['rhos']   = [0.,0.1,0.2,0.3,0.4]
+#        Parms['n_dups'] = 5
         
     return Parms
 

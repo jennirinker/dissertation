@@ -1,6 +1,11 @@
 """
 messing around with processed statistics
 """
+import sys
+libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
+if (libpath not in sys.path): sys.path.append(libpath)
+    
+import JR_Library.main as jr
 import scipy.io as scio
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -11,27 +16,18 @@ import os
 # define turbine name
 turb_names = ['WP0.75A08V00','WP1.5A08V03',
               'WP3.0A02V02','WP5.0A04V00']
-DictDir,figoffst = 'old_stats\\original_peregrine_run',5
-#DictDir,figoffst = '', 0
+BaseProcDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
+                'processed_data\\proc_stats'
 
-# directory where stats are stored
-#StatDir,figoffst = '', 0
-#us   = [7.0, 9.0, 10.0, 11.0, 13.0, 19.0]
-#tis  = [0.1,0.3,0.5]
-#ls   = [2.0]
-#rhos = [0.4]
+# choose run to plot
+#RunName,figoffst = 'Peregrine',0
+RunName,figoffst = 'BigRun2',5
 
-StatDir,figoffst = 'old_stats\\original_peregrine_run', 5
-us   = [5,7,9,10,10.5,11,11.5,12,13,16,19,22]
-tis  = [0.1,0.2,0.3,0.4,0.5]
-ls   = [10**1.5,10**2.,10**2.5,10**3]
-rhos = [0.,0.1,0.2,0.3,0.4]
-
+# plot U vs Ti or L vs. rho
 U_Ti = 1    # 0: L/rho, 1: U/Ti
 
 # define statistics and parameter to plot
-stat = 'max'
-parm = 'OoPDefl1'
+stat,parm,zlim = 'max','OoPDefl1',12
 #stat = 'max'
 #parm = 'RootMFlp1'
 #stat = 'max'
@@ -44,12 +40,19 @@ savefig = 0
 #u_lo,u_hi = 8.5,10.5                          # wind velocity mask
 if U_Ti:
 #    x_lo,x_hi = 0,30                          # wind velocity mask
-    x_lo,x_hi = 0,9.01                          # wind velocity mask
-    y_lo,y_hi = 0,0.11                          # TI mask
+    x_lo,x_hi = 0,30                          # wind velocity mask
+    y_lo,y_hi = 0,1                          # TI mask
 else:
     x_lo, x_hi = 1, 4
 cmap = cm.Reds
 elev, az = 1,-90
+
+# ----------------------------------------------------------------------------
+
+StatDir        = os.path.join(BaseProcDir,RunName)
+WindParms      = jr.RunName2WindParms(RunName)
+us,tis,ls,rhos = WindParms['URefs'],WindParms['Is'], \
+                WindParms['Ls'],WindParms['rhos']
 
 # loop through turbines
 for i_turb in range(len(turb_names)):
@@ -127,10 +130,12 @@ for i_turb in range(len(turb_names)):
                       
     # prettify
     ax.view_init(elev,az)
+    ax.set_zlim([0,zlim])
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_zlabel('{:s} of {:s}'.format(stat,parm))
-    fig.suptitle('{:s}: {:s} of {:s}'.format(turb_name,stat,parm),fontsize='large')
+    fig.suptitle('{:s} {:s}: {:s} of {:s}'.format(RunName,turb_name,stat,parm),
+                 fontsize='large')
     plt.tight_layout()
         
     # save handle for funzies
