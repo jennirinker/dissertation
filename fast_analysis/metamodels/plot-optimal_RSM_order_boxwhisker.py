@@ -173,7 +173,7 @@ ax.plot_wireframe(X1,X2,Z)
 # indices for plotting and masking
 ip1,ip2   = 2, 3
 im1,im2   = 0, 1
-im1i,im2i = 3, 0
+im1i,im2i = 3, 3
 FigNum    = 2                   # figure number
 
 # initialize figure
