@@ -34,9 +34,9 @@ def StatsErr(x,y,p_i):
 # define turbine name and run name
 #TurbNames = ['WP0.75A08V00','WP1.5A08V03',
 #              'WP3.0A02V02','WP5.0A04V00']
-#RunNames = ['Peregrine','TestRun','SmallRun']
+#RunNames = ['Peregrine','TestRun','SmallRun','BigRun2']
 TurbName = 'WP5.0A04V00'
-RunName  = 'Peregrine'
+RunName  = 'BigRun2'
 
 FigNum = 1
 
@@ -119,7 +119,7 @@ for i_x in range(n_x):
         x_mask = x[mask,:]
         
         # get average value of data
-        x1, x2 = np.unique(x_mask[:,0]), np.unique(x_mask[:,1]).
+        x1, x2 = np.unique(x_mask[:,0]), np.unique(x_mask[:,1])
         n1, n2 = len(x1), len(x2)
         n_uniq = n1*n2
         x_avg, y_avg = np.empty((n_uniq,x.shape[0])), np.empty(n_uniq)
