@@ -69,8 +69,9 @@ fig = plt.figure(1,figsize=(10,10))
 plt.clf()
 ax = fig.add_subplot(111, projection='3d')
 ax.scatter(X1,X2,Y)
-ax.plot_wireframe(X1,X2,yhat.reshape(X1.shape),color='b')
-ax.plot_wireframe(X1,X2,Y_red,color='r')
+ax.plot_wireframe(X1,X2,yhat.reshape(X1.shape),color='b',label='all coeffs')
+ax.plot_wireframe(X1,X2,Y_red,color='r',label='just significant')
+plt.legend(fontsize='large')
 #
 ## check significance of values
 #e = y - yhat

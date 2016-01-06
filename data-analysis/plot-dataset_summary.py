@@ -18,7 +18,8 @@ plt.style.use('C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
 #dataset, fignum = 'NREL-mat', 1
 #dataset, fignum = 'NREL', 2
 #dataset, fignum = 'fluela', 3
-#dataset, fignum = 'PM06', 4
+dataset, fignum = 'PM06', 4
+#dataset, fignum = 'texastech', 5
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
