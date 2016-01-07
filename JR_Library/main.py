@@ -5924,3 +5924,18 @@ def Turb2Grid(TurbName):
     return (ZHub,DZ,DY,n_z,n_y)          
         
         
+def stylepath(style):
+    """ Get path to pyplot style file
+    """
+    
+    if (style == 'duke_paper'):
+        stylepath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
+                    '2016-02-15_dissertation\\figure_code\\duke_paper.mplstyle'
+    elif (style == 'duke_ppresentation'):
+        stylepath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
+                    '2016-02-15_dissertation\\figure_code\\duke_presentation.mplstyle'
+    elif (style == 'jmr'):
+        stylepath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
+                    '2016-02-15_dissertation\\figure_code\\jmr.mplstyle'
+
+    return stylepath

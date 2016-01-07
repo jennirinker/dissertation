@@ -10,7 +10,10 @@ import os
 import scipy.io as scio
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 
+# Duke style
+plt.style.use(jr.stylepath('duke_paper'))
 
 # define turbine name and run name
 #TurbNames = ['WP0.75A08V00','WP1.5A08V03',
@@ -19,7 +22,7 @@ import matplotlib.pyplot as plt
 TurbName = 'WP5.0A04V00'
 RunName  = 'BigRun2'
 
-FigNum = 1
+FigNum = 3
 
 # base directory where the stats are stored
 BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -46,7 +49,7 @@ fields     = [s.rstrip() for s in stats_dict['fields']]
 n_fields = len(fields)
 
 # statistic and value to fit RSM to
-stat,parm = 'max','RootMFlp1'
+stat,parm,units,scale = 'max','RootMFlp1','MN-m',1000.
 #stat,parm = 'max','RootMEdg1'
 #stat,parm = 'max','RotTorq'
 #stat,parm = 'max','HSShftTq'
@@ -62,7 +65,24 @@ for i_f in range(y.size):
     for i_p in range(len(WindParms)):
         x[i_f,i_p] = WindParms[i_p][int(file_id[i_p],16)]   # hex to int
 
+# calculate fit
+p_i = [7,2,2,2]
+betas, ps = jr.polyregression(x,y,p_i)
+X    = jr.myvander(x,ps)
+yhat = np.dot(X,betas)
+e = y - yhat
+
+# **********************************************************
+# scale data
+e = e/scale
+
+# **********************************************************
+
 # ================= plot data =====================
+
+# initialize figure
+fig = plt.figure(FigNum,figsize=(6,6))
+plt.clf()
 
 # initialize figure
 #fig = plt.figure(FigNum,figsize=(6,6))
@@ -70,15 +90,15 @@ fig = plt.figure(FigNum,figsize=(10,10))
 plt.clf()
 
 # plot data
-vmin, vmax = np.floor(y.min()/100.)*100., np.ceil(y.max()/100.)*100
-levels = np.linspace(vmin,vmax,10)
+emax = max(-np.floor(e.min()), np.ceil(e.max()))
 for iL in range(len(WindParms[2])):
     logL = WindParms[2][iL]
     for iRho in range(len(WindParms[3])):
         rho = WindParms[3][iRho]
         
-        X,Y = np.meshgrid(WindParms[0],WindParms[1])
-        Z   = np.empty(X.shape)
+        X,Y  = np.meshgrid(WindParms[0],WindParms[1])
+        Z    = np.empty(X.shape)
+        Zerr = np.empty(X.shape)
         
         for iU, iI in [(a,b) for a in range(len(WindParms[0])) \
                              for b in range(len(WindParms[1]))]:
@@ -88,13 +108,52 @@ for iL in range(len(WindParms[2])):
                                                         x[:,1]==I),
                                          x[:,2]==logL),
                           x[:,3]==rho)
-            y_data = y[mask]
-            Z[iI,iU] = np.mean(y_data)
+            e_data = e[mask]
+            Z[iI,iU]    = np.mean(e_data)
+            Zerr[iI,iU] = np.std(e_data)
             
+        # create axes
         iplot = iRho*len(WindParms[2]) + iL + 1
         ax = fig.add_subplot(len(WindParms[3]),len(WindParms[2]),iplot)
-        cnt = ax.contourf(X,Y,Z,cmap='Reds',levels=levels)
-        cbar = plt.colorbar(cnt)
+        
+        # plot data
+        for iI in range(len(WindParms[1])):
+            ax.errorbar(WindParms[0],Z[iI,:],yerr=Zerr[iI,:],
+                        label='$I$ = {:.1f}'.format(WindParms[1][iI]))
+            
+        # prettify axes
+        ax.set_ylim([-emax,emax])
+        ax.set_xlim([4,24])
+        plt.locator_params(axis='x',nbins=5)
+        jr.removeSpines(ax)
+        
+        # put x and y labels on left column and bottom row only
+        if iRho < len(WindParms[3])-1:
+            ax.set_xticklabels([])
+        if iL > 0:
+            ax.set_yticklabels([])
+            
+        
+        # create legend
+        if (iL == 0) and (iRho == 0):
+            plt.legend(bbox_to_anchor=(-0.10, 0.94, 4.0, 0.94),
+                       loc=3,ncol=5)
 
+# scale subplots and add text labels
+xbord,ybord = 0.07,0.025
+plt.tight_layout(rect=[xbord,ybord,1.01,0.94])
+plt.figtext(0.5+xbord/2.,0.02,'Mean Wind Speed [m/s]',
+            ha='center',va='center')
+plt.figtext(0.07,0.5+ybord/2.,'{:s} {:s} [{:s}]'.format(stat,parm,units),
+            ha='center',va='center',rotation='vertical')
 
-plt.tight_layout()
+for iRho in range(len(WindParms[3])):
+    plt.figtext(0.025,0.85-0.88*iRho/len(WindParms[3]),
+                r'$\rho$ = {:.1f}'.format(WindParms[3][iRho]),
+                ha='center',va='center',rotation='vertical')
+for iL in range(len(WindParms[2])):
+    plt.figtext(0.23 + 0.88*iL/len(WindParms[2]),0.98,
+                r'log$_{10}$L = ' + '{:.1f}'.format(WindParms[2][iL]),
+                ha='center',va='center')
+    
+
