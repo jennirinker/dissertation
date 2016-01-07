@@ -62,6 +62,22 @@ for i_f in range(y.size):
     for i_p in range(len(WindParms)):
         x[i_f,i_p] = WindParms[i_p][int(file_id[i_p],16)]   # hex to int
 
+# ================= fit polynomial surface =====================
+
+## parameterize function for data
+#ErrFunc = lambda p: StatsErr(x,y,p)
+#
+#p0 = np.zeros(x.shape[1])
+#results = jr.DiscreteOpt(ErrFunc,p0,
+#                         verbose=1)
+#p_i = results['p_out']
+#print(p_i)
+p_i = [6,2,2,2]
+
+# get optimal polynomial surface
+betas, ps = jr.polyregression(x,y,p_i)
+X         = jr.myvander(x,ps)
+
 # ================= plot data =====================
 
 # initialize figure
@@ -74,6 +90,8 @@ ip   = 3                    # indices of plotting parameter
 il   = 2                    # indices of line parameter
 is1s = [0,-1]               # indices for SP1
 is2s = [0,-1]               # indices for SP2
+
+colors = ['b','g','r','c','m']
 
 # loop through U and sigma
 n1, n2 = len(is1s), len(is2s)
@@ -90,6 +108,7 @@ for i in range(n1):
         mask   = np.logical_and(x[:,ips1]==x1,x[:,ips2]==x2)
         x_mask = x[mask,:]
         y_mask = y[mask]
+        X_mask = X[mask,:]
         
         # create axes
         i_sp = j*n2+i
@@ -104,18 +123,37 @@ for i in range(n1):
             idcs_data = x_mask[:,il] == lp
             x_data    = x_mask[idcs_data,ip]
             y_data    = y_mask[idcs_data]
+            X_data    = X_mask[idcs_data,ip]
             
             # take average of multiple values
             x_plot = np.unique(x_data)
             y_plot = np.empty(x_plot.shape)
             y_errb = np.empty(x_plot.shape)
+            yhat_plot = np.empty(x_plot.shape)
+            r_plot = np.empty(x_plot.shape)
+            r_errb = np.empty(x_plot.shape)
             for i_xuniq in range(len(x_plot)):
+                
+                # get data
                 x_uniq = x_plot[i_xuniq]
-                y_plot[i_xuniq] = np.mean(y_data[x_data == x_uniq])
-                y_errb[i_xuniq] = np.std(y_data[x_data == x_uniq])
+                ys     = y_data[x_data == x_uniq]
+                
+                # get model values
+                xp = np.array([x1,x2,lp,x_uniq]).reshape((1,4))         # **************
+                yhat   = np.dot(jr.myvander(xp,ps),betas)
+                
+                y_plot[i_xuniq]  = np.mean(ys)
+                y_errb[i_xuniq] = np.std(ys)
+                yhat_plot[i_xuniq] = yhat
+                r_plot[i_xuniq] = np.mean(ys - yhat)
+                r_errb[i_xuniq] = np.std(ys - yhat)
+                
+#                ax.plot(x_uniq,yhat,'ko')
             
-#            ax.errorbar(x_plot,y_plot,yerr=y_errb)
-            ax.errorbar(x_plot+0.005*i_lp,y_plot,yerr=y_errb,
+#            ax.errorbar(x_plot+0.005*i_lp,y_plot,yerr=y_errb,
+#                        label='{:.1f}'.format(lp))
+#            ax.plot(x_plot,yhat_plot,':',c=colors[i_lp])
+            ax.errorbar(x_plot+0.005*i_lp,r_plot,yerr=r_errb,
                         label='{:.1f}'.format(lp))
                         
         # prettify axes
@@ -177,13 +215,31 @@ for i in range(n1):
             x_plot = np.unique(x_data)
             y_plot = np.empty(x_plot.shape)
             y_errb = np.empty(x_plot.shape)
+            yhat_plot = np.empty(x_plot.shape)
+            r_plot = np.empty(x_plot.shape)
+            r_errb = np.empty(x_plot.shape)
             for i_xuniq in range(len(x_plot)):
+                
+                # get data
                 x_uniq = x_plot[i_xuniq]
+                ys     = y_data[x_data == x_uniq]
+                
+                # get model values
+                xp = np.array([x_uniq,lp,x1,x2]).reshape((1,4))         # **************
+                yhat   = np.dot(jr.myvander(xp,ps),betas)
+                
+                y_plot[i_xuniq]  = np.mean(ys)
+                y_errb[i_xuniq] = np.std(ys)
+                yhat_plot[i_xuniq] = yhat
+                r_plot[i_xuniq] = np.mean(ys - yhat)
+                r_errb[i_xuniq] = np.std(ys - yhat)
                 y_plot[i_xuniq] = np.mean(y_data[x_data == x_uniq])
                 y_errb[i_xuniq] = np.std(y_data[x_data == x_uniq])
             
 #            ax.errorbar(x_plot,y_plot,yerr=y_errb)
-            ax.errorbar(x_plot,y_plot,yerr=y_errb,
+#            ax.errorbar(x_plot,y_plot,yerr=y_errb,
+#                        label='{:.1f}'.format(lp))
+            ax.errorbar(x_plot+0.005*i_lp,r_plot,yerr=r_errb,
                         label='{:.1f}'.format(lp))
         
         # prettify axes
