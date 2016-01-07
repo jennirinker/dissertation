@@ -87,16 +87,6 @@ for i_f in range(y.size):
 
 # ================= optimize polynomial coefficients =====================
 
-<<<<<<< HEAD:fast_analysis/metamodels/dbug-optimizing_RSM_order.py
-# parameterize function for data
-ErrFunc = lambda p: StatsErr(x,y,p)
-
-p0 = np.zeros(x.shape[1])
-results = jr.DiscreteOpt(ErrFunc,p0,
-                         verbose=1)
-p_i = results['p_out']
-print(p_i)
-=======
 ## parameterize function for data
 #ErrFunc = lambda p: StatsErr(x,y,p)
 #
@@ -106,7 +96,6 @@ print(p_i)
 #p_i = results['p_out']
 #print(p_i)
 p_i = [6,2,2,2]
->>>>>>> babc8063d69047398311c86b8de1de09a0d140b1:fast_analysis/metamodels/plot-optimizing_RSM_order.py
 
 # ============== plot data and polynomial surface ======================
 
