@@ -156,4 +156,75 @@ for iL in range(len(WindParms[2])):
                 r'log$_{10}$L = ' + '{:.1f}'.format(WindParms[2][iL]),
                 ha='center',va='center')
     
+# ================= plot data =====================
 
+# initialize figure
+fig = plt.figure(FigNum+1,figsize=(6,6))
+plt.clf()
+
+# plot data
+#vmin, vmax = np.floor(y.min()/100.)*100., np.ceil(y.max()/100.)*100
+emax = max(-np.floor(e.min()), np.ceil(e.max()))
+for iL in range(len(WindParms[2])):
+    logL = WindParms[2][iL]
+    for iI in range(len(WindParms[1])):
+        I = WindParms[1][iI]
+        
+        X,Y  = np.meshgrid(WindParms[0],WindParms[3])
+        Z    = np.empty(X.shape)
+        Zerr = np.empty(X.shape)
+        
+        for iU, iRho in [(a,b) for a in range(len(WindParms[0])) \
+                             for b in range(len(WindParms[3]))]:
+            
+            U, rho = WindParms[0][iU], WindParms[3][iRho]
+            mask = np.logical_and(np.logical_and(np.logical_and(x[:,0]==U,
+                                                        x[:,1]==I),
+                                         x[:,2]==logL),
+                          x[:,3]==rho)
+            e_data = e[mask]
+            Z[iRho,iU]    = np.mean(e_data)
+            Zerr[iRho,iU] = np.std(e_data)
+            
+        # create axes
+        iplot = iI*len(WindParms[2]) + iL + 1
+        ax = fig.add_subplot(len(WindParms[1]),len(WindParms[2]),iplot)
+        
+        # plot data
+        for iRho in range(len(WindParms[3])):
+            ax.errorbar(WindParms[0],Z[iRho,:],yerr=Zerr[iRho,:],
+                        label=r'$\rho$ = {:.1f}'.format(WindParms[3][iRho]))
+            
+        # prettify axes
+        ax.set_ylim([-emax,emax])
+        ax.set_xlim([4,24])
+        plt.locator_params(axis='x',nbins=5)
+        jr.removeSpines(ax)
+        
+        # put x and y labels on left column and bottom row only
+        if iRho < len(WindParms[1])-1:
+            ax.set_xticklabels([])
+        if iL > 0:
+            ax.set_yticklabels([])
+        
+        # create legend
+        if (iL == 0) and (iI == 0):
+            plt.legend(bbox_to_anchor=(-0.10, 0.94, 4.0, 0.94),
+                       loc=3,ncol=5)
+
+# scale subplots and add text labels
+xbord,ybord = 0.07,0.025
+plt.tight_layout(rect=[xbord,ybord,1.01,0.94])
+plt.figtext(0.5+xbord/2.,0.02,'Mean Wind Speed [m/s]',
+            ha='center',va='center')
+plt.figtext(0.07,0.5+ybord/2.,'{:s} {:s} [{:s}]'.format(stat,parm,units),
+            ha='center',va='center',rotation='vertical')
+
+for iI in range(len(WindParms[1])):
+    plt.figtext(0.025,0.85-0.88*iI/len(WindParms[1]),
+                r'$I$ = {:.1f}'.format(WindParms[1][iI]),
+                ha='center',va='center',rotation='vertical')
+for iL in range(len(WindParms[2])):
+    plt.figtext(0.23 + 0.88*iL/len(WindParms[2]),0.98,
+                r'log$_{10}$L = ' + '{:.1f}'.format(WindParms[2][iL]),
+                ha='center',va='center')

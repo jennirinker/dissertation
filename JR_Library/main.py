@@ -31,6 +31,7 @@ import re
 from peakdetect import peakdetect
 from rainflow import rainflow
 import datetime
+import statsmodels.api as sm
 
 # =============================================================================
 # ---------------------------- FILE I/O ---------------------------------------
@@ -657,6 +658,64 @@ def ReadFASTFile(fname):
     FASTDict['Units']  = Units
     
     return FASTDict
+
+
+def LoadFASTStats(RunName,TurbName,Stat,Parm):
+    """ Load FAST statistics
+    
+        Args:
+            RunName (string): run name
+            stat (string): statistic to load
+            parm (string): parameter of interes
+            
+        Returns:
+            x (numpy array): [n_files x n_p] array of input data
+            y (numpy array): [n_files] array of stats data
+    """
+    
+    BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
+                'processed_data\\proc_stats'
+    m_strs = ['l','m','h']              # lo, middle, high for DEL
+    Parms = RunName2WindParms(RunName)
+    WindParms = [Parms['URefs'],Parms['Is'],
+                 np.log10(Parms['Ls']),Parms['rhos']]
+    
+    # load the output data
+    if 'DEL' in Stat:
+        DictPath   = os.path.join(BaseStatDir,RunName,TurbName + '_DELstats.mat')
+        stats_dict = scio.loadmat(DictPath,squeeze_me=True)
+        fnames     = [s.rstrip() for s in stats_dict['fnames']]
+        fields     = [s.rstrip() for s in stats_dict['DELKeys']]
+        CalcStats  = stats_dict['DELStats']
+        
+        m_idx      = m_strs.index(Stat[-1])
+        ms         = np.array([float(k.split('=')[1]) for k in fields if Parm in k])
+        ParmKeys   = [k for k in fields if Parm in k]           # unsorted
+        ParmKeys   = [ParmKeys[i] for i in ms.argsort()]        # sorted
+        StatField  = ParmKeys[m_idx]
+        
+        y = CalcStats[:,fields.index(StatField)]
+
+    else:
+        DictPath   = os.path.join(BaseStatDir,RunName,TurbName + '_stats.mat')
+        stats_dict = scio.loadmat(DictPath,squeeze_me=True)
+        fnames     = [s.rstrip() for s in stats_dict['fnames']]
+        fields     = [s.rstrip() for s in stats_dict['fields']]         # RootMOoP, etc.
+        calc_stats = [s.rstrip() for s in stats_dict['calc_stats']]     # min, max, etc.
+        proc_stats = stats_dict['proc_stats']                           # array of data
+        
+        n_fields = len(fields)
+        y = proc_stats[:,calc_stats.index(Stat)*n_fields + \
+                         fields.index(Parm)]                # output data
+              
+    # create the input data
+    x = np.empty((y.size,4))
+    for i_f in range(y.size):
+        file_id =  fnames[i_f].rstrip('.out').split('_')[1]
+        for i_p in range(len(WindParms)):
+            x[i_f,i_p] = WindParms[i_p][int(file_id[i_p],16)]   # hex to int
+    
+    return x, y
 
 
 # =============================================================================
@@ -4656,6 +4715,30 @@ def polyregression(x,y,p_i):
     return (coeffs,ps)
     
 
+
+def OLSfit(x, y):
+    """ OLS fit to data in x and y
+    
+        Args:
+            x (numpy array): array of input data
+            y (numpy array): array of output data
+            
+        Returns:
+            results (RegressionResultsWrapper): output from sm.OLS.fit
+    """
+    
+    # define stats model of input data
+    X = sm.add_constant(np.column_stack((x[:,0],x[:,1])))
+    for iCol in range(2,x.shape[1]):
+        ele = x[:,iCol]
+        X = sm.add_constant(np.column_stack((X,ele)))
+        
+    # solve OLS problem
+    results = sm.OLS(y, X).fit()
+    
+    return results    
+    
+
 def GetAllPowers(p_i):
     """ Array of all powers for maximum powers in p_i
     
@@ -5468,12 +5551,6 @@ def RunName2WindParms(RunName):
         Parms['Ls']     = [10**1.5]
         Parms['rhos']   = [0.]
         Parms['n_dups'] = 1
-#    elif (RunName == 'BigRun1'):
-#        Parms['URefs']  = [5,7,9,10,10.5,11,12,14,17,22]
-#        Parms['Is']     = [0.1,0.2,0.3,0.4,0.5]
-#        Parms['Ls']     = [10**1.5,10**2.,10**2.5,10**3]
-#        Parms['rhos']   = [0.,0.1,0.2,0.3,0.4]
-#        Parms['n_dups'] = 5
         
     return Parms
 
