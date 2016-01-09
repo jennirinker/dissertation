@@ -14,9 +14,13 @@ import JR_Library.main as jr
 # =========== inputs =========== 
 
 # path to turbine directory
-TurbNames = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
-BaseTurbDir = '\\\\monsoon-data\\Public\\JRinker\\fast_simulations\\' + \
-                'FastDir\\SmallRun'
+#TurbNames = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
+TurbNames = ['WP5.0A04V00']
+RunName   = 'Fine'
+BaseTurbDir = os.path.join('\\\\monsoon-data\\Public\\JRinker\\fast_simulations\\' + \
+                'FastDir',RunName)
+SaveDir   = os.path.join('C:\\Users\\jrinker\\Dropbox\\research\\' + \
+                            'processed_data\\proc_stats',RunName)
 
 # list of statistics to calculate for each channel 
 calc_stats = ['max','min','mean','std','skew',
@@ -105,11 +109,12 @@ for TurbName in TurbNames:
     # create dictionary and save in script directory
     os.chdir(orig_dir)
     out_fname = TurbName + '_stats.mat'
+    out_fpath = os.path.join(SaveDir,out_fname)
     out_dict = {}
     out_dict['calc_stats'] = calc_stats
     out_dict['proc_stats'] = proc_stats
     out_dict['fields']     = fields
     out_dict['fnames']     = fnames
-    scio.savemat(out_fname,out_dict)
+    scio.savemat(out_fpath,out_dict)
     
-    print('\nDictionary saved to {:s}\n'.format(out_fname))
+    print('\nDictionary saved to {:s}\n'.format(out_fpath))

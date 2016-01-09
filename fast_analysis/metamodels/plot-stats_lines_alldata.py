@@ -19,10 +19,10 @@ plt.style.use(jr.stylepath('duke_paper'))
 #TurbNames = ['WP0.75A08V00','WP1.5A08V03',
 #              'WP3.0A02V02','WP5.0A04V00']
 #RunNames = ['Peregrine','TestRun','SmallRun','BigRun2']
-TurbName = 'WP5.0A04V00'
+TurbName = 'WP3.0A02V02'
 RunName  = 'BigRun2'
 
-FigNum = 1
+FigNum = 3
 
 # base directory where the stats are stored
 BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -46,7 +46,7 @@ WindParmStr = ['$U$','$\sigma_u$','log$_{10}(L)$',r'$\rho$']
 #stat,parm = 'max','HSShftTq'
 #stat,parm = 'max','YawBrMzp'
 #stat,parm = 'max','TwrBsMyt'
-stat,parm,units,scale = 'DEL-h','RootMFlp1','MN-m',1000.
+stat,parm,units,scale = 'DEL-m','RootMFlp1','MN-m',1000.
 
 x, y = jr.LoadFASTStats(RunName,TurbName,stat,parm)
 

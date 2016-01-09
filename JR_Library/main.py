@@ -5551,6 +5551,12 @@ def RunName2WindParms(RunName):
         Parms['Ls']     = [10**1.5]
         Parms['rhos']   = [0.]
         Parms['n_dups'] = 1
+    elif (RunName == 'Fine'):
+        Parms['URefs']  = [5,15]
+        Parms['Is']     = [0.2]
+        Parms['Ls']     = [10**2.5]
+        Parms['rhos']   = [0.,0.1,0.3]
+        Parms['n_dups'] = 200
         
     return Parms
 

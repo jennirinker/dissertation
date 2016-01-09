@@ -13,10 +13,13 @@ import scipy.io as scio
 # =========== inputs =========== 
 
 # path to turbine directory
-# path to turbine directory
-TurbNames = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
-BaseTurbDir = '\\\\monsoon-data\\Public\\JRinker\\fast_simulations\\' + \
-                'FastDir\\SmallRun'
+#TurbNames = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
+TurbNames = ['WP5.0A04V00']
+RunName   = 'Fine'
+BaseTurbDir = os.path.join('\\\\monsoon-data\\Public\\JRinker\\fast_simulations\\' + \
+                'FastDir',RunName)
+SaveDir   = os.path.join('C:\\Users\\jrinker\\Dropbox\\research\\' + \
+                            'processed_data\\proc_stats',RunName)
 #turb_dir = os.path.join('/scratch/jrinker/IOFiles',turb_name)
 #FastDir = os.path.join('C:\\Users\\jrinker\\Documents\\GitHub\\dissertation\\' + \
 #                'FAST_models\\FAST7',TurbName)
@@ -75,11 +78,12 @@ for TurbName in TurbNames:
     # create dictionary and save in script directory
     if SaveDict:
         out_fname = TurbName + '_DELstats.mat'
+        out_fpath = os.path.join(SaveDir,out_fname)
         out_dict = {}
         out_dict['DELKeys'] = DELkeys
         out_dict['DELStats'] = DEL_stats
         out_dict['fnames']     = fnames
-        scio.savemat(out_fname,out_dict)
+        scio.savemat(out_fpath,out_dict)
         
-        print('\nDictionary saved to {:s}\n'.format(out_fname))
+        print('\nDictionary saved to {:s}\n'.format(out_fpath))
 
