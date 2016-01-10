@@ -71,8 +71,6 @@ for iU,iI,iL,iR in [(a,b,c,d) for a in range(len(URefs)) \
                     format(iL,'x')+format(iR,'x')+ \
                     format(iS,'x'))
 
-poop
-
 # loop through executable names
 for iExe in range(len(ExeNames)):
     
