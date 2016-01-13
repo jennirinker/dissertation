@@ -59,10 +59,6 @@ y = y/scale
 # ================= plot data =====================
 
 # initialize figure
-fig = plt.figure(FigNum,figsize=(6,6))
-plt.clf()
-
-# initialize figure
 #fig = plt.figure(FigNum,figsize=(6,6))
 fig = plt.figure(FigNum,figsize=(10,10))
 plt.clf()
