@@ -10,6 +10,7 @@ import os
 import scipy.io as scio
 import numpy as np
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 
 
 # define turbine name and run name
@@ -19,7 +20,17 @@ import matplotlib.pyplot as plt
 TurbName = 'WP5.0A04V00'
 RunName  = 'BigRun2'
 
-FigNum = 1
+FigNum  = 6
+FigSize = (6.0,7.5)
+alpha   = 0.05
+
+# statistic and value to fit RSM to
+#stat,parm,units,scale = 'max','RootMFlp1','MN-m',1000.
+stat,parm,units,scale = 'DEL-h','RootMFlp1','MN-m',1000.
+#stat,parm,units,scale = 'max','HSShftTq','kN-m',1
+#stat,parm,units,scale = 'DEL-h','HSShftTq','kN-m',1
+#stat,parm,units,scale = 'max','TwrBsMyt','MN-m',1000
+#stat,parm,units,scale = 'DEL-h','TwrBsMyt','MN-m',1000
 
 # base directory where the stats are stored
 BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -27,6 +38,32 @@ BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
 
 
 # -----------------------------------------------------------------------------
+
+def StatsErr(x,y,p_i,
+             alpha=0.05):
+    """ Sum-of-squared-error for data x and y with polynomial orders p_i
+    """
+    
+    # perform OLS for all data
+    ps_all = jr.GetAllPowers(p_i)
+    Xv_all = jr.myvander(x,ps_all)
+    results = sm.OLS(y, Xv_all).fit()
+    
+    # extract significant coefficients
+    ps_red = ps_all[results.pvalues <= alpha]
+    Xv_red = jr.myvander(x,ps_red)
+    
+    # fit OLS with reduced coefficients
+    cs_red = sm.OLS(y, Xv_red).fit().params
+        
+    # get reduced model
+    yhat   = np.dot(Xv_red,cs_red)
+    
+    # get residuals and sum
+    e    = y - yhat
+    err  = np.mean(e ** 2)
+    
+    return err
 
 # get wind parameters for that run
 WindParms = jr.RunName2WindParms(RunName)
@@ -37,220 +74,186 @@ WindParms = [URefs,Is,np.log10(Ls),rhos]
 WindParmStr = ['$U$','$\sigma_u$','log$_{10}(L)$',r'$\rho$']
 
 # load the stats data
-DictPath   = os.path.join(BaseStatDir,RunName,TurbName + '_stats.mat')
-stats_dict = scio.loadmat(DictPath,squeeze_me=True)
-proc_stats = stats_dict['proc_stats']
-calc_stats = [s.rstrip() for s in stats_dict['calc_stats']]
-fnames     = [s.rstrip() for s in stats_dict['fnames']]
-fields     = [s.rstrip() for s in stats_dict['fields']]
-n_fields = len(fields)
-
-# statistic and value to fit RSM to
-stat,parm = 'max','RootMFlp1'
-#stat,parm = 'max','RootMEdg1'
-#stat,parm = 'max','RotTorq'
-#stat,parm = 'max','HSShftTq'
-#stat,parm = 'max','YawBrMzp'
-#stat,parm = 'max','TwrBsMyt'
-
-# extract data
-y = proc_stats[:,calc_stats.index(stat)*n_fields + \
-                 fields.index(parm)]                # output data
-x = np.empty((y.size,4))
-for i_f in range(y.size):
-    file_id =  fnames[i_f].rstrip('.out').split('_')[1]
-    for i_p in range(len(WindParms)):
-        x[i_f,i_p] = WindParms[i_p][int(file_id[i_p],16)]   # hex to int
+x, y = jr.LoadFASTStats(RunName,TurbName,stat,parm)
 
 # ================= fit polynomial surface =====================
 
-## parameterize function for data
-#ErrFunc = lambda p: StatsErr(x,y,p)
-#
-#p0 = np.zeros(x.shape[1])
-#results = jr.DiscreteOpt(ErrFunc,p0,
-#                         verbose=1)
-#p_i = results['p_out']
-#print(p_i)
-p_i = [6,2,2,2]
+# parameterize function for data
+ErrFunc = lambda p: StatsErr(x,y,p,alpha=alpha)
 
-# get optimal polynomial surface
-betas, ps = jr.polyregression(x,y,p_i)
-X         = jr.myvander(x,ps)
+p0 = np.zeros(x.shape[1])
+results = jr.DiscreteOpt(ErrFunc,p0,
+                         verbose=1)
+p_i = results['p_out']
+print(p_i)
+#p_i = [6,2,2,2]
+#p_i = [10,3,5,2]
 
-# ================= plot data =====================
+# get significant powers and coefficients
+ps_all = jr.GetAllPowers(p_i)
+Xv_all = jr.myvander(x,ps_all)
+results = sm.OLS(y, Xv_all).fit()
+cs_all  = results.params
+ps_red = ps_all[results.pvalues <= alpha]
+Xv_red = jr.myvander(x,ps_red)
+cs_red = sm.OLS(y, Xv_red).fit().params
 
-# initialize figure
-fig = plt.figure(FigNum,figsize=(6,6))
-plt.clf()
-
-# plotting idxs
-ips1,ips2 = 0, 1            # indices of screening parameters
-ip   = 3                    # indices of plotting parameter
-il   = 2                    # indices of line parameter
-is1s = [0,-1]               # indices for SP1
-is2s = [0,-1]               # indices for SP2
-
-colors = ['b','g','r','c','m']
-
-# loop through U and sigma
-n1, n2 = len(is1s), len(is2s)
-xpstr = WindParmStr[ip]
-for i in range(n1):
-    is1   = is1s[i]
-    x1    = WindParms[ips1][is1]
-    x1str = WindParmStr[ips1]
-    for j in range(n2):
-        is2   = is2s[j]
-        x2    = WindParms[ips2][is2]
-        x2str = WindParmStr[ips2]
-        
-        mask   = np.logical_and(x[:,ips1]==x1,x[:,ips2]==x2)
-        x_mask = x[mask,:]
-        y_mask = y[mask]
-        X_mask = X[mask,:]
-        
-        # create axes
-        i_sp = j*n2+i
-        ax   = fig.add_subplot(n2,n1,i_sp+1)
-        
-        # loop through line parameters
-        lps = WindParms[il]
-        for i_lp in range(len(lps)):
-            lp = lps[i_lp]
-            
-            # get line data
-            idcs_data = x_mask[:,il] == lp
-            x_data    = x_mask[idcs_data,ip]
-            y_data    = y_mask[idcs_data]
-            X_data    = X_mask[idcs_data,ip]
-            
-            # take average of multiple values
-            x_plot = np.unique(x_data)
-            y_plot = np.empty(x_plot.shape)
-            y_errb = np.empty(x_plot.shape)
-            yhat_plot = np.empty(x_plot.shape)
-            r_plot = np.empty(x_plot.shape)
-            r_errb = np.empty(x_plot.shape)
-            for i_xuniq in range(len(x_plot)):
-                
-                # get data
-                x_uniq = x_plot[i_xuniq]
-                ys     = y_data[x_data == x_uniq]
-                
-                # get model values
-                xp = np.array([x1,x2,lp,x_uniq]).reshape((1,4))         # **************
-                yhat   = np.dot(jr.myvander(xp,ps),betas)
-                
-                y_plot[i_xuniq]  = np.mean(ys)
-                y_errb[i_xuniq] = np.std(ys)
-                yhat_plot[i_xuniq] = yhat
-                r_plot[i_xuniq] = np.mean(ys - yhat)
-                r_errb[i_xuniq] = np.std(ys - yhat)
-                
-#                ax.plot(x_uniq,yhat,'ko')
-            
-#            ax.errorbar(x_plot+0.005*i_lp,y_plot,yerr=y_errb,
-#                        label='{:.1f}'.format(lp))
-#            ax.plot(x_plot,yhat_plot,':',c=colors[i_lp])
-            ax.errorbar(x_plot+0.005*i_lp,r_plot,yerr=r_errb,
-                        label='{:.1f}'.format(lp))
-                        
-        # prettify axes
-        ax.set_title('{:s} = {:.1f}, {:s} = {:.1f}'.format(x1str,x1,x2str,x2))
-        ax.set_xlabel('{:s}'.format(xpstr))
-        ax.set_xlim([-0.02,0.45])
-#        ax.set_ylim(ylim)
-        
-        if i_sp == n1-1:
-            plt.legend(fontsize='x-small',loc=0)
-
-plt.tight_layout()
+yhat   = np.dot(Xv_red,cs_red)
+es_red = y - yhat
 
 
-# ================= plot data =====================
+
+# **********************************************************
+# scale data
+e = es_red/scale
+
+# ================= plot data vs I =====================
 
 # initialize figure
-fig = plt.figure(FigNum+1,figsize=(6,6))
+fig = plt.figure(FigNum,figsize=FigSize)
+plt.clf()
+        
+# plot data
+emax = max(-np.floor(e.min()), np.ceil(e.max()))
+for iL in range(len(WindParms[2])):
+    logL = WindParms[2][iL]
+    for iRho in range(len(WindParms[3])):
+        rho = WindParms[3][iRho]
+        
+        X,Y  = np.meshgrid(WindParms[0],WindParms[1])
+        Z    = np.empty(X.shape)
+        Zerr = np.empty(X.shape)
+        
+        for iU, iI in [(a,b) for a in range(len(WindParms[0])) \
+                             for b in range(len(WindParms[1]))]:
+            
+            U, I = WindParms[0][iU], WindParms[1][iI]
+            mask = np.logical_and(np.logical_and(np.logical_and(x[:,0]==U,
+                                                        x[:,1]==I),
+                                         x[:,2]==logL),
+                          x[:,3]==rho)
+            e_data = e[mask]
+            Z[iI,iU]    = np.mean(e_data)
+            Zerr[iI,iU] = np.std(e_data)
+            
+        # create axes
+        iplot = iRho*len(WindParms[2]) + iL + 1
+        ax = fig.add_subplot(len(WindParms[3]),len(WindParms[2]),iplot)
+        
+        # plot data
+        for iI in range(len(WindParms[1])):
+            ax.errorbar(WindParms[0],Z[iI,:],yerr=Zerr[iI,:],
+                        label='$I$ = {:.1f}'.format(WindParms[1][iI]))
+            
+        # prettify axes
+        ax.set_ylim([-emax,emax])
+        ax.set_xlim([4,24])
+        plt.locator_params(axis='x',nbins=5)
+        jr.removeSpines(ax)
+        
+        # put x and y labels on left column and bottom row only
+        if iRho < len(WindParms[3])-1:
+            ax.set_xticklabels([])
+        if iL > 0:
+            ax.set_yticklabels([])
+            
+        
+        # create legend
+        if (iL == 0) and (iRho == 0):
+            plt.legend(bbox_to_anchor=(-0.10, 0.94, 4.0, 0.94),
+                       loc=3,ncol=5)
+
+# scale subplots and add text labels
+xbord,ybord = 0.07,0.025
+plt.tight_layout(rect=[xbord,ybord,1.01,0.94])
+plt.figtext(0.5+xbord/2.,0.02,'Mean Wind Speed [m/s]',
+            ha='center',va='center')
+plt.figtext(0.07,0.5+ybord/2.,'{:s} {:s} [{:s}]'.format(stat,parm,units),
+            ha='center',va='center',rotation='vertical')
+
+for iRho in range(len(WindParms[3])):
+    plt.figtext(0.025,0.85-0.88*iRho/len(WindParms[3]),
+                r'$\rho$ = {:.1f}'.format(WindParms[3][iRho]),
+                ha='center',va='center',rotation='vertical')
+for iL in range(len(WindParms[2])):
+    plt.figtext(0.23 + 0.88*iL/len(WindParms[2]),0.98,
+                r'log$_{10}$L = ' + '{:.1f}'.format(WindParms[2][iL]),
+                ha='center',va='center')
+               
+    
+# ================= plot data vs rho =====================
+
+# initialize figure
+fig = plt.figure(FigNum+1,figsize=FigSize)
 plt.clf()
 
-# plotting idxs
-ips1,ips2 = 2, 3            # indices of screening parameters
-ip   = 0                    # indices of plotting parameter
-il   = 1                    # indices of line parameter
-is1s = [0,-1]               # indices for SP1
-is2s = [0,-1]               # indices for SP2
-
-# loop through U and sigma
-n1, n2 = len(is1s), len(is2s)
-xpstr = WindParmStr[ip]
-for i in range(n1):
-    is1   = is1s[i]
-    x1    = WindParms[ips1][is1]
-    x1str = WindParmStr[ips1]
-    for j in range(n2):
-        is2   = is2s[j]
-        x2    = WindParms[ips2][is2]
-        x2str = WindParmStr[ips2]
+# plot data
+#vmin, vmax = np.floor(y.min()/100.)*100., np.ceil(y.max()/100.)*100
+emax = max(-np.floor(e.min()), np.ceil(e.max()))
+for iL in range(len(WindParms[2])):
+    logL = WindParms[2][iL]
+    for iI in range(len(WindParms[1])):
+        I = WindParms[1][iI]
         
-        mask   = np.logical_and(x[:,ips1]==x1,x[:,ips2]==x2)
-        x_mask = x[mask,:]
-        y_mask = y[mask]
+        X,Y  = np.meshgrid(WindParms[0],WindParms[3])
+        Z    = np.empty(X.shape)
+        Zerr = np.empty(X.shape)
         
+        for iU, iRho in [(a,b) for a in range(len(WindParms[0])) \
+                             for b in range(len(WindParms[3]))]:
+            
+            U, rho = WindParms[0][iU], WindParms[3][iRho]
+            mask = np.logical_and(np.logical_and(np.logical_and(x[:,0]==U,
+                                                        x[:,1]==I),
+                                         x[:,2]==logL),
+                          x[:,3]==rho)
+            e_data = e[mask]
+            Z[iRho,iU]    = np.mean(e_data)
+            Zerr[iRho,iU] = np.std(e_data)
+            
         # create axes
-        i_sp = j*n2+i
-        ax   = fig.add_subplot(n2,n1,i_sp+1)
+        iplot = iI*len(WindParms[2]) + iL + 1
+        ax = fig.add_subplot(len(WindParms[1]),len(WindParms[2]),iplot)
         
-        # loop through line parameters
-        lps = WindParms[il]
-        for i_lp in range(len(lps)):
-            lp = lps[i_lp]
+        # plot data
+        for iRho in range(len(WindParms[3])):
+            ax.errorbar(WindParms[0],Z[iRho,:],yerr=Zerr[iRho,:],
+                        label=r'$\rho$ = {:.1f}'.format(WindParms[3][iRho]))
             
-            # get line data
-            idcs_data = x_mask[:,il] == lp
-            x_data    = x_mask[idcs_data,ip]
-            y_data    = y_mask[idcs_data]
-            
-            # take average of multiple values
-            x_plot = np.unique(x_data)
-            y_plot = np.empty(x_plot.shape)
-            y_errb = np.empty(x_plot.shape)
-            yhat_plot = np.empty(x_plot.shape)
-            r_plot = np.empty(x_plot.shape)
-            r_errb = np.empty(x_plot.shape)
-            for i_xuniq in range(len(x_plot)):
-                
-                # get data
-                x_uniq = x_plot[i_xuniq]
-                ys     = y_data[x_data == x_uniq]
-                
-                # get model values
-                xp = np.array([x_uniq,lp,x1,x2]).reshape((1,4))         # **************
-                yhat   = np.dot(jr.myvander(xp,ps),betas)
-                
-                y_plot[i_xuniq]  = np.mean(ys)
-                y_errb[i_xuniq] = np.std(ys)
-                yhat_plot[i_xuniq] = yhat
-                r_plot[i_xuniq] = np.mean(ys - yhat)
-                r_errb[i_xuniq] = np.std(ys - yhat)
-                y_plot[i_xuniq] = np.mean(y_data[x_data == x_uniq])
-                y_errb[i_xuniq] = np.std(y_data[x_data == x_uniq])
-            
-#            ax.errorbar(x_plot,y_plot,yerr=y_errb)
-#            ax.errorbar(x_plot,y_plot,yerr=y_errb,
-#                        label='{:.1f}'.format(lp))
-            ax.errorbar(x_plot+0.005*i_lp,r_plot,yerr=r_errb,
-                        label='{:.1f}'.format(lp))
-        
         # prettify axes
-        ax.set_title('{:s} = {:.1f}, {:s} = {:.1f}'.format(x1str,x1,x2str,x2))
-        ax.set_xlabel('{:s}'.format(xpstr))
-#        ax.set_ylim(ylim)
+        ax.set_ylim([-emax,emax])
+        ax.set_xlim([4,24])
+        plt.locator_params(axis='x',nbins=5)
+        jr.removeSpines(ax)
         
-        if i_sp == n1-1:
-            plt.legend(fontsize='x-small',loc=2)
+        # put x and y labels on left column and bottom row only
+        if iRho < len(WindParms[1])-1:
+            ax.set_xticklabels([])
+        if iL > 0:
+            ax.set_yticklabels([])
+        
+        # create legend
+        if (iL == 0) and (iI == 0):
+            plt.legend(bbox_to_anchor=(-0.10, 0.94, 4.0, 0.94),
+                       loc=3,ncol=5)
 
-plt.tight_layout()
+# scale subplots and add text labels
+xbord,ybord = 0.07,0.025
+plt.tight_layout(rect=[xbord,ybord,1.01,0.94])
+plt.figtext(0.5+xbord/2.,0.02,'Mean Wind Speed [m/s]',
+            ha='center',va='center')
+plt.figtext(0.07,0.5+ybord/2.,'{:s} {:s} [{:s}]'.format(stat,parm,units),
+            ha='center',va='center',rotation='vertical')
+
+for iI in range(len(WindParms[1])):
+    plt.figtext(0.025,0.85-0.88*iI/len(WindParms[1]),
+                r'$I$ = {:.1f}'.format(WindParms[1][iI]),
+                ha='center',va='center',rotation='vertical')
+for iL in range(len(WindParms[2])):
+    plt.figtext(0.23 + 0.88*iL/len(WindParms[2]),0.98,
+                r'log$_{10}$L = ' + '{:.1f}'.format(WindParms[2][iL]),
+                ha='center',va='center')
+
 
 
 

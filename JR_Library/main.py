@@ -660,13 +660,15 @@ def ReadFASTFile(fname):
     return FASTDict
 
 
-def LoadFASTStats(RunName,TurbName,Stat,Parm):
+def LoadFASTStats(RunName,TurbName,Stat,Parm,
+                  scale=1):
     """ Load FAST statistics
     
         Args:
             RunName (string): run name
             stat (string): statistic to load
             parm (string): parameter of interes
+            scale (float): inverse scaling factor for output data [opt]
             
         Returns:
             x (numpy array): [n_files x n_p] array of input data
@@ -714,6 +716,9 @@ def LoadFASTStats(RunName,TurbName,Stat,Parm):
         file_id =  fnames[i_f].rstrip('.out').split('_')[1]
         for i_p in range(len(WindParms)):
             x[i_f,i_p] = WindParms[i_p][int(file_id[i_p],16)]   # hex to int
+    
+    # scale output data
+    y = y / float(scale)
     
     return x, y
 
@@ -4786,7 +4791,7 @@ def GetAllPowers(p_i):
 
     # remove combinations of powers with total power > p_max
     ps = ps[np.sum(ps,axis=1) <= p_max] 
-    
+        
     return ps
     
     
@@ -4922,6 +4927,58 @@ def DiscreteOpt(ErrFnc,p0,
             
     return results
     
+    
+def FASTUniqueStats(x,y,ps,cs,RunName):
+    """ Calculate the mean and standard deviation across duplicates in vector
+        y as determined by the input data in x
+        
+        Args:
+            x (numpy array): input data
+            y (numpy array): output data
+            ps (numpy array): polynomial powers
+            cs (numpy array): polynomial coefficients
+            RunName (string): which run to analyze
+            
+        Returns:
+            x_uniq (numpy array): unique input points
+            err_mean (numpy array): mean of error
+            err_std (numpy array): std dev of error
+    """
+    
+    # get list of wind parameters for that run
+    WindParmDict = RunName2WindParms(RunName)
+    URefs, Is, Ls, rhos = WindParmDict['URefs'],WindParmDict['Is'], \
+                          WindParmDict['Ls'],WindParmDict['rhos']
+    WindParms = [URefs,Is,np.log10(Ls),rhos]
+    
+    # loop through wind parameters
+    n_uniq = np.prod(np.array([len(l) for l in WindParms]))
+    x_uniq = np.empty((n_uniq,x.shape[1]))
+    err_mean = np.empty(n_uniq)
+    err_std  = np.empty(n_uniq)
+    i_uniq   = 0
+    for iU,iI,iL,iRho in [(a,b,c,d) for a in range(len(WindParms[0])) \
+                                    for b in range(len(WindParms[1])) \
+                                    for c in range(len(WindParms[2])) \
+                                    for d in range(len(WindParms[3]))]:
+        
+        U,I,logL,rho = WindParms[0][iU], WindParms[1][iI], \
+                      WindParms[2][iL], WindParms[3][iRho]
+                      
+        mask = np.logical_and(np.logical_and(np.logical_and(x[:,0]==U,
+                                                            x[:,1]==I),
+                                             x[:,2]==logL),
+                              x[:,3]==rho)
+
+        # assign data to aray
+        x_uniq[i_uniq]   = [U,I,logL,rho]
+        y_data           = y[mask]
+        err_mean[i_uniq] = np.mean(y_data)
+        err_std[i_uniq]  = np.std(y_data)
+        
+        i_uniq += 1
+        
+    return x_uniq, err_mean, err_std
 
 # =============================================================================
 # ---------------------------------- MAPPINGS ---------------------------------

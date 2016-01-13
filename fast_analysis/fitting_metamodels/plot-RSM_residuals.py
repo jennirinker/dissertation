@@ -6,13 +6,13 @@ libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
 if (libpath not in sys.path): sys.path.append(libpath)
     
 import JR_Library.main as jr
-import os
-import scipy.io as scio
+import os, pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-# _______________ TODO _____________ change ps so it's an array not list
+# plot style
+plt.style.use(jr.stylepath('duke_paper'))
 
 # define turbine name and run name
 #TurbNames = ['WP0.75A08V00','WP1.5A08V03',
@@ -21,17 +21,17 @@ from mpl_toolkits.mplot3d import Axes3D
 TurbNames = ['WP5.0A04V00']
 RunName  = 'BigRun2'
 
-FigNum = 1
+FigNum = 4
 FigSize = (6.0,7.5)
 
-parameters = [['max','RootMFlp1','MN-m',1000.]]
-#parameters = [['max','RootMFlp1','MN-m',1000.],
-#              ['DEL-h','RootMFlp1','MN-m',1000.],
-#              ['max','HSShftTq','kN-m',1],
-#              ['DEL-h','HSShftTq','kN-m',1],
-#              ['max','TwrBsMyt','MN-m',1000],
-#              ['DEL-h','TwrBsMyt','MN-m',1000],
-#              ['mean','GenPwr','MW',1000.]]
+#parameters = [['max','RootMFlp1','MN-m',1000.]]
+parameters = [['max','RootMFlp1','MN-m',1000.],
+              ['DEL-h','RootMFlp1','MN-m',1000.],
+              ['max','HSShftTq','kN-m',1],
+              ['DEL-h','HSShftTq','kN-m',1],
+              ['max','TwrBsMyt','MN-m',1000],
+              ['DEL-h','TwrBsMyt','MN-m',1000],
+              ['mean','GenPwr','MW',1000.]]
 
 # base directory where the stats are stored
 BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -44,15 +44,16 @@ WindParms = jr.RunName2WindParms(RunName)
 URefs, Is, Ls, rhos, n_dups = WindParms['URefs'],WindParms['Is'], \
                               WindParms['Ls'],WindParms['rhos'], \
                               WindParms['n_dups']
-WindParmsList = [URefs,Is,np.log10(Ls),rhos]
+WindParms = [URefs,Is,np.log10(Ls),rhos]
 
 # loop through turbines and stats
-iPLot = 0
+iPlot = 0
 for TurbName in TurbNames:
     
-    TurbRSMDictName = '{:s}_RSM.mat'.format(TurbName)
+    TurbRSMDictName = '{:s}_RSM.bdat'.format(TurbName)
     TurbRSMDictPath = os.path.join('RSMs',TurbRSMDictName)
-    TurbRSMDict = scio.loadmat(TurbRSMDictPath)
+    with open(TurbRSMDictPath,'rb') as f:
+        TurbRSMDict = pickle.load(f)
     
     for stat,parm,units,scale in parameters:
         
@@ -63,15 +64,13 @@ for TurbName in TurbNames:
         DictKey = '{:s}_{:s}'.format(parm,stat)
         RSMDict = TurbRSMDict[DictKey]
         ps, cs  = RSMDict['ps'], RSMDict['cs']
+        e, perr = RSMDict['es'], RSMDict['p_errs']
         
-        # get residuals
-        Xv   = jr.myvander(x,ps)
-        yhat = np.dot(Xv,cs)
-        e = y - yhat
-    
         # **********************************************************
-        # scale data
-        e = e/scale
+        # choose data to plot
+        
+#        yplot = perr
+        yplot = e/scale
         
         # ================= plot data vs I =====================
 
@@ -80,7 +79,7 @@ for TurbName in TurbNames:
         plt.clf()
                 
         # plot data
-        emax = max(-np.floor(e.min()), np.ceil(e.max()))
+        ymax = max(-np.floor(yplot.min()), np.ceil(yplot.max()))
         for iL in range(len(WindParms[2])):
             logL = WindParms[2][iL]
             for iRho in range(len(WindParms[3])):
@@ -98,9 +97,9 @@ for TurbName in TurbNames:
                                                                 x[:,1]==I),
                                                  x[:,2]==logL),
                                   x[:,3]==rho)
-                    e_data = e[mask]
-                    Z[iI,iU]    = np.mean(e_data)
-                    Zerr[iI,iU] = np.std(e_data)
+                    y_data = yplot[mask]
+                    Z[iI,iU]    = np.mean(y_data)
+                    Zerr[iI,iU] = np.std(y_data)
                     
                 # create axes
                 iplot = iRho*len(WindParms[2]) + iL + 1
@@ -112,7 +111,7 @@ for TurbName in TurbNames:
                                 label='$I$ = {:.1f}'.format(WindParms[1][iI]))
                     
                 # prettify axes
-                ax.set_ylim([-emax,emax])
+                ax.set_ylim([-ymax,ymax])
                 ax.set_xlim([4,24])
                 plt.locator_params(axis='x',nbins=5)
                 jr.removeSpines(ax)
@@ -155,8 +154,7 @@ for TurbName in TurbNames:
         plt.clf()
         
         # plot data
-        #vmin, vmax = np.floor(y.min()/100.)*100., np.ceil(y.max()/100.)*100
-        emax = max(-np.floor(e.min()), np.ceil(e.max()))
+        ymax = max(-np.floor(yplot.min()), np.ceil(yplot.max()))
         for iL in range(len(WindParms[2])):
             logL = WindParms[2][iL]
             for iI in range(len(WindParms[1])):
@@ -174,9 +172,9 @@ for TurbName in TurbNames:
                                                                 x[:,1]==I),
                                                  x[:,2]==logL),
                                   x[:,3]==rho)
-                    e_data = e[mask]
-                    Z[iRho,iU]    = np.mean(e_data)
-                    Zerr[iRho,iU] = np.std(e_data)
+                    y_data = yplot[mask]
+                    Z[iRho,iU]    = np.mean(y_data)
+                    Zerr[iRho,iU] = np.std(y_data)
                     
                 # create axes
                 iplot = iI*len(WindParms[2]) + iL + 1
@@ -188,7 +186,7 @@ for TurbName in TurbNames:
                                 label=r'$\rho$ = {:.1f}'.format(WindParms[3][iRho]))
                     
                 # prettify axes
-                ax.set_ylim([-emax,emax])
+                ax.set_ylim([-ymax,ymax])
                 ax.set_xlim([4,24])
                 plt.locator_params(axis='x',nbins=5)
                 jr.removeSpines(ax)

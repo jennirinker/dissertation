@@ -6,38 +6,10 @@ libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
 if (libpath not in sys.path): sys.path.append(libpath)
     
 import JR_Library.main as jr
-import os
-import scipy.io as scio
+import os, pickle
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import statsmodels.api as sm
 
-
-def StatsErr(x,y,p_i):
-    """ Sum-of-squared-error for data x and y with polynomial orders p_i
-    """
-    
-    # perform OLS for all data
-    ps_all = jr.GetAllPowers(p_i)
-    Xv_all = jr.myvander(x,ps_all)
-    results = sm.OLS(y, Xv_all).fit()
-    
-    # extract significant coefficients
-    ps_red = ps_all[results.pvalues <= 0.5]
-    Xv_red = jr.myvander(x,ps_red)
-    
-    # fit OLS with reduced coefficients
-    cs_red = sm.OLS(y, Xv_red).fit().params
-        
-    # get reduced model
-    yhat   = np.dot(Xv_red,cs_red)
-    
-    # get residuals and sum
-    e    = y - yhat
-    err  = np.mean(e ** 2)
-    
-    return err
 
 # define turbine name and run name
 TurbNames = ['WP0.75A08V00','WP1.5A08V03',
@@ -65,12 +37,37 @@ BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
 alpha = 0.05
 
 # -----------------------------------------------------------------------------
+def StatsErr(x,y,p_i,
+             alpha=0.05):
+    """ Sum-of-squared-error for data x and y with polynomial orders p_i
+    """
+    
+    # perform OLS for all data
+    ps_all = jr.GetAllPowers(p_i)
+    Xv_all = jr.myvander(x,ps_all)
+    results = sm.OLS(y, Xv_all).fit()
+    
+    # extract significant coefficients
+    ps_red = ps_all[results.pvalues <= alpha]
+    Xv_red = jr.myvander(x,ps_red)
+    
+    # fit OLS with reduced coefficients
+    cs_red = sm.OLS(y, Xv_red).fit().params
+        
+    # get reduced model
+    yhat   = np.dot(Xv_red,cs_red)
+    
+    # get residuals and sum
+    e    = y - yhat
+    err  = np.mean(e ** 2)
+    
+    return err
 
 # loop through turbines
 for TurbName in TurbNames:
     
     TurbRSMDict = {}
-    TurbRSMDictName = '{:s}_RSM.mat'.format(TurbName)
+    TurbRSMDictName = '{:s}_RSM.bdat'.format(TurbName)
     
     print('Wind turbine {:s}'.format(TurbName))
     
@@ -102,16 +99,17 @@ for TurbName in TurbNames:
         # ============== plot data and polynomial surface =====================
         
         # get significant powers and coefficients
-        ps_all = jr.GetAllPowers(p_i)
-        Xv_all = jr.myvander(x,ps_all)
-        results = sm.OLS(y, Xv_all).fit()
-        cs_all  = results.params
-        ps_red = ps_all[results.pvalues <= alpha]
-        Xv_red = jr.myvander(x,ps_red)
-        cs_red = sm.OLS(y, Xv_red).fit().params
+        ps_all   = jr.GetAllPowers(p_i)
+        Xv_all   = jr.myvander(x,ps_all)
+        results  = sm.OLS(y, Xv_all).fit()
+        cs_all   = results.params
+        ps_red   = ps_all[results.pvalues <= alpha]
+        Xv_red   = jr.myvander(x,ps_red)
+        cs_red   = sm.OLS(y, Xv_red).fit().params
         
-        yhat   = np.dot(Xv_red,cs_red)
-        es_red = y - yhat
+        yhat     = np.dot(Xv_red,cs_red)
+        es_red   = y - yhat
+        perr_red = (yhat - y) / y * 100.
         
         print('{:s} {:s} MSE: {:g}'.format(stat,parm,np.mean(es_red**2)))
         
@@ -121,12 +119,15 @@ for TurbName in TurbNames:
         RSMDict['ps']     = ps_red
         RSMDict['cs']     = cs_red
         RSMDict['es']     = es_red
+        RSMDict['p_errs'] = perr_red
         
         TurbRSMDict[TurbRSMDictKey] = RSMDict
         
     # save turbine dictionary
     TurbRSMDictPath = os.path.join('RSMs',TurbRSMDictName)
-    scio.savemat(TurbRSMDictPath,TurbRSMDict)
+    with open(TurbRSMDictPath,'wb') as DictFile:
+        pickle.dump(TurbRSMDict,DictFile,
+                    protocol=pickle.HIGHEST_PROTOCOL)
     
 
 
