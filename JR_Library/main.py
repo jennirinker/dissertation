@@ -4715,7 +4715,6 @@ def polyregression(x,y,p_i):
     return (coeffs,ps)
     
 
-
 def OLSfit(x, y):
     """ OLS fit to data in x and y
     
@@ -4728,15 +4727,48 @@ def OLSfit(x, y):
     """
     
     # define stats model of input data
-    X = sm.add_constant(np.column_stack((x[:,0],x[:,1])))
-    for iCol in range(2,x.shape[1]):
-        ele = x[:,iCol]
-        X = sm.add_constant(np.column_stack((X,ele)))
+    if x.shape[1] > 1:
+        print('WTF')
+        X = sm.add_constant(np.column_stack((x[:,0],x[:,1])))
+        for iCol in range(2,x.shape[1]):
+            print('GR')
+            ele = x[:,iCol]
+            X = sm.add_constant(np.column_stack((X,ele)))
+    else:
+        X = sm.add_constant(x[:,0])
+    print(X)
         
     # solve OLS problem
     results = sm.OLS(y, X).fit()
     
-    return results    
+    return results  
+    
+
+def SigOLSfit(x, y, pmax_i,
+              alpha=0.05):
+    """ Significant OLS fit to data in x and y with max poly order pmax_i
+    
+        Args:
+            x (numpy array): array of input data
+            y (numpy array): array of output data
+            p_i (list/numpy array): list of polynomial orders
+            alpha (float): significance threshold
+            
+        Returns:
+            results (RegressionResultsWrapper): output from sm.OLS.fit
+    """
+    
+    # solve basic OLS problem
+    results = OLSfit(x, y)
+    
+    # get significant coefficients
+    ps_all = GetAllPowers(pmax_i)
+    ps_red = ps_all[results.pvalues <= alpha]
+    X_red  = x[:,results.pvalues <= alpha]
+    cs_red = OLSfit(X_red, y).params
+    print(len(ps_red),X_red.shape,cs_red.shape,'rwr')
+    
+    return X_red, cs_red, ps_red    
     
 
 def GetAllPowers(p_i):
@@ -4856,7 +4888,7 @@ def DiscreteOpt(ErrFnc,p0,
         if verbose:
             print('  incrementing x{:d} (new_err = {:.1f})'.format(i_incr,min_err))
                                  
-        # if new min error is 5% larger than current error, save current and stop
+        # if new min error is 10% larger than current error, save current and stop
         if (min_err >= 1.05*curr_err):
             print('\nOptimization halting: local minimum achieved\n')
             results['num_iters'] = iter_count

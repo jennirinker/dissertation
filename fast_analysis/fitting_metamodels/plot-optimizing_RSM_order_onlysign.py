@@ -13,8 +13,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def StatsErr(x,y,p_i,
-             alpha=0.05):
+def StatsErr(x,y,p_i):
     """ Sum-of-squared-error for data x and y with polynomial orders p_i
     """
     
@@ -26,12 +25,19 @@ def StatsErr(x,y,p_i,
     results = jr.OLSfit(Xv, y)
     
     # eliminate insignificant terms
+    cs_all = results.params
+#    ps_red = ps[results.pvalues < alpha]
+#    cs_red = cs_all[results.pvalues < alpha]
+#    Xv_red = jr.myvander(x,ps_red)
+#    
+#    print(len(cs_all),len(cs_red))
     
+    # get reduced model
+    yhat   = np.dot(Xv,cs_all)
     
     # get residuals and sum
     e    = y - yhat
     err  = np.mean(e ** 2)
-#    err  = np.mean(np.abs(e))
     
     return err
 
@@ -44,10 +50,19 @@ RunName  = 'BigRun2'
 
 FigNum = 1
 
+# statistic and value to fit RSM to
+stat,parm,units,scale = 'max','RootMFlp1','MN-m',1000.
+#stat,parm,units,scale = 'DEL-h','RootMFlp1','MN-m',1000.
+#stat,parm,units,scale = 'max','HSShftTq','kN-m',1
+#stat,parm,units,scale = 'DEL-h','HSShftTq','kN-m',1
+#stat,parm,units,scale = 'max','TwrBsMyt','MN-m',1000
+#stat,parm,units,scale = 'DEL-h','TwrBsMyt','MN-m',1000
+
 # base directory where the stats are stored
 BaseStatDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
                 'processed_data\\proc_stats'
 
+alpha = 0.05
 
 # -----------------------------------------------------------------------------
 
@@ -67,13 +82,6 @@ fnames     = [s.rstrip() for s in stats_dict['fnames']]
 fields     = [s.rstrip() for s in stats_dict['fields']]
 n_fields = len(fields)
 
-# statistic and value to fit RSM to
-stat = 'max'
-parm = 'RootMFlp1'
-#parm, p_i = 'RootMOoP1', [4,4,4,4]
-#parm, p_i = 'TwrBsMxt', [4,4,4,4]
-#parm, p_i = 'TwrBsMyt', [4,4,4,4]
-#parm, p_i = 'RotTorq', [4,4,2,2]
 
 # extract data for fitting polynomial surface
 y = proc_stats[:,calc_stats.index(stat)*n_fields + \
@@ -83,15 +91,14 @@ for i_f in range(y.size):
     file_id =  fnames[i_f].rstrip('.out').split('_')[1]
     for i_p in range(len(WindParmsList)):
         x[i_f,i_p] = WindParmsList[i_p][int(file_id[i_p],16)]   # hex to int
-#    x[i_f,1] = Is[int(file_id[1],16)]
-##    x[i_f,2] = Ls[int(file_id[2],16)]
-#    x[i_f,2] = np.log10(Ls[int(file_id[2],16)])
-#    x[i_f,3] = rhos[int(file_id[3],16)]
-    
+
+# ================= scale input data =====================    
+
+#x = x / np.mean(x,axis=0)
 
 # ================= optimize polynomial coefficients =====================
 
-## parameterize function for data
+# parameterize function for data
 #ErrFunc = lambda p: StatsErr(x,y,p)
 #
 #p0 = np.zeros(x.shape[1])
@@ -99,12 +106,17 @@ for i_f in range(y.size):
 #                         verbose=1)
 #p_i = results['p_out']
 #print(p_i)
-p_i = [6,2,2,2]
+p_i = [8,3,3,3]
 
 # ============== plot data and polynomial surface ======================
 
 # get optimal polynomial surface
-betas, ps = jr.polyregression(x,y,p_i)
+ps_all = jr.GetAllPowers(p_i)
+Xv = jr.myvander(x,ps_all)
+X_red, cs_red, ps_red   = jr.SigOLSfit(Xv, y, p_i,
+                                       alpha=alpha)
+
+print(len(ps_all),len(cs_red))
 
 # --------------------------- U vs. Ti -------------------------------------
 
@@ -141,8 +153,8 @@ xplot = np.hstack((X1.reshape((X1.size,1)),
                    X2.reshape((X2.size,1)),
                    X3.reshape((X3.size,1)),
                    X4.reshape((X4.size,1))))
-A     = jr.myvander(xplot,ps)
-z_RSM = np.dot(A,betas)
+A     = jr.myvander(xplot,ps_red)
+z_RSM = np.dot(A,cs_red)
 Z     = z_RSM.reshape(X1.shape)
 X1 = np.squeeze(X1)
 X2 = np.squeeze(X2)
@@ -189,8 +201,8 @@ xplot = np.hstack((X1.reshape((X1.size,1)),
                    X2.reshape((X2.size,1)),
                    X3.reshape((X3.size,1)),
                    X4.reshape((X4.size,1))))
-A     = jr.myvander(xplot,ps)
-z_RSM = np.dot(A,betas)
+A     = jr.myvander(xplot,ps_red)
+z_RSM = np.dot(A,cs_red)
 Z     = z_RSM.reshape(X3.shape)
 X1 = np.squeeze(X3)                 # ************************
 X2 = np.squeeze(X4)                 # ************************
