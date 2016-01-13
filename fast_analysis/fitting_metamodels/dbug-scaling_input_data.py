@@ -57,7 +57,7 @@ stat,parm,units,scale = 'max','RootMFlp1','MN-m',1000.
 #stat,parm = 'max','TwrBsMyt'
 
 # calculate fit
-p_i = [7,4,4,4]
+p_i = [7,3,2,2]
 alpha = 0.05
 
 # -----------------------------------------------------------------------------
@@ -71,8 +71,9 @@ for i_f in range(y.size):
     file_id =  fnames[i_f].rstrip('.out').split('_')[1]
     for i_p in range(len(WindParms)):
         x[i_f,i_p] = WindParms[i_p][int(file_id[i_p],16)]   # hex to int
-x_sc    = (x - np.array([min(l) for l in WindParms])) / \
-            (np.array([max(l) for l in WindParms]) - np.array([min(l) for l in WindParms]))
+#x_sc    = (x - np.array([min(l) for l in WindParms])) / \
+#            (np.array([max(l) for l in WindParms]) - np.array([min(l) for l in WindParms]))
+x_sc = x / np.mean(x,axis=0)
 
 # fit polynomial surface to all data
 ps_all  = jr.GetAllPowers(p_i)

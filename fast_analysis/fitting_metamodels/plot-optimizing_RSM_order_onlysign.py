@@ -11,21 +11,28 @@ import scipy.io as scio
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import statsmodels.api as sm
 
 
 def StatsErr(x,y,p_i):
     """ Sum-of-squared-error for data x and y with polynomial orders p_i
     """
     
-    # perform linear regression
-    betas, ps = jr.polyregression(x,y,p_i) 
+    # perform OLS for all data
+    ps_all = jr.GetAllPowers(p_i)
+    Xv_all = jr.myvander(x,ps_all)
+    results = sm.OLS(y, Xv_all).fit()
+    cs_all  = results.params
     
-    # perform OLS fit for all terms
-    Xv      = jr.myvander(x,ps)
-    results = jr.OLSfit(Xv, y)
+    # extract significant coefficients
+    ps_red = ps_all[results.pvalues <= 0.5]
+    Xv_red = jr.myvander(x,ps_red)
+    
+    # fit OLS with reduced coefficients
+    cs_red = sm.OLS(y, Xv_red).fit().params
     
     # eliminate insignificant terms
-    cs_all = results.params
+#    cs_all = results.params
 #    ps_red = ps[results.pvalues < alpha]
 #    cs_red = cs_all[results.pvalues < alpha]
 #    Xv_red = jr.myvander(x,ps_red)
@@ -33,7 +40,7 @@ def StatsErr(x,y,p_i):
 #    print(len(cs_all),len(cs_red))
     
     # get reduced model
-    yhat   = np.dot(Xv,cs_all)
+    yhat   = np.dot(Xv_red,cs_red)
     
     # get residuals and sum
     e    = y - yhat
@@ -98,7 +105,7 @@ for i_f in range(y.size):
 
 # ================= optimize polynomial coefficients =====================
 
-# parameterize function for data
+## parameterize function for data
 #ErrFunc = lambda p: StatsErr(x,y,p)
 #
 #p0 = np.zeros(x.shape[1])
@@ -106,17 +113,31 @@ for i_f in range(y.size):
 #                         verbose=1)
 #p_i = results['p_out']
 #print(p_i)
-p_i = [8,3,3,3]
+
+#p_i = [7,4,4,4]        # values used in debugging script for Dr. Gavin results
+p_i = [7,3,2,2]         # new optimizer output
 
 # ============== plot data and polynomial surface ======================
 
 # get optimal polynomial surface
 ps_all = jr.GetAllPowers(p_i)
-Xv = jr.myvander(x,ps_all)
-X_red, cs_red, ps_red   = jr.SigOLSfit(Xv, y, p_i,
-                                       alpha=alpha)
+Xv_all = jr.myvander(x,ps_all)
 
-print(len(ps_all),len(cs_red))
+results = sm.OLS(y, Xv_all).fit()
+cs_all  = results.params
+
+
+pvalues = results.pvalues
+
+ps_red = ps_all[results.pvalues <= 0.5]
+Xv_red = jr.myvander(x,ps_red)
+cs_red = sm.OLS(y, Xv_red).fit().params
+
+#cs_plot = cs_all
+#ps_plot = ps_all
+cs_plot = cs_red
+ps_plot = ps_red
+
 
 # --------------------------- U vs. Ti -------------------------------------
 
@@ -153,8 +174,8 @@ xplot = np.hstack((X1.reshape((X1.size,1)),
                    X2.reshape((X2.size,1)),
                    X3.reshape((X3.size,1)),
                    X4.reshape((X4.size,1))))
-A     = jr.myvander(xplot,ps_red)
-z_RSM = np.dot(A,cs_red)
+A     = jr.myvander(xplot,ps_plot)
+z_RSM = np.dot(A,cs_plot)
 Z     = z_RSM.reshape(X1.shape)
 X1 = np.squeeze(X1)
 X2 = np.squeeze(X2)
@@ -201,8 +222,8 @@ xplot = np.hstack((X1.reshape((X1.size,1)),
                    X2.reshape((X2.size,1)),
                    X3.reshape((X3.size,1)),
                    X4.reshape((X4.size,1))))
-A     = jr.myvander(xplot,ps_red)
-z_RSM = np.dot(A,cs_red)
+A     = jr.myvander(xplot,ps_plot)
+z_RSM = np.dot(A,cs_plot)
 Z     = z_RSM.reshape(X3.shape)
 X1 = np.squeeze(X3)                 # ************************
 X2 = np.squeeze(X4)                 # ************************

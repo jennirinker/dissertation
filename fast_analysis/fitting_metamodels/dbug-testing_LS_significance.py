@@ -22,6 +22,7 @@ y = Y.reshape(Y.size)
 ps = jr.GetAllPowers(p_i)
 Xv = jr.myvander(Xinp,ps)
 results = jr.OLSfit(Xv, y)
+#results = sm.OLS(y, Xv).fit()
 
 
 coeffs, ps = jr.polyregression(Xinp,y,p_i)
