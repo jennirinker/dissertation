@@ -84,7 +84,8 @@ for TurbName in TurbNames:
         WindParmsList = [URefs,Is,np.log10(Ls),rhos]
         
         # load the stats data
-        x, y = jr.LoadFASTStats(RunName,TurbName,stat,parm)
+        x, y = jr.LoadFASTStats(RunName,TurbName,stat,parm,
+                                scale=1)
         
         # ================= optimize polynomial coefficients ==================
         
@@ -98,6 +99,9 @@ for TurbName in TurbNames:
         
         # ============== plot data and polynomial surface =====================
         
+        # scale data
+        y = y / float(scale)
+        
         # get significant powers and coefficients
         ps_all   = jr.GetAllPowers(p_i)
         Xv_all   = jr.myvander(x,ps_all)
@@ -108,7 +112,7 @@ for TurbName in TurbNames:
         cs_red   = sm.OLS(y, Xv_red).fit().params
         
         yhat     = np.dot(Xv_red,cs_red)
-        es_red   = y - yhat
+        es_red   = yhat - y
         perr_red = (yhat - y) / y * 100.
         
         print('{:s} {:s} MSE: {:g}'.format(stat,parm,np.mean(es_red**2)))
@@ -116,10 +120,14 @@ for TurbName in TurbNames:
         # ============== save dictionary =====================
         
         RSMDict['pmax_i'] = p_i
-        RSMDict['ps']     = ps_red
-        RSMDict['cs']     = cs_red
-        RSMDict['es']     = es_red
+        RSMDict['ps_all'] = ps_all
+        RSMDict['cs_all'] = cs_all
+        RSMDict['ps_red'] = ps_red
+        RSMDict['cs_red'] = cs_red
+        RSMDict['es_red'] = es_red
         RSMDict['p_errs'] = perr_red
+        RSMDict['units']  = units
+        RSMDict['scale']  = scale
         
         TurbRSMDict[TurbRSMDictKey] = RSMDict
         

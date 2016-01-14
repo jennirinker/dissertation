@@ -4928,15 +4928,13 @@ def DiscreteOpt(ErrFnc,p0,
     return results
     
     
-def FASTUniqueStats(x,y,ps,cs,RunName):
+def FASTUniqueStats(x,y,RunName):
     """ Calculate the mean and standard deviation across duplicates in vector
         y as determined by the input data in x
         
         Args:
             x (numpy array): input data
             y (numpy array): output data
-            ps (numpy array): polynomial powers
-            cs (numpy array): polynomial coefficients
             RunName (string): which run to analyze
             
         Returns:

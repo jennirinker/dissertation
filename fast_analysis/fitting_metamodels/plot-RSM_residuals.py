@@ -58,7 +58,8 @@ for TurbName in TurbNames:
     for stat,parm,units,scale in parameters:
         
         # load the stats data
-        x, y = jr.LoadFASTStats(RunName,TurbName,stat,parm)
+        x, y = jr.LoadFASTStats(RunName,TurbName,stat,parm,
+                                scale=scale)
         
         # load the RSM data
         DictKey = '{:s}_{:s}'.format(parm,stat)
@@ -70,7 +71,7 @@ for TurbName in TurbNames:
         # choose data to plot
         
 #        yplot = perr
-        yplot = e/scale
+        yplot = e
         
         # ================= plot data vs I =====================
 
