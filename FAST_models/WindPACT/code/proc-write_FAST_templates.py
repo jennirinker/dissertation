@@ -10,7 +10,7 @@ if (libpath not in sys.path): sys.path.append(libpath)
 import JR_Library.main as jr
 import json, os, sys, jr_fast
 
-# which files to generate
+# which files to generate (1 = modes, 2 = fast/ad)
 TmplType = 2
 
 # define turbine name

@@ -11,18 +11,14 @@ import datetime
 import shutil
 import numpy as np
 
-# define turbine name, turbine dictionary
-#TurbNames = ['WP0.75A08V00','WP1.5A08V03','WP3.0A02V02','WP5.0A04V00']
-TurbNames = ['WP5.0A04V00']
-
-
 # run specifics
 DateFmt    = '%a %b %d %H:%M:%S %Y'            # date format
-SimsPerBat = 100
+SimsPerBat = 150
 RunName = 'Fine'                        # run name
 RunParms = jr.RunName2WindParms(RunName)
-URefs,Is,Ls,rhos,n_dups  = RunParms['URefs'],RunParms['Is'],RunParms['Ls'], \
-                            RunParms['rhos'],RunParms['n_dups']
+URefs,Is,Ls,rhos,n_dups = RunParms['URefs'],RunParms['Is'],RunParms['Ls'], \
+                        RunParms['rhos'],RunParms['n_dups']
+TurbNames = RunParms['TurbNames']
 
 # directories
 BaseBatDir = os.path.join('\\\\monsoon-data\\Public\\JRinker' + \

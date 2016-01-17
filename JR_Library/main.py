@@ -3196,7 +3196,7 @@ def WriteTurbSimInputs(InpName,TSDict,TmplDir,WrDir):
     if (TurbModel == 'USRINP'):
         sig_u,sig_v,sig_w  = TSDict['sig_u'],TSDict['sig_v'],TSDict['sig_w']
         L_u,L_v,L_w        = TSDict['L_u'],TSDict['L_v'],TSDict['L_w']
-        fname_spc          = TSDict['SpcName']
+        fname_spc          = InpName.rstrip('.inp') + '.spc'
         IECTurbc           = 'unused'
     elif (TurbModel == 'IECKAI'):
         IECTurbc           = TSDict['IECTurbc']
@@ -5607,6 +5607,8 @@ def RunName2WindParms(RunName):
         Parms['Ls']     = [10**1.5,10**2.,10**2.5,10**3]
         Parms['rhos']   = [0.,0.1,0.2,0.3,0.4]
         Parms['n_dups'] = 5
+        Parms['TurbNames'] = ['WP0.75A08V00','WP1.5A08V03', \
+                              'WP3.0A02V02','WP5.0A04V00']
     elif (RunName == 'TestRun'):
         Parms['URefs']  = [7.0, 9.0, 13.0]
         Parms['Is']     = [0.3]
@@ -5619,18 +5621,22 @@ def RunName2WindParms(RunName):
         Parms['Ls']     = [10**2.0]
         Parms['rhos']   = [0.4]
         Parms['n_dups'] = 10
+        Parms['TurbNames'] = ['WP0.75A08V00','WP1.5A08V03', \
+                              'WP3.0A02V02','WP5.0A04V00']
     elif (RunName == 'TestBig'):
         Parms['URefs']  = [5,7,9,10]
         Parms['Is']     = [0.1,0.2]
         Parms['Ls']     = [10**1.5]
         Parms['rhos']   = [0.]
         Parms['n_dups'] = 1
+        Parms['TurbNames'] = ['WP5.0A04V00']
     elif (RunName == 'Fine'):
         Parms['URefs']  = [5,15]
         Parms['Is']     = [0.2]
         Parms['Ls']     = [10**2.5]
         Parms['rhos']   = [0.,0.1,0.3]
-        Parms['n_dups'] = 200
+        Parms['n_dups'] = 1000
+        Parms['TurbNames'] = ['WP5.0A04V00']
         
     return Parms
 
