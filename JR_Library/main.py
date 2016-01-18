@@ -5640,6 +5640,36 @@ def RunName2WindParms(RunName):
         
     return Parms
 
+def FastParm2Name(Parm):
+    """ Convert FAST key to plotting name and units
+    
+        Args:
+            Parm (string): FAST parameter
+            
+        Returns:
+            Name (string): plotting name
+            Units (string): units
+    """
+    
+    if Parm == 'WindVxi':       Name,Units = 'Hub-Height u','m/s'
+    elif Parm == 'WindVyi':     Name,Units = 'Hub-Height v','m/s'
+    elif Parm == 'WindVzi':     Name,Units = 'Hub-Height w','m/s'
+    elif Parm == 'RotSpeed':    Name,Units = 'Rotor S[eed','rpm'
+    elif Parm == 'GenTq':       Name,Units = 'Generator Torque','kN-m'
+    elif Parm == 'GenPwr':      Name,Units = 'Generated Power','kW'
+    elif Parm == 'TwrBsMyt':    Name,Units = 'Tower Base Fore-Aft Moment','kN-m'
+    elif Parm == 'RootMIP1':    Name,Units = 'Bld 1 IP Root Moment','kN-m'
+    elif Parm == 'RootMIP2':    Name,Units = 'Bld 2 IP Root Moment','kN-m'
+    elif Parm == 'RootMIP3':    Name,Units = 'Bld 3 IP Root Moment','kN-m'
+    elif Parm == 'RootMOoP1':   Name,Units = 'Bld 1 OoP Root Moment','kN-m'
+    elif Parm == 'RootMOoP2':   Name,Units = 'Bld 2 OoP Root Moment','kN-m'
+    elif Parm == 'RootMOoP3':   Name,Units = 'Bld 3 OoP Root Moment','kN-m'
+    elif Parm == 'BldPitch1':   Name,Units = 'Bld 1 Pitch Angle','deg'
+    elif Parm == 'BldPitch2':   Name,Units = 'Bld 2 Pitch Angle','deg'
+    elif Parm == 'BldPitch3':   Name,Units = 'Bld 3 Pitch Angle','deg'
+    elif Parm == 'HSShftTq':    Name,Units = 'High-Speed Shaft Torque','kN-m'
+        
+    return Name, Units
 
 # =============================================================================
 # --------------------------- MISCELLANEOUS -----------------------------------
@@ -6094,11 +6124,14 @@ def stylepath(style):
     if (style == 'duke_paper'):
         stylepath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
                     '2016-02-15_dissertation\\figure_code\\duke_paper.mplstyle'
-    elif (style == 'duke_ppresentation'):
+    elif (style == 'duke_presentation'):
         stylepath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
                     '2016-02-15_dissertation\\figure_code\\duke_presentation.mplstyle'
     elif (style == 'jmr'):
         stylepath = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
                     '2016-02-15_dissertation\\figure_code\\jmr.mplstyle'
+    else:
+        ErrStr = 'No defined style type \"{:s}\"'.format(style)
+        raise ValueError(ErrStr)
 
     return stylepath

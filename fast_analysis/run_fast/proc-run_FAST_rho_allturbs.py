@@ -28,21 +28,19 @@ BaseFastDir = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation\\' + \
 # concentration parameters to simulate
 rhos = [0.0,0.1,0.3]
 
-UHub, IRef, L_u = 15., 0.14, 340.2
+UHubs = [7.,17] 
+sig_u, L_u = 15.*.14, 340.2
 zRef = 90.
 TSRandLo,TSRandHi = -2147483648,2147483647
+R1 = 745114648
+R2 = -154794614
 
 # -----------------------------------------------------------------------------
-
-sig_u = UHub * IRef
-R1s = [random.randint(TSRandLo, TSRandHi),random.randint(TSRandLo, TSRandHi),
-       random.randint(TSRandLo, TSRandHi)]
-R2s = [random.randint(TSRandLo, TSRandHi),random.randint(TSRandLo, TSRandHi),
-       random.randint(TSRandLo, TSRandHi)]
 
 # change directory to turbine directory to run TurbSim/FAST
 os.chdir(BaseFastDir)
     
+
 for TurbName in TurbNames:
     
     print('Turbine {:s}'.format(TurbName))
@@ -57,34 +55,41 @@ for TurbName in TurbNames:
                             '{:s}_Dict.dat'.format(TurbName))
     with open(DictPath,'r') as DictFile:
         HubHeight = json.load(DictFile)['HH']
-    URef = UHub / (HubHeight/zRef) ** 0.2
     
-    # loop through concentration parameters
-    for iRho in range(len(rhos)):
+    # loop through wind speeds
+    iSim = 0
+    for UHub in UHubs:
         
-        print('  rho {:d}'.format(iRho))
+        print('  Uhub {:.1f}'.format(UHub))
         
-        # define parameters
-        FileID = str(iRho)
-        rho    = rhos[iRho]
-        InpName = '{:s}_{:s}.inp'.format(TurbName,FileID)
-        R1, R2  = R1s[iRho], R2s[iRho]
+        URef = UHub / (HubHeight/zRef) ** 0.2
         
-        # write turbsim input file
-        TSDict = jr.MakeTSDict(TurbName,URef,sig_u,L_u,rho,R1,R2)
-        jr.WriteTurbSimInputs(InpName,TSDict,TmplDir,FastDir)
+        # loop through concentration parameters
+        for iRho in range(len(rhos)):
+            
+            print('    rho {:d}'.format(iRho))
+            
+            # define parameters
+            FileID = str(iSim)
+            rho    = rhos[iRho]
+            InpName = '{:s}_{:s}.inp'.format(TurbName,FileID)
+            
+            # write turbsim input file
+            TSDict = jr.MakeTSDict(TurbName,URef,sig_u,L_u,rho,R1,R2)
+            jr.WriteTurbSimInputs(InpName,TSDict,TmplDir,FastDir)
+            
+            # run TurbSim
+            os.system('TurbSim.exe {:s}\\{:s}'.format(TurbName,InpName))
+            
+            # write FAST input file
+            FastName = InpName.rstrip('.inp') 
+            BtsName  = FastName + '.bts'
+            WindPath = os.path.join(FastDir,BtsName)
+            jr_fast.WriteFastADOne(TurbName,WindPath,FastName,ModlDir,FastDir)
+            
+            # run FAST
+            os.system('FAST.exe {:s}\\{:s}'.format(TurbName,FastName+'.fst'))
         
-        # run TurbSim
-        os.system('TurbSim.exe {:s}\\{:s}'.format(TurbName,InpName))
-        
-        # write FAST input file
-        FastName = InpName.rstrip('.inp') 
-        BtsName  = FastName + '.bts'
-        WindPath = os.path.join(FastDir,BtsName)
-        jr_fast.WriteFastADOne(TurbName,WindPath,FastName,ModlDir,FastDir)
-        
-        # run FAST
-        os.system('FAST.exe {:s}\\{:s}'.format(TurbName,FastName+'.fst'))
-        
+            iSim += 1
         
         

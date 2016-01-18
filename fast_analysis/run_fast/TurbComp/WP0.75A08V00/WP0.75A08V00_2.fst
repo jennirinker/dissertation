@@ -43,9 +43,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
 9999.9      TPitManE(1) - Time at which override pitch maneuver for blade 1 reaches final pitch (s)
 9999.9      TPitManE(2) - Time at which override pitch maneuver for blade 2 reaches final pitch (s)
 9999.9      TPitManE(3) - Time at which override pitch maneuver for blade 3 reaches final pitch (s) [unused for 2 blades]
-  12.9      BlPitch(1)  - Blade 1 initial pitch (degrees)
-  12.9      BlPitch(2)  - Blade 2 initial pitch (degrees)
-  12.9      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
+   2.6      BlPitch(1)  - Blade 1 initial pitch (degrees)
+   2.6      BlPitch(2)  - Blade 2 initial pitch (degrees)
+   2.6      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
    2.6      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
    2.6      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
@@ -66,13 +66,13 @@ True        TwSSDOF2    - Second side-to-side tower bending-mode DOF (flag)
 True        CompAero    - Compute aerodynamic forces (flag)
 False       CompNoise   - Compute aerodynamic noise (flag)
 ---------------------- INITIAL CONDITIONS --------------------------------------
-   0.6     OoPDefl     - Initial out-of-plane blade-tip displacement (meters)
-  -0.2     IPDefl      - Initial in-plane blade-tip deflection (meters)
+   0.4     OoPDefl     - Initial out-of-plane blade-tip displacement (meters)
+  -0.0     IPDefl      - Initial in-plane blade-tip deflection (meters)
    0.0     TeetDefl    - Initial or fixed teeter angle (degrees) [unused for 3 blades]
- 180.9     Azimuth     - Initial azimuth angle for blade 1 (degrees)
-  28.6     RotSpeed    - Initial or fixed rotor speed (rpm)
+ 180.2     Azimuth     - Initial azimuth angle for blade 1 (degrees)
+  15.0     RotSpeed    - Initial or fixed rotor speed (rpm)
    0.0     NacYaw      - Initial or fixed nacelle-yaw angle (degrees)
-   0.1     TTDspFA     - Initial fore-aft tower-top displacement (meters)
+   0.0     TTDspFA     - Initial fore-aft tower-top displacement (meters)
   -0.0     TTDspSS     - Initial side-to-side tower-top displacement (meters)
 ---------------------- TURBINE CONFIGURATION -----------------------------------
   25.000    TipRad      - The distance from the rotor apex to the blade tip (meters)
