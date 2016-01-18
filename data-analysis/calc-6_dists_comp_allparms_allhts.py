@@ -23,7 +23,7 @@ basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
                   'processed_data'
 
 # parameters to fit distributions to
-parms = ['Mean_Wind_Speed','Sigma_u','tau_u','Concentration_u']
+parms = ['Mean_Wind_Speed','Sigma_u','Tau_u','Concentration_u']
 
 # cutoff threshold values to evaluate
 Q_Ts = [0.80,0.85,0.90,0.95,1.00]
@@ -46,8 +46,8 @@ else:
 
 # screen metadata, get measurement heights and columns for data
 clean = jr.screenmetadata(fields,raw_parms,dataset_flag)
-heights = jr.datasetSpecs(dataset_flag)[2]
-htCol  = fields.index('Height')
+heights = jr.datasetSpecs(dataset_flag)['IDs']
+htCol  = fields.index('ID')
 
 # ========================= fit distributions =================================
 

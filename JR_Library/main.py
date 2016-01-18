@@ -2145,7 +2145,6 @@ def screenmetadata(fields,metadata,dataset):
         # column indices for each value
         CScol   = fields.index('Wind_Speed_Sonic')
         dirCol  = fields.index('Wind_Direction_Sonic')
-        sigCol  = fields.index('Sigma_u')
         
         # filter out the rows with NaN values
         metadata = metadata[np.logical_not( \
@@ -2153,12 +2152,13 @@ def screenmetadata(fields,metadata,dataset):
         
         # screen remaining data
         cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
-        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
-                                        < (dir2 - dir1) % 360.)]
-                                        
-        # manually screen for data with 999s and for too-high sigma
-        cleandata = metadata[np.where(metadata[:,CScol] < 30.)]
-        cleandata = metadata[np.where(metadata[:,sigCol] < 20.)]
+        
+        # *********** MANUALLY CHANGE WD AND SCREEN
+        cleandata[:,dirCol] = (180. + 30. - cleandata[:,dirCol]) % 360
+        cleandata = cleandata[(cleandata[:,dirCol] - dir1) % 360. \
+                       < (dir2 - dir1) % 360.,:]
+#        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
+#                                        < (dir2 - dir1) % 360.)]
         
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
