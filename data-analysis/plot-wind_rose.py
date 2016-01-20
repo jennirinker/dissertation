@@ -12,15 +12,14 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 # style file
-plt.style.use('C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
-            '2016-02-15_dissertation\\figure_code\\duke_paper.mplstyle')
+plt.style.use(jr.stylepath('duke_presentation'))
 
 # choose which dataset
 #datasets  = ['NREL','fluela','PM06','texastech']
 dataset   = 'NREL'
 
 # toggles
-screen_data = 1
+screen_data = 0
 plot_screen = 0
 
 # define directory where wind parameters are stored (unused for matlab)

@@ -2945,7 +2945,7 @@ def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
         
         # get Cholesky decomposition
         f = fs[i]
-        Coh = jr.IEC_SpatialCoherence(zhub,Vhub,DR,f)
+        Coh = IEC_SpatialCoherence(zhub,Vhub,DR,f)
         C = np.linalg.cholesky(Coh)
         
         # solve for un-spatially correlated data Fourier coefficients
