@@ -24,13 +24,11 @@ Jenni Rinker, Duke University
 """
 
 # used modules
-import os
+import os, re, glob, time, datetime, platform
 import numpy as np
 import scipy.io as scio
-import re
 from peakdetect import peakdetect
 from rainflow import rainflow
-import datetime
 import statsmodels.api as sm
 import scipy.stats
 
@@ -50,8 +48,6 @@ def loadmetadata(fname):
             metadata (numpy array): values for each field and each record
     """
     
-    
-
     # if it is a text file
     if (fname.endswith('txt')):
     
@@ -84,8 +80,6 @@ def loadNRELmatlab():
             fields (list): names of fields in coumns
             metadata (numpy array): array of atmospheric params
     """
-    
-    
     
     # path to matlab-processed metadata table
     matpath = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -320,7 +314,6 @@ def loadtimeseries(dataset,field,ID,data_in):
         
         # set data ranges, desired length of time series
         dataRng = dataRanges(dataset,datfield)
-# TODO: add in TT data ranges
         specs   = datasetSpecs(dataset)
         N, dt   = specs['n_t'], specs['dt']
         t       = np.arange(N)*dt
@@ -364,9 +357,8 @@ def loadtimeseries(dataset,field,ID,data_in):
             flags.append(1005)
 
         # flag 1003: >1% are outside acceptable data range
-#        x_cl[np.where(x_raw < dataRng[0])] = np.nan
-#        x_cl[np.where(x_raw > dataRng[1])] = np.nan
-# TODO: add in TT data ranges
+        x_cl[np.where(x_raw < dataRng[0])] = np.nan
+        x_cl[np.where(x_raw > dataRng[1])] = np.nan
         percOut = np.sum(np.isnan(x_cl))/float(N)
         if (percOut > 0.01):
               flags.append(1003)
@@ -607,7 +599,6 @@ def mygenfromtxt(fname,header=True,units=False,delimiter='\t'):
             units (list): strings from units line (if header,units=True)
     """
     
-    
     # read header and unit lines if appropriate
     with open(fname,'r') as f:
         
@@ -640,7 +631,6 @@ def mygenfromtxt(fname,header=True,units=False,delimiter='\t'):
 def ReadFASTFile(fname):
     """ Read FAST data into numpy array (v7.02)
     """
-    
     
     n_skip = 8
     FASTDict = {}
@@ -1010,14 +1000,22 @@ def dataRanges(dataset,datfield):
             dataRng = [-29.95,29.95]
         elif ('Sonic_z' in datfield):
             dataRng = [-7.95,7.95]
+        elif ('UVW_x' in datfield):
+            dataRng = [-40,40]
+        elif ('UVW_y' in datfield):
+            dataRng = [-40,40]
+        elif ('UVW_z' in datfield):
+            dataRng = [-40,40]
         elif ('Sonic_T' in datfield):
             dataRng = [-29.95,49.95]
-#        elif ('Hygro' in datfield):
-#            dataRng = [  1.75,19.25] 
-#        else:
-#              raise KeyError('Field {} not recognized.'.format(datfield))
+        elif ('Rel_Hum' in datfield):
+            dataRng = [0,100]               # %
+        elif ('Air_Temp' in datfield):
+            dataRng = [-50.,50.]            # C
+        elif ('Baro_Presr' in datfield):
+            dataRng = [74000.,100000.]      # Pa
         else:
-            dataRng = [-float('Inf'), float('Inf')]
+              raise KeyError('Field {} not recognized.'.format(datfield))
 
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -1038,15 +1036,13 @@ def getBasedir(dataset):
             basedir (str): path to top level of data directory
     """
     
-    import platform
-    
     # define platform-specific drives to search      
     if (platform.system() == 'Linux'):
         drives = ['/media/jrinkerJRinker SeaGate External/',
                   '/media/jrinkerSeagate Backup Plus Drive/']
         
     elif (platform.system() == 'Windows'):
-        drives = ['E:/','G:/','H:/','T:/','V:/']
+        drives = ['E:\\','G:\\','H:\\','T:\\','V:\\']
         
     # get string list of drives for possible error message
     drives_str = ''
@@ -1055,16 +1051,16 @@ def getBasedir(dataset):
                     
     # define dataset locations on drive
     if (dataset == 'NREL'):
-        dataset_loc = 'data/nrel-20Hz'
+        dataset_loc = 'data\\nrel-20Hz'
             
     elif (dataset == 'fluela'):
-        dataset_loc = 'data/fluela-high_freq/'
+        dataset_loc = 'data\\fluela-high_freq\\'
             
     elif (dataset == 'PM06'):
-        dataset_loc = 'data/plaine-morte/CM06/'
+        dataset_loc = 'data\\plaine-morte\\CM06\\'
             
     elif (dataset == 'texastech'):
-        dataset_loc = 'data/texas-tech/'
+        dataset_loc = 'data\\texas-tech\\'
         
     # loop through drives, searcing for dataset
     for drive in drives:
@@ -1157,7 +1153,6 @@ def struc2metadata(dataset,struc_hf,ID):
             parameters (numpy array): 1D array of metadata parameters
     """
     
-
     if (dataset in ['NREL','fluela','PM06','texastech']):
 
         # get list of metadata fieldnames
@@ -1195,7 +1190,6 @@ def calculateKaimal(x,dt):
         Returns:
             tau (float): optimal Kaimal length scale
     """
-    
     
     # if (2+)D array is fed in, halt with error
     if ((len(x.shape)>1) and (x.shape[0] != 1 and x.shape[1] != 1)):
@@ -1269,7 +1263,6 @@ def interpolationHeights(dataset,ht,field):
             
     """
     
-    
     if (dataset == 'NREL'):
 
         if (field == 'Wind_Speed_Cup'):
@@ -1307,7 +1300,6 @@ def interpolationHeights(dataset,ht,field):
 def interpolateparameter(dataset,ht,lo_val,hi_val,field):
     """ Interpolate parameter value
     """
-    
     
     if (dataset == 'NREL'):
         
@@ -1362,8 +1354,7 @@ def calculatefield(dataset,struc_hf,ID):
     """ Save atmophseric parameters in output dictionary
 
     """
-    import calendar, time
-    
+    import calendar
     
     # meteorological constants
     g, R, kappa = 9.81, 287, 0.41
@@ -1818,15 +1809,14 @@ def calculatefield(dataset,struc_hf,ID):
             Tbar_K    = np.nanmean(T_K)                         # [K]
             WSbar_s   = np.nanmean(np.sqrt(ux_s**2 + uy_s**2))
             WSbar_p   = np.nanmean(np.sqrt(ux_p**2 + uy_p**2))
-# TODO: add wind direction offset
-#            WD_offset = datasetSpecs(dataset)['sonic_offset']
-#            WD        = WD_offset*np.pi/180. - np.arctan2(uy,ux)
             WD_s      = np.arctan2(uy_s,ux_s)
-            WD_p     = np.arctan2(uy_p,ux_p)
+            WD_p      = np.arctan2(uy_p,ux_p)
             WDbar_s   = np.angle(np.nanmean(np.exp( \
-                                    1j*WD_s)),deg=1) % 360
+                                    1j*WD_s)),deg=1)
             WDbar_p   = np.angle(np.nanmean(np.exp( \
-                                    1j*WD_p)),deg=1) % 360
+                                    1j*WD_p)),deg=1)
+            WDbar_s   = (180. + 30 - WDbar_s) % 360.        # convert to cardinal
+            WDbar_p   = (180. + 75 - WDbar_p) % 360.        # convert to cardinal
             RHbar     = np.nanmean(RH)
             Pbar      = np.nanmean(P)                   # [mbar]
             if Tbar >= 0: A, B = 7.5, 237.3
@@ -2279,7 +2269,6 @@ def inversecompositeCDF(Q,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
         Returns:
             x (numpy array): composite CDF values at x
     """
-    
     import scipy.stats
     
     # initialize array for output
@@ -2322,7 +2311,6 @@ def compositePDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
         Returns:
             f (numpy array): composite PDF values at x
     """
-    
     import scipy.stats
     
     # initialize pdf
@@ -2362,7 +2350,6 @@ def compositeNSAE(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
             NSAE (float): normalized sum absolute error
     """
     
-    
     # get threshold value
     N = x.size
     x = np.sort(x)
@@ -2393,7 +2380,6 @@ def fitcompositeparameters(x,dist_name,x_T=float('inf')):
     import scipy.stats
     from scipy.optimize import minimize
     
-
     # initialize CDFs
     dist_main = getattr(scipy.stats, dist_name)
     dist_GP   = getattr(scipy.stats, 'genpareto')
@@ -2484,7 +2470,6 @@ def fitcompositedistribution(dataset,iP,x):
         
     """
     
-
     if (dataset == 'NREL'):
 
         # probability distribution candidates
@@ -5274,19 +5259,17 @@ def time2fpath(dataset,timestamp):
             
     """
     
-    import glob
+    # get tuple of timestampe
+    if isinstance(timestamp,tuple):
+            time_tup = timestamp
+    elif isinstance(timestamp,(int,float)):
+            time_tup = timeflt2tup(timestamp)
+    else:
+        errStr = 'Invalid {} for timestamp'. \
+                     format(type(timestamp))
+        raise TypeError(errStr)
 
     if (dataset in ['NREL','fluela']):
-
-        # get tuple of timestampe
-        if isinstance(timestamp,tuple):
-                time_tup = timestamp
-        elif isinstance(timestamp,(int,float)):
-                time_tup = timeflt2tup(timestamp)
-        else:
-            errStr = 'Invalid {} for timestamp'. \
-                         format(type(timestamp))
-            raise TypeError(errStr)
 
         # convert tuple to string values
         yearS  = str(time_tup[0])
@@ -5301,6 +5284,54 @@ def time2fpath(dataset,timestamp):
         
         # get filename
         fname_part = '_'.join([monthS,dayS,yearS,hourS,minS])
+        fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
+
+        # check if file doesn't exist
+        if len(fpath) > 0:
+            fpath = fpath[0]
+        else:
+            errStr = 'File {} does not exist.'.format(fname_part)
+            raise IOError(errStr)
+
+    elif (dataset== 'PM06'):
+
+        # convert tuple to string values
+        yearS  = str(time_tup[0])
+        monthS = str(time_tup[1]).zfill(2)
+        dayS   = str(time_tup[2]).zfill(2)
+        hourS  = str(time_tup[3]).zfill(2)
+        minS   = str(time_tup[4]).zfill(2)
+
+        # get directory path
+        basedir = getBasedir(dataset)
+        dirpath = os.path.join(basedir,yearS,monthS,dayS)
+        
+        # get filename
+        fname = '_'.join([monthS,dayS,yearS,hourS+minS,'TS','WND'])
+        fpath = os.path.join(dirpath,fname)+'.mat'
+
+        # check if file doesn't exist
+        if len(fpath) > 0:
+            fpath = fpath[0]
+        else:
+            errStr = 'File {} does not exist.'.format(fname_part)
+            raise IOError(errStr)
+
+    elif (dataset== 'texastech'):
+
+        # convert tuple to string values
+        yearS  = str(time_tup[0])
+        monthS = str(time_tup[1]).zfill(2)
+        dayS   = str(time_tup[2]).zfill(2)
+        hourS  = str(time_tup[3]).zfill(2)
+        minS   = str(time_tup[4]).zfill(2)
+
+        # get directory path
+        basedir = getBasedir(dataset)
+        dirpath = os.path.join(basedir,yearS,monthS,dayS)
+        
+        # get filename
+        fname_part = '*D'+yearS+monthS+dayS+'_T'+hourS+minS
         fpath = glob.glob(os.path.join(dirpath,fname_part)+'*.mat')
 
         # check if file doesn't exist
@@ -5909,7 +5940,6 @@ def remove_spikes(x, spikeWidth=6, P=0.9, beta=10.):
             x_cl (numpy array): time series with spikes removed
     """
     
-
     N        = x.size                           # length of record
     x_cl     = np.copy(x)                       # cleaned version
     n_spikes = 0                                # initialize no. of spikes
