@@ -134,7 +134,9 @@ for i_turb in range(len(turb_names)):
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_zlabel('{:s} of {:s}'.format(stat,parm))
-    fig.suptitle('{:s} {:s}: {:s} of {:s}'.format(RunName,turb_name,stat,parm),
+#    fig.suptitle('{:s} {:s}: {:s} of {:s}'.format(RunName,turb_name,stat,parm),
+#                 fontsize='large')
+    fig.suptitle('WindPACT 5.0 MW Max OoP Defl'.format(RunName,turb_name,stat,parm),
                  fontsize='large')
     plt.tight_layout()
         

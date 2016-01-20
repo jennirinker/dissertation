@@ -16,7 +16,8 @@ import os, json
 #dataset = 'NREL-mat'
 #dataset = 'NREL'
 #dataset = 'fluela'
-dataset = 'PM06'
+#dataset = 'PM06'
+dataset = 'texastech'
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \

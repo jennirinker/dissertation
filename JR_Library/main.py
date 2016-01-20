@@ -32,6 +32,7 @@ from peakdetect import peakdetect
 from rainflow import rainflow
 import datetime
 import statsmodels.api as sm
+import scipy.stats
 
 # =============================================================================
 # ---------------------------- FILE I/O ---------------------------------------
@@ -2145,7 +2146,6 @@ def screenmetadata(fields,metadata,dataset):
         # column indices for each value
         CScol   = fields.index('Wind_Speed_Sonic')
         dirCol  = fields.index('Wind_Direction_Sonic')
-        sigCol  = fields.index('Sigma_u')
         
         # filter out the rows with NaN values
         metadata = metadata[np.logical_not( \
@@ -2153,12 +2153,13 @@ def screenmetadata(fields,metadata,dataset):
         
         # screen remaining data
         cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
-        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
-                                        < (dir2 - dir1) % 360.)]
-                                        
-        # manually screen for data with 999s and for too-high sigma
-        cleandata = metadata[np.where(metadata[:,CScol] < 30.)]
-        cleandata = metadata[np.where(metadata[:,sigCol] < 20.)]
+        
+        # *********** MANUALLY CHANGE WD AND SCREEN
+        cleandata[:,dirCol] = (180. + 30. - cleandata[:,dirCol]) % 360
+        cleandata = cleandata[(cleandata[:,dirCol] - dir1) % 360. \
+                       < (dir2 - dir1) % 360.,:]
+#        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
+#                                        < (dir2 - dir1) % 360.)]
         
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
@@ -2181,8 +2182,12 @@ def compositeCDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
             F (numpy array): composite CDF values at x
     """
     
-    import scipy.stats
-    
+    # turn p into 1d numpy array in case it's a float
+    float_in = 0
+    if not np.array(x).shape:
+        x = np.array([x])
+        float_in = 1
+        
     # initialize cdf
     F_comp = np.empty(x.shape)
     
@@ -2203,7 +2208,61 @@ def compositeCDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
     F_comp[i_main] = F_main(x[i_main])
     F_comp[i_GP]   = (1 - F_main(x_T)) * F_GP(x[i_GP]) + F_main(x_T)
     
+    # return to float if float was passed in
+    if float_in: F_comp = F_comp[0]
+        
     return F_comp
+
+
+def compositeISF(p,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
+    """ Inverse survival function of single/composite
+        distribution
+
+        Args:
+            p (numpy array): values at which to evaluate CDF
+            dist_name (string): distribution type
+            p_main (tuple): main distribution parameters
+            x_T (float): optional, threshold value
+            p_GP (tuple): optional, GP distribution parameters
+
+        Returns:
+            x (numpy array): inverse survival function at quantiles Q
+    """
+    
+    # turn p into 1d numpy array in case it's a float
+    float_in = 0
+    if not np.array(p).shape:
+        p = np.array([p])
+        float_in = 1
+    
+    # initialize array for output
+    x_comp = np.empty(p.shape)
+    
+    # initialize distributions
+    dist_main = getattr(scipy.stats, dist_name)
+    dist_GP   = getattr(scipy.stats, 'genpareto')
+    
+    # define CDF functions to improve code readability
+    G_main = lambda Q: dist_main.isf(Q, *p_main[:-2], \
+            loc=p_main[-2], scale=p_main[-1])
+    G_GP   = lambda Q: dist_GP.isf(Q, *p_GP[:-2], \
+            loc=p_GP[-2], scale=p_GP[-1])
+
+    # calculate threshold quantile
+    Q_T = dist_main.cdf(x_T, *p_main[:-2], \
+            loc=p_main[-2], scale=p_main[-1])
+    
+    # get indices for main and GP distributions
+    i_main, i_GP = np.where(p <= Q_T), np.where(p > Q_T)
+    
+    # set distribution values
+    x_comp[i_main] = G_main(p[i_main])
+    x_comp[i_GP]   = G_GP((p[i_GP]-Q_T)/(1-Q_T))
+    
+    # return to float if float was passed in
+    if float_in: x_comp = x_comp[0]
+    
+    return x_comp
 
 
 def inversecompositeCDF(Q,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
@@ -2352,7 +2411,7 @@ def fitcompositeparameters(x,dist_name,x_T=float('inf')):
     # define error function
     fun = lambda p_comp: compositeNSAE(x,dist_name,p_comp[:-2],x_T, \
         (p_comp[-2],)+(x_T,)+(p_comp[-1],))
-
+        
     # perform bounded optimization
     res = minimize(fun,p_comp0,bounds=bnds)
 
@@ -2402,8 +2461,11 @@ def parameterbounds(dist_name):
         bnds = ((0,None),(None,None),(0,None))
     elif (dist_name == 'wrapcauchy'):
         bnds = ((0,None),(None,None),(0,None))
+    elif (dist_name == 'gumbel_r'):
+        bnds = ((None,None),(0,None))
     else:
-        print('***THAT DISTRIBUTION IS NOT CODED***')
+        ErrStr = 'Distribution \"{:s}\" not coded'.format(dist_name)
+        raise ValueError(ErrStr)
         bnds = ()
 
     return bnds
