@@ -895,7 +895,7 @@ def datasetSpecs(dataset):
     elif (dataset == 'PM06'):
         specs['n_t']          = 12000
         specs['dt']           = 0.05
-        specs['IDs']          = range(1,13)
+        specs['IDs']          = np.arange(1,13)
         specs['sonic_offset'] = 120.
         specs['WSlim']        = 3.0
         specs['dir1']         = 60.

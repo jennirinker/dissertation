@@ -15,8 +15,9 @@ import os, json
 
 # choose which dataset
 #dataset = 'NREL-mat'
-dataset = 'NREL'
+#dataset = 'NREL'
 #dataset = 'fluela'
+dataset = 'PM06'
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -71,9 +72,9 @@ for iP in range(len(parms)):
     else:                           dist_cands = half_cands   
     
     # loop through heights
-    for iH in range(heights.size):
+    for iH in range(len(heights)):
         ht = heights[iH]
-        print('  height {:.1f} m ({:d}/{:d})'.format(ht,iH,heights.size))
+        print('  height {:.1f} m ({:d}/{:d})'.format(ht,iH,len(heights)))
                 
         # isolate parameters for that height
         idx_ht = np.where(clean[:,htCol]==ht)[0]
@@ -138,7 +139,7 @@ for iP in range(len(parms)):
     
     # loop through heights
     h_parms_opt = []
-    for iH in range(heights.size):
+    for iH in range(len(heights)):
         
         # create NSAE matrix
         NSAEs = np.empty((len(dist_cands),len(Q_Ts)))

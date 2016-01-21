@@ -1,5 +1,5 @@
 """
-Compare the empirical CDFs and the best fit CDFs
+Overlay the fit CDFs over the empirical CDFs
 """
 import sys
 libpath = 'C:\\Users\\jrinker\\Documents\\GitHub\\dissertation'
@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 # choose which dataset
 #dataset,fignum = 'NREL-mat', 1
 #dataset,fignum = 'NREL', 2
-dataset,fignum = 'fluela', 3
+#dataset,fignum = 'fluela', 3
+dataset,fignum = 'PM06', 4
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -26,7 +27,7 @@ dist_type = 'sing'
 #dist_type = 'comp'
 
 # plot style
-plt.style.use('duke_paper.mplstyle')
+plt.style.use(jr.stylepath('duke_paper'))
 
 # ============================ load data ======================================
 
@@ -44,8 +45,8 @@ else:
 
 # screen metadata, get measurement heights and columns for data
 clean = jr.screenmetadata(fields,raw_parms,dataset_flag)
-heights = jr.datasetSpecs(dataset_flag)[2]
-htCol  = fields.index('Height')
+heights = jr.datasetSpecs(dataset_flag)['IDs']
+htCol  = fields.index('ID')
 
 # load distribution information
 dist_fname = '{:s}_6dist_{:s}_parms.txt'.format(dataset,dist_type)
@@ -54,6 +55,8 @@ with open(dist_fpath,'r') as f:
     dist_dict  = json.load(f)
 p_parms_opt = dist_dict['p_parms_opt']
 parms       = dist_dict['parms']
+
+parms[2] = 'Tau_u'
 
 # ========================== plot distributions ===============================
 
