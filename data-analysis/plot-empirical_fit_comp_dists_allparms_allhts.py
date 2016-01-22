@@ -10,7 +10,9 @@ import scipy.io as scio
 import numpy as np
 import json, os
 import matplotlib.pyplot as plt
-import matplotlib as mpl
+
+# use style
+plt.style.use(jr.stylepath('duke_paper'))
 
 # save figure?
 saveFig = 0
@@ -22,7 +24,7 @@ dataset = 'NREL'
 #dataset = 'PM06'
 
 # define directory where wind parameters are stored (unused for matlab)
-basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
+BaseDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
                   'processed_data'
 
 # plot parameters
@@ -35,23 +37,14 @@ yPos2  = [0.76,0.25]
     
 # ======================= load data/parameters ==============================
 
-if ('mat' in dataset):
-    fields, raw_parms = jr.loadNRELmatlab()
-    dataset_flag = 'NREL'
-else:
-    fname = dataset + '-metadata.mat'
-    fpath = os.path.join(basedir,fname)
-    fields, raw_parms = jr.loadmetadata(fpath)
-    dataset_flag = dataset
-
-# screen metadata, get measurement heights and columns for data
-clean = jr.screenmetadata(fields,raw_parms,dataset_flag)
+# load data with all data at all heights
 
 # load fit parameters
-fname = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
-        'processed_data\\NREL_optdist_comp_parms.txt'
-with open(fname,'r') as f:
-    p_parms_opt = json.load(f)
+FitParmsName = '{:s}_6dist_comp_parms.txt'.format(dataset)
+FitParmsPath = os.path.join(BaseDir,FitParmsName)
+with open(FitParmsPath,'r') as f:
+    FitParmsDict = json.load(f)
+p_parms_opt = FitParmsDict['p_parms_opt']
 
 # ============================= plot data ===================================
 

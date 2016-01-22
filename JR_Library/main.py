@@ -24,7 +24,7 @@ Jenni Rinker, Duke University
 """
 
 # used modules
-import os, re, glob, time, datetime, platform
+import os, re, glob, time, datetime, platform, json
 import numpy as np
 import scipy.io as scio
 from peakdetect import peakdetect
@@ -3035,6 +3035,65 @@ def data2field(y_data,z_data,t_data,u_data,y_grid,z_grid,zhub=90.,Vhub=10.):
             
     return out_dict
     
+
+def SampleWindParameters(NumSamps,dataset,BaseDir,ParmSample,iH,
+                         URange=[-float('inf'),float('inf')]):
+    """ Draw a correlated sample of wind parameters for a given dataset.
+        Throw out wind speed values that are outside the given range.
+    """
+    
+    # load marginal distribution information
+    dist_fname = '{:s}_6dist_{:s}_parms.txt'.format(dataset,'comp')
+    dist_fpath = os.path.join(BaseDir,dist_fname)
+    with open(dist_fpath,'r') as f:
+        dist_dict  = json.load(f)
+    p_parms_opt = dist_dict['p_parms_opt']
+    parms       = dist_dict['parms']
+    parms[2] = 'Tau_u'
+    
+    # load correlations
+    DictName   = '{:s}_correlations.mat'.format(dataset)
+    DictPath   = os.path.join(BaseDir,DictName)
+    CorrDict   = scio.loadmat(DictPath,squeeze_me=True)
+    R          = CorrDict['R']
+    all_fields = [s.rstrip() for s in CorrDict['all_fields']]
+    
+    # get correlation matrix for that height
+    Corr = np.ones((len(ParmSample),len(ParmSample)))
+    for iP1 in range(len(ParmSample)):
+        parm1 = ParmSample[iP1]
+        for iP2 in range(1,len(ParmSample)):
+            parm2 = ParmSample[iP2]
+            iC1   = iH*len(all_fields) + all_fields.index(parm1)
+            iC2   = iH*len(all_fields) + all_fields.index(parm2)
+            Corr[iP1,iP2] = R[iC1,iC2]
+            Corr[iP2,iP1] = R[iC1,iC2]
+    C = np.linalg.cholesky(Corr)
+    
+    # draw wind samples
+    n_sampd = 0
+    iWS     = ParmSample.index('Mean_Wind_Speed')
+    WindParms = np.empty((NumSamps,len(ParmSample)))
+    while n_sampd < NumSamps:
+        print(n_sampd)
+        G_unc = np.random.normal(size=(len(ParmSample),NumSamps))
+        G_cor = np.dot(C,G_unc)
+        U_cor = scipy.stats.norm.cdf(G_cor)
+        Y_cor = np.empty(U_cor.shape)
+        for iP in range(len(ParmSample)):
+            Y_cor[iP,:] = inversecompositeCDF(U_cor[iP,:],
+                                                 *p_parms_opt[iP][iH][:-1])
+        idc_inrange = np.logical_and(Y_cor[:,iWS] <= URange[1],
+                                     Y_cor[:,iWS] >= URange[0])
+        Y_cor = Y_cor[idc_inrange,:]
+        n_all = n_sampd + Y_cor.shape[1]
+        n_end = min(n_all,NumSamps)
+        print(n_sampd,n_end)
+        WindParms[:,n_sampd:n_end] = Y_cor[:,:(n_end-n_sampd)]
+        n_sampd += Y_cor.shape[1]
+                                             
+    return WindParms
+
 
 # =============================================================================
 # ---------------------------- TURBSIM ANALYSIS -------------------------------
