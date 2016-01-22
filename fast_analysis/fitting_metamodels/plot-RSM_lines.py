@@ -85,8 +85,7 @@ for TurbName in TurbNames:
                 ax = fig.add_subplot(len(WindParms[3]),len(WindParms[2]),iplot)
                 
                 # plot data
-                for iI in range(len(WindParms[1])):
-                    I = WindParms[1][iI]
+                for I in np.arange(0,0.6,0.1):
                     x = np.empty((len(UPlot),4))
                     x[:,0],x[:,1],x[:,2],x[:,3] = UPlot,I,logL,rho
                     Xv = jr.myvander(x,ps)
@@ -132,6 +131,8 @@ for TurbName in TurbNames:
                         
         iPlot += 1
         
+        
+        poop1
         # ================= plot data vs rho =====================
         
         # initialize figure

@@ -15,7 +15,7 @@ import scipy.stats
 
 # choose which dataset
 #datasets = ['NREL','fluela','PM06']
-datasets = ['PM06']
+datasets = ['fluela']
 dist_type = 'comp'
 iH        = 0
 ParmSample = ['Mean_Wind_Speed', 'Sigma_u', 'Tau_u', 'Concentration_u']
@@ -27,7 +27,7 @@ BaseDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
 
 # plot style
 plt.style.use(jr.stylepath('duke_paper'))
-FigNum = 1
+FigNum = 8
 FigSize = (6.0,4.0)
 colors = ['#235F9C', '#C0504D', '#F79646', '#8064A2', \
             '#9BBB59', '#8C564B', '#17BECF', '#BCBD22', '#7F7F7F', '#E377C2', \
@@ -55,12 +55,23 @@ for dataset in datasets:
         dataset_flag = dataset
     
     # screen metadata, get measurement heights and columns for data
-    clean = jr.screenmetadata(fields,raw_parms,dataset_flag)
+    clean   = jr.screenmetadata(fields,raw_parms,dataset_flag)
     heights = jr.datasetSpecs(dataset_flag)['IDs']
-    htCol  = fields.index('ID')
+    htCol   = fields.index('ID')
+        
+    # isolate parameters for that height
+    ht = heights[iH]
+    idx_ht = np.where(clean[:,htCol]==ht)[0]
+    parms_ht = clean[idx_ht,:]
     
+    # calculate empirical CDF
+    n_recs = parms_ht.shape[0]
+    F_dat = np.arange(1,n_recs+1)/(n_recs+1.)
+        
+    # calculate wind speed cap, sample data
+    UMax      = parms_ht[:,fields.index('Mean_Wind_Speed')].max()
     WindParms = jr.SampleWindParameters(NumSamps,dataset,BaseDir,ParmSample,iH,
-                         URange=[-float('inf'),11])
+                         URange=[-float('inf'),UMax*1.2])
     
     # ---------- plot distributions ----------
     
@@ -72,16 +83,7 @@ for dataset in datasets:
     ax.append(plt.axes([0.62,0.55,0.35,0.35]))
     ax.append(plt.axes([0.12,0.10,0.35,0.35]))
     ax.append(plt.axes([0.62,0.10,0.35,0.35]))
-    
-    # isolate parameters for that height
-    ht = heights[iH]
-    idx_ht = np.where(clean[:,htCol]==ht)[0]
-    parms_ht = clean[idx_ht,:]
-    
-    # calculate empirical CDF
-    n_recs = parms_ht.shape[0]
-    F_dat = np.arange(1,n_recs+1)/(n_recs+1.)
-        
+
     # plot CDFs
     for iP in range(len(ParmSample)):
 
@@ -93,10 +95,7 @@ for dataset in datasets:
         ax[iP].plot(np.sort(WindParms[:,iP]),F_samp,
                     label='Sampled'.format(ht))
         ax[iP].set_ylim([0,1])
-        
-        poop
-    
-        
+
     # make things pretty
     ax[2].set_xscale('log')
     ax[0].legend(loc=4,fontsize='small')

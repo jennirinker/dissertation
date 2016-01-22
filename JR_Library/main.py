@@ -3042,6 +3042,10 @@ def SampleWindParameters(NumSamps,dataset,BaseDir,ParmSample,iH,
         Throw out wind speed values that are outside the given range.
     """
     
+    SigRange = [0,float('inf')]
+    TauRange   = [1e-1,1e4]
+    RhoRange = [0,1]
+    
     # load marginal distribution information
     dist_fname = '{:s}_6dist_{:s}_parms.txt'.format(dataset,'comp')
     dist_fpath = os.path.join(BaseDir,dist_fname)
@@ -3071,11 +3075,12 @@ def SampleWindParameters(NumSamps,dataset,BaseDir,ParmSample,iH,
     C = np.linalg.cholesky(Corr)
     
     # draw wind samples
-    n_sampd = 0
-    iWS     = ParmSample.index('Mean_Wind_Speed')
+    NumSampd  = 0
+    iU,iSig,iL,irho = ParmSample.index('Mean_Wind_Speed'),\
+        ParmSample.index('Sigma_u'),ParmSample.index('Tau_u'),\
+        ParmSample.index('Concentration_u')
     WindParms = np.empty((NumSamps,len(ParmSample)))
-    while n_sampd < NumSamps:
-        print(n_sampd)
+    while NumSampd < NumSamps:
         G_unc = np.random.normal(size=(len(ParmSample),NumSamps))
         G_cor = np.dot(C,G_unc)
         U_cor = scipy.stats.norm.cdf(G_cor)
@@ -3083,14 +3088,22 @@ def SampleWindParameters(NumSamps,dataset,BaseDir,ParmSample,iH,
         for iP in range(len(ParmSample)):
             Y_cor[iP,:] = inversecompositeCDF(U_cor[iP,:],
                                                  *p_parms_opt[iP][iH][:-1])
-        idc_inrange = np.logical_and(Y_cor[:,iWS] <= URange[1],
-                                     Y_cor[:,iWS] >= URange[0])
-        Y_cor = Y_cor[idc_inrange,:]
-        n_all = n_sampd + Y_cor.shape[1]
-        n_end = min(n_all,NumSamps)
-        print(n_sampd,n_end)
-        WindParms[:,n_sampd:n_end] = Y_cor[:,:(n_end-n_sampd)]
-        n_sampd += Y_cor.shape[1]
+        UInRange = np.logical_and(Y_cor[iU,:] <= URange[1],
+                                  Y_cor[iU,:] >= URange[0])
+        sigInRange = np.logical_and(Y_cor[iSig,:] <= SigRange[1],
+                                    Y_cor[iSig,:] >= SigRange[0])
+        LInRange = np.logical_and(Y_cor[iL,:] <= TauRange[1],
+                                  Y_cor[iL,:] >= TauRange[0])
+        rhoInRange = np.logical_and(Y_cor[irho,:] <= RhoRange[1],
+                                    Y_cor[irho,:] >= RhoRange[0])
+        InRange = np.logical_and(np.logical_and(np.logical_and(UInRange,
+                                                               sigInRange),
+                                                LInRange),
+                                 rhoInRange)
+        Y_cor = Y_cor[:,InRange]
+        End   = min(Y_cor.shape[1]+NumSampd,NumSamps)   # end index
+        WindParms[NumSampd:End,:] = Y_cor[:,:(End-NumSampd)].T
+        NumSampd = End                                  # update number of samps
                                              
     return WindParms
 

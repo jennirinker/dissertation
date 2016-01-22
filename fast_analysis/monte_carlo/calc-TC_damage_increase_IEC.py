@@ -51,7 +51,7 @@ RSMDir = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
                 'dissertation\\fast_analysis\\fitting_metamodels\\RSMs'
 DmgDictDir  = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
                 'processed_data'
-DmgDictName = 'DmgIncrIEC.txt'
+DmgDictName = 'DmgIncr_IEC.txt'
 
 # -----------------------------------------------------------------------------
 

@@ -35,7 +35,7 @@ cov = 0.1
 
 NumSamps = 20*365*24*6              # number of 10-minute samples
 
-DmgDictName = 'UltIncrIEC.txt'
+DmgDictName = 'UltIncr_IEC.txt'
 parameters = [['max','RootMFlp1','MN-m',1000.],
               ['max','HSShftTq','kN-m',1],
               ['max','TwrBsMyt','MN-m',1000]]
