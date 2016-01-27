@@ -25,10 +25,6 @@ DSNames = ['M4','Fluela','Plaine Morte','Texas Tech']
 TurbName = 'WP5.0A04V00'
 RunName  = 'BigRun2'
 
-parameters = [['DEL-h','RootMFlp1','MN-m',1000.,12],
-              ['DEL-h','HSShftTq','kN-m',1,5],
-              ['DEL-h','TwrBsMyt','MN-m',1000,5]]
-
 FigNum = 1
 FigSize1 = (8.0,5.5)
 FigSize2 = (5.0,2.5)
@@ -68,7 +64,7 @@ for i_ds in range(len(datasets)):
     dataset = datasets[i_ds]
     
     # load damage dictionary
-    DmgDictName = 'DmgIncr_{:s}.txt'.format(dataset)
+    DmgDictName = 'UltIncr_{:s}.txt'.format(dataset)
     DmgDictPath = os.path.join(BaseDmgDictDir,DmgDictName)
     with open(DmgDictPath,'rb') as DictFile:
         OutDict = pickle.load(DictFile)
@@ -99,8 +95,6 @@ for i_ds in range(len(datasets)):
                      label=Labels[iRho])
             ymax = max(ymax,n.max()*1.25)
             
-#        plt.xlabel('{:s} {:s} ({:s})'.format(stat,parm,units),fontsize='small')
-#        ax.set_ylabel('Frequency',fontsize='small')
         ax.set_ylim([0,ymax])
         plt.locator_params(nbins=5)
         ax.text(0.10,0.82,'({:s})'.format(labels[istat*len(datasets)+i_ds]),
@@ -121,7 +115,7 @@ for i_ds in range(len(datasets)):
                      transform=ax.transAxes)
     
 if savefig:
-    FigTitle = 'plot-TC_damage_increase_data_hist.eps'
+    FigTitle = 'plot-TC_ultimate_increase_data_hist.eps'
     SavePath = os.path.join(SaveDir,FigTitle)
     fig1.savefig(SavePath)
     print('Figure {:s} saved.'.format(FigTitle))
@@ -141,22 +135,22 @@ for istat in range(len(parameters)):
                     edgecolors=colors[istat],
                     label=parameters[istat][1] if i_ds == 0 else '')
                        
-#        ax.set_ylim([-10,np.ceil(1.2*DPercIncrs.max()*10)/10.])
+#    ax.set_ylim([-2,np.ceil(1.2*DPercIncrs.max()*10)/10.])
+    ax.set_ylim([-10,np.ceil(1.2*DPercIncrs.max()*10)/10.])
 #        ax.set_xlim([-1.5,iVref*(2+len(Irefs)) + iIref+1])
-    ax.set_ylim([-5,120])
+#    ax.set_ylim([-5,120])
     ax.set_xticks(range(len(datasets)))
     ax.set_xticklabels(DSNames[:len(datasets)],
                         fontsize='x-small')
-    ax.text(0.02,0.70,'({:s})'.format(labels[istat]),transform=ax.transAxes)
     plt.locator_params(axis='y',nbins=5)
     ax.yaxis.grid()
     ax.tick_params('both', length=0, which='major')    
-    ax.set_ylabel('% Increase\nLifetime\nDamage',fontsize='small')
+    ax.set_ylabel('% Increase\nUltimate\nLoad',fontsize='small')
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
                ncol=3, mode="expand", borderaxespad=0.)
-        
+   
 if savefig:
-    FigTitle = 'plot-TC_damage_increase_data_perc.eps'
+    FigTitle = 'plot-TC_ultimate_increase_data_perc.eps'
     SavePath = os.path.join(SaveDir,FigTitle)
     fig2.savefig(SavePath)
     print('Figure {:s} saved.'.format(FigTitle))

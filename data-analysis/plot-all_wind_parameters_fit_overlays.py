@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 
 # choose which dataset
-datasets = ['NREL','fluela','PM06']
+datasets = ['NREL','fluela','PM06','texastech']
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -32,24 +32,23 @@ colors = ['#235F9C', '#C0504D', '#F79646', '#8064A2', \
 
 iPlot = 0
 for dist_type in ['sing','comp']:
+#for dist_type in ['comp']:
     for dataset in datasets:
     
         # ---------- load data ----------
         
         print('\nPlotting {:s} marginal '.format(dist_type) + \
-                'distributions to dataset \"{:s}\"\n'.format(dataset))
+                'distributions for dataset \"{:s}\"\n'.format(dataset))
         
         if ('mat' in dataset):
-            fields, raw_parms = jr.loadNRELmatlab()
+            fields, clean = jr.loadNRELmatlab()
             dataset_flag = 'NREL'
         else:
-            fname = dataset + '-metadata.mat'
-            fpath = os.path.join(basedir,fname)
-            fields, raw_parms = jr.loadmetadata(fpath)
+            fields, clean = jr.loadmetadata(dataset)
             dataset_flag = dataset
         
         # screen metadata, get measurement heights and columns for data
-        clean = jr.screenmetadata(fields,raw_parms,dataset_flag)
+        screen = jr.screenmetadata(fields,clean,dataset_flag)
         heights = jr.datasetSpecs(dataset_flag)['IDs']
         htCol  = fields.index('ID')
         
@@ -79,8 +78,8 @@ for dist_type in ['sing','comp']:
             
             # isolate parameters for that height
             ht = heights[iH]
-            idx_ht = np.where(clean[:,htCol]==ht)[0]
-            parms_ht = clean[idx_ht,:]
+            idx_ht = np.where(screen[:,htCol]==ht)[0]
+            parms_ht = screen[idx_ht,:]
             
             # calculate empirical CDF
             n_recs = parms_ht.shape[0]

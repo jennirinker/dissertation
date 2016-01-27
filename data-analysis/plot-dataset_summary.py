@@ -18,8 +18,8 @@ plt.style.use('C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
 #dataset, fignum = 'NREL-mat', 1
 #dataset, fignum = 'NREL', 2
 #dataset, fignum = 'fluela', 3
-dataset, fignum = 'PM06', 4
-#dataset, fignum = 'texastech', 5
+#dataset, fignum = 'PM06', 4
+dataset, fignum = 'texastech', 5
 
 # define directory where wind parameters are stored (unused for matlab)
 basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -28,32 +28,28 @@ basedir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
 print('\nProcessing dataset {}'.format(dataset))
 
 if ('mat' in dataset):
-    fields, raw_parms = jr.loadNRELmatlab()
+    fields, clean = jr.loadNRELmatlab()
     dataset = 'NREL'
 else:
-    fname = dataset + '-metadata.mat'
-    fpath = os.path.join(basedir,fname)
-    fields, raw_parms = jr.loadmetadata(fpath)
+    fields, clean = jr.loadmetadata(dataset)
 
 # screen metadata, get measurement heights
-clean = jr.screenmetadata(fields,raw_parms,dataset)
+screen = jr.screenmetadata(fields,clean,dataset)
 heights = jr.datasetSpecs(dataset)['IDs']
 
 # print sizes
-n_raw, n_clean = raw_parms.shape[0], clean.shape[0]
+n_raw, n_clean = clean.shape[0], screen.shape[0]
 print('\nOverview')
 print('------------------------------')
-print('  Size of raw dataset:   {}'.format(n_raw))
-print('  Size of clean dataset: {}'.format(n_clean))
-print('  Percent clean:         {:.2f}%'.format(n_clean/float(n_raw)*100.))
+print('  Size of clean dataset:    {}'.format(n_raw))
+print('  Size of screened dataset: {}'.format(n_clean))
+print('  Percent passed screen:    {:.2f}%'.format(n_clean/float(n_raw)*100.))
 
 # plot distributions
 htCol  = fields.index('ID')
-#htCol  = fields.index('Height')
 UCol   = fields.index('Mean_Wind_Speed')
 sigCol = fields.index('Sigma_u')
 tauCol = fields.index('Tau_u')
-#tauCol = fields.index('tau_u')
 rhoCol = fields.index('Concentration_u')
 muCol  = fields.index('Location_u')
 
@@ -68,12 +64,16 @@ ax22 = plt.axes([0.62,0.12,0.35,0.35])
 print('\nHealthy records by height')
 print(  '-------------------------')
 
+if dataset == 'PM06':
+    labelStr = 'ID {:.0f}'
+else:
+    labelStr = '{:.0f} m'
 for iH in range(len(heights)):
     
     # isolate parameters for that height
     ht = heights[iH]
-    idx_ht = np.where(clean[:,htCol]==ht)[0]
-    parms_ht = clean[idx_ht,:]
+    idx_ht = np.where(screen[:,htCol]==ht)[0]
+    parms_ht = screen[idx_ht,:]
     
     # calculate empirical CDF
     n_recs = parms_ht.shape[0]
@@ -90,7 +90,7 @@ for iH in range(len(heights)):
     mu  = parms_ht[:,muCol]
     
     # plot CDFs
-    ax11.plot(np.sort(U),F,label='{:.0f} m'.format(ht))
+    ax11.plot(np.sort(U),F,label=labelStr.format(ht))
     ax12.plot(np.sort(sig),F)
     ax21.plot(np.sort(tau),F)
 #    ax21.plot(np.sort(L),F)
@@ -103,5 +103,5 @@ ax12.set_title('$\sigma_u$')
 ax21.set_title('$L/U$')
 #ax21.set_title('$L$')
 ax22.set_title(r'$\rho$')
-#ax11.legend(loc=4,fontsize='small')
+ax11.legend(loc=4,fontsize='x-small',ncol=2)
 plt.suptitle('Dataset: ' + dataset,fontsize='large')

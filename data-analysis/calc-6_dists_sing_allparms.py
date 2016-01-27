@@ -17,8 +17,9 @@ import os, json
 # choose which dataset
 #dataset = 'NREL-mat'
 #dataset = 'NREL'
-dataset = 'fluela'
+#dataset = 'fluela'
 #dataset = 'PM06'
+dataset = 'texastech'
 
 # define directory where wind parameters are stored (unused for matlab)
 BaseDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -36,16 +37,14 @@ print('\nFitting single marginal distributions to dataset \"{:s}\"\n'.format(dat
 
 # load metadata
 if ('mat' in dataset):
-    fields, raw_parms = jr.loadNRELmatlab()
+    fields, clean = jr.loadNRELmatlab()
     dataset_flag = 'NREL'
 else:
-    fname = dataset + '-metadata.mat'
-    fpath = os.path.join(BaseDir,fname)
-    fields, raw_parms = jr.loadmetadata(fpath)
+    fields, clean = jr.loadmetadata(dataset)
     dataset_flag = dataset
 
 # screen metadata, get measurement heights and columns for data
-clean = jr.screenmetadata(fields,raw_parms,dataset_flag)
+screen = jr.screenmetadata(fields,clean,dataset_flag)
 IDs   = jr.datasetSpecs(dataset_flag)['IDs']
 htCol  = fields.index('ID')
 
@@ -79,8 +78,8 @@ for iP in range(len(parms)):
         print('  height {:.1f} m ({:d}/{:d})'.format(ht,iH,len(IDs)))
         
         # isolate parameters for that height
-        idx_ht = np.where(clean[:,htCol]==ht)[0]
-        parms_ht = clean[idx_ht,fields.index(parm)]
+        idx_ht = np.where(screen[:,htCol]==ht)[0]
+        parms_ht = screen[idx_ht,fields.index(parm)]
                 
         # sort into increasing order
         x = np.sort(parms_ht)

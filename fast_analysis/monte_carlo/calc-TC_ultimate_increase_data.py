@@ -26,6 +26,7 @@ shear = 0.2
 Uref_lo,Uref_hi = 5,22
 
 nbins = 50
+NumAvg = 20
 
 cov = 0.1
 
@@ -67,8 +68,8 @@ with open(TurbDictPath,'r') as DictFile:
 for dataset in datasets:
     print('Processing dataset \"{:s}\"'.format(dataset))
     
-    DmgDictName = 'DmgIncr_{:s}.txt'.format(dataset)
-
+    DmgDictName = 'UltIncr_{:s}.txt'.format(dataset)
+    
     # load composite distribution information
     dist_fname = '{:s}_6dist_comp_parms.txt'.format(dataset)
     dist_fpath = os.path.join(BaseDir,dist_fname)
@@ -126,7 +127,7 @@ for dataset in datasets:
         loads = mean_loads + mean_loads*cov*randn
         
         # calculate and save lifetime metric
-        Fs[istat,1] = np.sum(loads**m)
+        Fs[istat,1] = np.mean(np.sort(loads)[-NumAvg:])
         
         # calculate and save histogram
         n, b = np.histogram(loads,bins=nbins,normed=True)
@@ -146,7 +147,7 @@ for dataset in datasets:
         loads = mean_loads + mean_loads*cov*randn
         
         # calculate and save lifetime metric
-        Fs[istat,0] = np.sum(loads**m)
+        Fs[istat,0] = np.mean(np.sort(loads)[-NumAvg:])
         
         # calculate and save histogram
         n, b = np.histogram(loads,bins=nbins,normed=True)

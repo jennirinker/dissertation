@@ -11,7 +11,7 @@ import scipy.io as scio
 import os
 
 # datasets to calculate correlations for
-datasets = ['NREL','fluela','PM06']
+datasets = ['NREL','fluela','PM06','texastech']
 
 # define directory where wind parameters are stored (unused for matlab)
 BaseDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \

@@ -24,6 +24,12 @@ RunName  = 'BigRun2'
 FigNum = 1
 FigSize = (6.0,3.5)
 
+parameters = [['max','RootMFlp1','MN-m',1000.],
+              ['max','HSShftTq','kN-m',1],
+              ['max','TwrBsMyt','MN-m',1000]]
+
+DmgDictName = 'UltIncr_IEC.txt'
+
 savefig = 0
 
 # base directory where the stats are stored
@@ -31,22 +37,21 @@ BaseDmgDictDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
                 'processed_data'
 SaveDir = 'C:\\Users\\jrinker\\Dropbox\\my_publications\\' + \
             '2016-02-15_dissertation\\figures'
-DmgDictName = 'DmgIncr_IEC.txt'
 
 colors = ['#235F9C', '#C0504D', '#F79646', '#8064A2', \
             '#9BBB59', '#8C564B', '#17BECF']
 markers = ['x','o','^','d','+']
 labels = string.ascii_letters
 
-dx1, dy1 = 0.99, 0.96/3.
-xPlot1 = np.arange(0.09,0.9,dx1)
-yPlot1 = np.arange(0.14,0.9,dy1)[::-1]
-w1, h1  = dx1*0.75, dy1*0.60
+dx1, dy1 = 0.96, 0.96/3.
+xPlot1   = np.arange(0.11,0.9,dx1)
+yPlot1   = np.arange(0.14,0.9,dy1)[::-1]
+w1, h1   = dx1*0.75, dy1*0.60
 
 dx2, dy2 = 0.92, 0.96/3.
-xPlot2 = np.arange(0.14,0.9,dx2)
-yPlot2 = np.arange(0.10,0.9,dy2)[::-1]
-w2, h2  = dx2*0.75, dy2*0.50
+xPlot2   = np.arange(0.14,0.9,dx2)
+yPlot2   = np.arange(0.10,0.9,dy2)[::-1]
+w2, h2   = dx2*0.75, dy2*0.50
 
 # -----------------------------------------------------------------------------
 
@@ -72,12 +77,12 @@ iPlot = 0
 
 majorFormatter = FormatStrFormatter('%.2f')
 for istat in range(len(parameters)):
-    stat,parm,units,scale,m = parameters[istat]
+    stat,parm,units,scale = parameters[istat]
 
     # initialize axes
     ax = plt.axes([xPlot1[0],yPlot1[istat],w1,h1])
     
-    # loop through and plot rho values
+    # loop through rho values
     ymax = 0
     for iRho in range(len(rhos)):
         rho = rhos[iRho]
@@ -94,7 +99,7 @@ for istat in range(len(parameters)):
     plt.step(b,n,where='post',lw=2,
              label='M4 $\\rho$'.format(rho))
     ymax = max(ymax,n.max()*1.25)
-    
+        
     plt.xlabel('{:s} {:s} ({:s})'.format(stat,parm,units),fontsize='small')
     ax.set_ylabel('Frequency',fontsize='small')
     ax.set_ylim([0,ymax])
@@ -108,12 +113,12 @@ for istat in range(len(parameters)):
                    fontsize='x-small')
 
 if savefig:
-    FigTitle = 'plot-TC_damage_increase_IEC_hist.eps'
+    FigTitle = 'plot-TC_ultimate_increase_IEC_hist.eps'
     SavePath = os.path.join(SaveDir,FigTitle)
     fig1.savefig(SavePath)
     print('Figure {:s} saved.'.format(FigTitle))
 
-# ----------------- PLOT 2 -- load distributions ------------------------------
+# ----------------- PLOT 2 -- percent increases ------------------------------
 
 # calculate percent increases
 DPercIncrs = np.empty((len(parameters),len(rhos),len(Vrefs),len(Irefs)))
@@ -128,6 +133,7 @@ for iVref in range(len(Vrefs)):
         
         DPercIncrs[:,:,iVref,iIref] = DPercIncr
         TDecrs[:,:,iVref,iIref]     = TDecr
+
 
 # plot percent 
 fig2 = plt.figure(FigNum+1,figsize=(FigSize))
@@ -157,7 +163,7 @@ for istat in range(len(parameters)):
                          label='M4 $\\rho$' \
                              if (iVref+iIref == 0) else "")
                        
-    ax.set_ylim([-10,np.ceil(1.2*DPercIncrs.max()*10)/10.])
+    ax.set_ylim([-2,np.ceil(1.2*DPercIncrs.max()*10)/10.])
     ax.set_xlim([-1.5,iVref*(2+len(Irefs)) + iIref+1])
     ax.set_xticks([0,1,2,5,6,7,10,11,12])
     ax.set_xticklabels(['\nTC-A','Wind Turbine Class 1\nTC-B','\nTC-C',
@@ -165,11 +171,11 @@ for istat in range(len(parameters)):
                         '\nTC-A','Wind Turbine Class 3\nTC-B','\nTC-C'],
                         fontsize='x-small')
     ax.text(0.02,0.70,'({:s})'.format(labels[istat]),transform=ax.transAxes)
-    plt.locator_params(axis='y',nbins=5)
+    plt.locator_params(axis='y',nbins=4)
     ax.yaxis.grid()
     ax.tick_params('both', length=0, which='major')    
     ax.set_title('{:s}'.format(parameters[istat][1]),fontsize='small')
-    ax.set_ylabel('% Increase\nLifetime\nDamage',fontsize='small')
+    ax.set_ylabel('% Increase\nUltimate\nLoad',fontsize='small')
     
     if istat == 0:
         plt.legend(bbox_to_anchor=(1.05, 1),
@@ -177,7 +183,7 @@ for istat in range(len(parameters)):
                    fontsize='x-small')
         
 if savefig:
-    FigTitle = 'plot-TC_damage_increase_IEC_perc.eps'
+    FigTitle = 'plot-TC_ultimate_increase_IEC_perc.eps'
     SavePath = os.path.join(SaveDir,FigTitle)
     fig2.savefig(SavePath)
     print('Figure {:s} saved.'.format(FigTitle))

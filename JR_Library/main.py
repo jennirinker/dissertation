@@ -36,40 +36,33 @@ import scipy.stats
 # ---------------------------- FILE I/O ---------------------------------------
 # =============================================================================
 
-def loadmetadata(fname):
-    """ Load data and fields from metadata file processed in Python,
-        either .txt or .mat
+def loadmetadata(dataset):
+    """ Load data and fields from metadata file for dataset
     
         Args:
-            fname (string): path to file
+            dataset (string): flag for dataset
             
         Returns:
             fields (list): fields in each column
             metadata (numpy array): values for each field and each record
     """
     
-    # if it is a text file
-    if (fname.endswith('txt')):
+    # hard-code base location of data
+    BaseDir = 'C:\\Users\\jrinker\\Dropbox\\research\\processed_data'
     
-        # strip fields from header line
-        with open(fname,'r') as f:
-            fields = f.readline().lstrip('# ').rstrip('\n').split(',')
-            
-        # read in data table
-        metadata = np.loadtxt(fname,delimiter=',',skiprows=1)
-
-    # if it is a .mat file
-    elif (fname.endswith('mat')):
-
-        struc     = scio.loadmat(fname)         # load structure
-        fields    = [str(string.rstrip(' ')) for \
-                  string in  struc['fields']]   # load fields, stripping spaces
-        metadata  = struc['metadata']
-
-    else:
-        errStr = 'Invalid file type \"{}\"'.format(fname)
-        raise TypeError(errStr)
+    # define path to mat file
+    MatName = '{:s}-metadata.mat'.format(dataset)
+    MatPath = os.path.join(BaseDir,MatName)
     
+    # load mat file
+    struc     = scio.loadmat(MatPath)       # load structure
+    fields    = [str(string.rstrip(' ')) for \
+              string in  struc['fields']]   # load fields, stripping spaces
+    metadata  = struc['metadata']
+    
+    # clean metadata
+    metadata = cleanmetadata(dataset,metadata,fields)
+
     return (fields, metadata)
 
 
@@ -1042,7 +1035,7 @@ def getBasedir(dataset):
                   '/media/jrinkerSeagate Backup Plus Drive/']
         
     elif (platform.system() == 'Windows'):
-        drives = ['E:\\','G:\\','H:\\','T:\\','V:\\']
+        drives = ['E:\\','G:\\','H:\\','T:\\','V:\\','D:\\']
         
     # get string list of drives for possible error message
     drives_str = ''
@@ -2056,11 +2049,11 @@ def screenmetadata(fields,metadata,dataset):
     
         Args:
             fields (list): list of fields associated with metadata cols
-            metadata(numpy array): array of metadata
+            metadata (numpy array): array of metadata
             dataset (string): toggle for dataset choice
             
         Returns:
-            cleandata (numpy array): numpy array with screened data
+            screendata (numpy array): numpy array with screened data
     """
     
     # get dataset-specific specifications (include screening parameters)
@@ -2077,15 +2070,11 @@ def screenmetadata(fields,metadata,dataset):
         dirCol = fields.index('Wind_Direction')
         preCol = fields.index('Precipitation')
         
-        # filter out the rows with NaN values
-        metadata = metadata[np.logical_not( \
-            np.any(np.isnan(metadata),axis=1)),:]
-        
-        # screen remaining data
-        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
-        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
+        # screen data
+        screendata = metadata[np.where(metadata[:,CScol] > CSLim)]
+        screendata = screendata[np.where( (screendata[:,dirCol] - dir1) % 360. \
                                         < (dir2 - dir1) % 360.)]
-        cleandata = cleandata[np.where(cleandata[:,preCol] >= preLim)]
+        screendata = screendata[np.where(screendata[:,preCol] >= preLim)]
 
     elif (dataset == 'fluela'):
         CSLim  = specs['WSlim']             # lower cup speed limit
@@ -2099,16 +2088,12 @@ def screenmetadata(fields,metadata,dataset):
         dirCol  = fields.index('Sonic_Direction')
         timeCol = fields.index('Record_Time')
         
-        # filter out the rows with NaN values
-        metadata = metadata[np.logical_not( \
-            np.any(np.isnan(metadata),axis=1)),:]
-        
-        # screen remaining data
-        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
-        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
+        # screen data
+        screendata = metadata[np.where(metadata[:,CScol] > CSLim)]
+        screendata = screendata[np.where( (screendata[:,dirCol] - dir1) % 360. \
                                         < (dir2 - dir1) % 360.)]
-        cleandata = cleandata[np.where(cleandata[:,timeCol] >= T1)]
-        cleandata = cleandata[np.where(cleandata[:,timeCol] <= T2)]
+        screendata = screendata[np.where(screendata[:,timeCol] >= T1)]
+        screendata = screendata[np.where(screendata[:,timeCol] <= T2)]
 
     elif (dataset == 'PM06'):
         CSLim  = specs['WSlim']             # lower cup speed limit
@@ -2119,13 +2104,9 @@ def screenmetadata(fields,metadata,dataset):
         CScol   = fields.index('Sonic_Cup')
         dirCol  = fields.index('Sonic_Direction')
         
-        # filter out the rows with NaN values
-        metadata = metadata[np.logical_not( \
-            np.any(np.isnan(metadata),axis=1)),:]
-        
-        # screen remaining data
-        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
-        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
+        # screen data
+        screendata = metadata[np.where(metadata[:,CScol] > CSLim)]
+        screendata = screendata[np.where( (screendata[:,dirCol] - dir1) % 360. \
                                         < (dir2 - dir1) % 360.)]
                                         
     elif (dataset == 'texastech'):
@@ -2133,30 +2114,75 @@ def screenmetadata(fields,metadata,dataset):
         dir1   = specs['dir1']              # CCW edge for direction range
         dir2   = specs['dir2']              # CW edge for direction range
         
-        # column indices for each value
-        CScol   = fields.index('Wind_Speed_Sonic')
-        dirCol  = fields.index('Wind_Direction_Sonic')
+        # column indices for screening values
+        UsCol   = fields.index('Wind_Speed_Sonic')
+        dirsCol = fields.index('Wind_Direction_Sonic')
         
-        # filter out the rows with NaN values
-        metadata = metadata[np.logical_not( \
-            np.any(np.isnan(metadata),axis=1)),:]
-        
-        # screen remaining data
-        cleandata = metadata[np.where(metadata[:,CScol] > CSLim)]
-        
-        # *********** MANUALLY CHANGE WD AND SCREEN
-        cleandata[:,dirCol] = (180. + 30. - cleandata[:,dirCol]) % 360
-        cleandata = cleandata[(cleandata[:,dirCol] - dir1) % 360. \
+        # screen data (by sonic to screen at all heights)
+        screendata = metadata[np.where(metadata[:,UsCol] > CSLim)]
+        screendata = screendata[(screendata[:,dirsCol] - dir1) % 360. \
                        < (dir2 - dir1) % 360.,:]
-#        cleandata = cleandata[np.where( (cleandata[:,dirCol] - dir1) % 360. \
-#                                        < (dir2 - dir1) % 360.)]
         
     else:
         errStr = 'Dataset \"{}\" is not coded yet.'.format(dataset)
         raise AttributeError(errStr)
         
-    return cleandata
+    return screendata
+    
 
+def cleanmetadata(dataset,raw_parms,fields):
+    """ Manually remove bad data (NaNs or other from Texas Tech dataset)
+    
+        Args:
+            dataset (string): flag to indicate dataset
+            raw_parms (numpy array): raw metadata
+            fields (list): string indicators of fields
+            
+        Returns:
+            cleandata (numpy array): cleaned metadata
+    """
+    
+    # lots of manual cleaning if texas tech
+    if dataset == 'texastech':
+        
+        # get dataset-specific specifications (include screening parameters)
+        specs = datasetSpecs('texastech')
+    
+        # column indices for screening values
+        UsCol   = fields.index('Wind_Speed_Sonic')
+        UpCol   = fields.index('Wind_Speed_UVW')
+        sigCol  = fields.index('Sigma_u')
+        rhoCol  = fields.index('Concentration_u')
+        dirpCol = fields.index('Wind_Direction_UVW')
+        dirsCol = fields.index('Wind_Direction_Sonic')
+        
+        # filter out _only_ sonic data with NaNs (UVW has NaNs 1/2/4 m)
+        metadata = raw_parms[np.logical_not(np.isnan(raw_parms[:,UsCol])),:]
+        
+        # manually screen for values that exceed thresholds
+        UsMax  = np.nanmax(1.10 * metadata[:,UpCol])
+        sigMax, rhoMax = 4., 0.6
+        cleandata = metadata[metadata[:,UsCol] < UsMax,:]      # too-high wind speeds
+        cleandata = cleandata[cleandata[:,sigCol] < sigMax,:]  # removes some rain
+        cleandata = cleandata[cleandata[:,rhoCol] < rhoMax,:]
+        
+        # manually change wind directions
+        phis, phip = specs['sonic_offset'],specs['UVW_offset']
+        cleandata[:,dirsCol] = (180. + phis - cleandata[:,dirsCol]) % 360
+        cleandata[:,dirpCol] = (180. + phip - cleandata[:,dirpCol]) % 360
+        
+    # just remove NaNs if not texas tech
+    elif (dataset in ['NREL','fluela','PM06']):
+        
+        # filter out the rows with NaN values
+        cleandata = raw_parms[np.logical_not( \
+            np.any(np.isnan(raw_parms),axis=1)),:]
+        
+    else:
+        ErrStr = 'Dataset \"{:s}\" not coded.'.format(dataset)
+        raise ValueError(ErrStr)
+
+    return cleandata
 
 def compositeCDF(x,dist_name,p_main,x_T=float("inf"),p_GP=(0.1,0,1)):
     """ Cumulative distribution function of single/composite distribution
