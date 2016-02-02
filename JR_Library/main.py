@@ -923,25 +923,25 @@ def dataRanges(dataset,datfield):
     if (dataset == 'NREL'):
 
         # define data ranges
-        if ('Sonic_u' in datfield):
+        if ('Sonic_u' in datfield):     # m/s
             dataRng = [-35.05,35.05]
-        elif ('Sonic_v' in datfield):
+        elif ('Sonic_v' in datfield):   # m/s
             dataRng = [-35.05,35.05]
-        elif ('Sonic_w' in datfield):
+        elif ('Sonic_w' in datfield):   # m/s
             dataRng = [-29.95,29.95]
-        elif ('Sonic_T' in datfield):
+        elif ('Sonic_T' in datfield):   # C
             dataRng = [-19.95,49.95]
-        elif ('Air_Temp' in datfield):
+        elif ('Air_Temp' in datfield):  # C
             dataRng = [-50.,50.]
-        elif ('Cup_WS' in datfield):
+        elif ('Cup_WS' in datfield):    # m/s
             dataRng = [0.,80.]
-        elif ('Vane_WD' in datfield):
+        elif ('Vane_WD' in datfield):   # degrees
             dataRng = [0.,360.]
-        elif ('PRECIP' in datfield):
+        elif ('PRECIP' in datfield):    # none
             dataRng = [0.,4.]
-        elif ('Dewpt' in datfield):
+        elif ('Dewpt' in datfield):     # C
             dataRng = [-50.,50.]
-        elif ('Presr' in datfield):
+        elif ('Presr' in datfield):     # mbar
             dataRng = [740.,1000.]
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
@@ -949,17 +949,17 @@ def dataRanges(dataset,datfield):
     elif (dataset == 'fluela'):
 
         # define data ranges
-        if ('Sonic_u' in datfield):
+        if ('Sonic_u' in datfield):     # m.s
             dataRng = [-35.05,35.05]
-        elif ('Sonic_v' in datfield):
+        elif ('Sonic_v' in datfield):   # m/s
             dataRng = [-35.05,35.05]
-        elif ('Sonic_w' in datfield):
+        elif ('Sonic_w' in datfield):   # m/s
             dataRng = [-29.95,29.95]
-        elif ('Sonic_T' in datfield):
+        elif ('Sonic_T' in datfield):   # C
             dataRng = [-19.95,49.95]
-        elif ('Sonic_Cup' in datfield):
+        elif ('Sonic_Cup' in datfield): # m/s
             dataRng = [  0.00,49.57]            # sqrt(2*(35.05**2))
-        elif ('Sonic_direction' in datfield):
+        elif ('Sonic_direction' in datfield):   # degrees
             dataRng = [ 0.00,360.00]            # angle from 0 to 360
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
@@ -969,15 +969,15 @@ def dataRanges(dataset,datfield):
         # define data ranges
         #    Sonic data ranges taken from CSAT 3 specifications
         #    Hygrometer data from KH20 specifications
-        if ('Sonic_x' in datfield):
+        if ('Sonic_x' in datfield):     # m/s
             dataRng = [-29.95,29.95]
-        elif ('Sonic_y' in datfield):
+        elif ('Sonic_y' in datfield):   # m/s
             dataRng = [-29.95,29.95]
-        elif ('Sonic_z' in datfield):
+        elif ('Sonic_z' in datfield):   # m/s
             dataRng = [-7.95,7.95]
-        elif ('Sonic_T' in datfield):
+        elif ('Sonic_T' in datfield):   # C
             dataRng = [-29.95,49.95]
-        elif ('Hygro' in datfield):
+        elif ('Hygro' in datfield):     # g/m^3
             dataRng = [  1.75,19.25] 
         else:
               raise KeyError('Field {} not recognized.'.format(datfield))
@@ -987,19 +987,19 @@ def dataRanges(dataset,datfield):
         # define data ranges
         #    Sonic data ranges taken from CSAT 3 specifications
         #    Hygrometer data from KH20 specifications
-        if ('Sonic_x' in datfield):
+        if ('Sonic_x' in datfield):     # m/s
             dataRng = [-29.95,29.95]
-        elif ('Sonic_y' in datfield):
+        elif ('Sonic_y' in datfield):   # m/s
             dataRng = [-29.95,29.95]
-        elif ('Sonic_z' in datfield):
+        elif ('Sonic_z' in datfield):   # m/s
             dataRng = [-7.95,7.95]
-        elif ('UVW_x' in datfield):
+        elif ('UVW_x' in datfield):     # m/s
             dataRng = [-40,40]
-        elif ('UVW_y' in datfield):
+        elif ('UVW_y' in datfield):     # m/s
             dataRng = [-40,40]
-        elif ('UVW_z' in datfield):
+        elif ('UVW_z' in datfield):     # m/s
             dataRng = [-40,40]
-        elif ('Sonic_T' in datfield):
+        elif ('Sonic_T' in datfield):   # C
             dataRng = [-29.95,49.95]
         elif ('Rel_Hum' in datfield):
             dataRng = [0,100]               # %
@@ -1826,7 +1826,7 @@ def calculatefield(dataset,struc_hf,ID):
             outdict['Record_Time']          = rec_time
             outdict['Processed_Time']       = calendar.timegm(time.gmtime())   
             outdict['ID']                   = ID
-            outdict['Wind_Speed_Sonic']       = WSbar_s
+            outdict['Wind_Speed_Sonic']     = WSbar_s
             outdict['Wind_Speed_UVW']       = WSbar_p
             outdict['Wind_Direction_Sonic'] = WDbar_s
             outdict['Wind_Direction_UVW']   = WDbar_p
@@ -5097,8 +5097,8 @@ def FASTUniqueStats(x,y,RunName):
     # loop through wind parameters
     n_uniq = np.prod(np.array([len(l) for l in WindParms]))
     x_uniq = np.empty((n_uniq,x.shape[1]))
-    err_mean = np.empty(n_uniq)
-    err_std  = np.empty(n_uniq)
+    y_mean = np.empty(n_uniq)
+    y_std  = np.empty(n_uniq)
     i_uniq   = 0
     for iU,iI,iL,iRho in [(a,b,c,d) for a in range(len(WindParms[0])) \
                                     for b in range(len(WindParms[1])) \
@@ -5114,14 +5114,14 @@ def FASTUniqueStats(x,y,RunName):
                               x[:,3]==rho)
 
         # assign data to aray
-        x_uniq[i_uniq]   = [U,I,logL,rho]
-        y_data           = y[mask]
-        err_mean[i_uniq] = np.mean(y_data)
-        err_std[i_uniq]  = np.std(y_data)
+        x_uniq[i_uniq] = [U,I,logL,rho]
+        y_data         = y[mask]
+        y_mean[i_uniq] = np.mean(y_data)
+        y_std[i_uniq]  = np.std(y_data)
         
         i_uniq += 1
         
-    return x_uniq, err_mean, err_std
+    return x_uniq, y_mean, y_std
 
 # =============================================================================
 # ---------------------------------- MAPPINGS ---------------------------------

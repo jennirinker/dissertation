@@ -8,12 +8,11 @@ import numpy as np
 import scipy.stats
 import JR_Library.main as jr
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import scipy.io as scio
 import os,string
 
 # datasets to plot correlations for
-datasets = ['NREL','fluela','PM06']
+datasets = ['NREL','fluela','PM06','texastech']
 dataset = 'NREL'
 
 # plot options
