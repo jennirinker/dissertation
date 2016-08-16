@@ -4,15 +4,16 @@ Plot lift and drag coefficients of specified airfoil
 import numpy as np
 
 fname = 'C:\\Users\\jrinker\\Documents\\GitHub\\' + \
-            'dissertation\\FAST_models\\FAST7\\WP0750_v7\\AeroData\\' + \
-            's818_2702.dat'
+            'dissertation\\FAST_models\\FAST7\\WP1.5A08V03\\AeroData\\' + \
+            's818_2703.dat'
 
 AFData = np.empty((1e4,3))
 with open(fname,'r') as f:
     i_line = 0
     i_AF   = 0
     for line in f:
-        if i_line > 11:
+        data = line.rstrip('\n').strip()
+        if data and (i_line > 14):
             AFData[i_AF,:] = [float(l) for l in line.split()[:3]]
             i_AF += 1
         i_line += 1

@@ -13,7 +13,6 @@ import os,string
 
 # datasets to plot correlations for
 datasets = ['NREL','fluela','PM06','texastech']
-dataset = 'NREL'
 
 # plot options
 plt.style.use(jr.stylepath('duke_paper'))
@@ -29,8 +28,8 @@ yPos  = xPos[::-1]
 w     = 0.15
 h     = 0.15
 
-parm_names = ['$U$','$\\sigma_u$','$\\tau_u$','$\\rho_u$','$\\zeta$']
-parms = ['Mean_Wind_Speed','Sigma_u','Tau_u','Concentration_u','MO_Length_virt']
+parm_names = ['$U$','$\\sigma_u$','$\\tau_u$','$\\rho_u$','$\\zeta_{MO}$']
+parms = ['Mean_Wind_Speed','Sigma_u','Tau_u','Concentration_u','zeta_MO']
 
 # define directory where wind parameters are stored (unused for matlab)
 BaseDir = 'C:\\Users\\jrinker\\Dropbox\\research\\' + \
@@ -45,7 +44,7 @@ for dataset in datasets:
     AllHtsName = '{:s}-metadata_allheights.mat'.format(dataset)
     AllHtsPath = os.path.join(BaseDir,AllHtsName)
     outdict = scio.loadmat(AllHtsPath,squeeze_me=True)
-    values  = outdict['values']
+    values  = outdict['values'][:,1:]
     IDs = outdict['IDs']
     all_fields  = [s.rstrip() for s in outdict['all_fields']]
     
@@ -55,22 +54,20 @@ for dataset in datasets:
     DictName   = '{:s}_correlations.mat'.format(dataset)
     DictPath   = os.path.join(BaseDir,DictName)
     CorrDict   = scio.loadmat(DictPath,squeeze_me=True)
-    IDs,R      = CorrDict['IDs'], CorrDict['R']
+    IDs, corrs = CorrDict['IDs'], CorrDict['corrs']
     all_fields = [s.rstrip() for s in CorrDict['all_fields']]
     
     # initialize figure
     fig = plt.figure(FigNum+iPlot,figsize=(4.5,4.5))
     plt.clf()
     
-    
     labels = string.ascii_letters
     
     # standardize the random variables
     F = (np.arange(values.shape[0])+1.)/(values.shape[0]+1.)
-    gvals = np.empty(values.shape)[:,1:]
+    gvals = np.empty(values.shape)
     for i_parm in range(gvals.shape[1]):
-        gvals[np.argsort(values[:,i_parm+1]),i_parm] = scipy.stats.norm.ppf(F)
-    
+        gvals[np.argsort(values[:,i_parm]),i_parm] = scipy.stats.norm.ppf(F)
     
     # loop through first variable
     iAx = 0
@@ -85,8 +82,8 @@ for dataset in datasets:
             i2    = iHplot*len(all_fields) + all_fields.index(parm2)
             G_y   = gvals[:,i2]
             
-            # calculate the pearson coefficient
-            r = R[i1,i2]
+            # load the pearson coefficient
+            r = corrs[i1,i2]
             
             # make axes
             ax = plt.axes([xPos[iParm2-1],yPos[iParm1],w,h])  

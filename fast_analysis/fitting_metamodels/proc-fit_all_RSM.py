@@ -21,7 +21,8 @@ RunName  = 'BigRun2'
 FigNum = 1
 
 # statistic and value to fit RSM to
-parameters = [['max','RootMFlp1','MN-m',1000.],
+parameters = [['max','OoPDefl1','m',1.],
+              ['max','RootMFlp1','MN-m',1000.],
               ['DEL-h','RootMFlp1','MN-m',1000.],
               ['max','HSShftTq','kN-m',1],
               ['DEL-h','HSShftTq','kN-m',1],

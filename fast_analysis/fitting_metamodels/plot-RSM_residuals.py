@@ -64,8 +64,8 @@ for TurbName in TurbNames:
         # load the RSM data
         DictKey = '{:s}_{:s}'.format(parm,stat)
         RSMDict = TurbRSMDict[DictKey]
-        ps, cs  = RSMDict['ps'], RSMDict['cs']
-        e, perr = RSMDict['es'], RSMDict['p_errs']
+        ps, cs  = RSMDict['ps_red'], RSMDict['cs_red']
+        e, perr = RSMDict['es_red'], RSMDict['p_errs']
         
         # **********************************************************
         # choose data to plot

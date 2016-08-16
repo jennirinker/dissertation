@@ -55,34 +55,38 @@ URefs, Is, Ls, rhos, n_dups = WindParms['URefs'],WindParms['Is'], \
 WindParmsList = [URefs,Is,np.log10(Ls),rhos]
 
 # load the stats data
-DictPath   = os.path.join(BaseStatDir,RunName,TurbName + '_stats.mat')
-stats_dict = scio.loadmat(DictPath,squeeze_me=True)
-proc_stats = stats_dict['proc_stats']
-calc_stats = [s.rstrip() for s in stats_dict['calc_stats']]
-fnames     = [s.rstrip() for s in stats_dict['fnames']]
-fields     = [s.rstrip() for s in stats_dict['fields']]
-n_fields = len(fields)
+#DictPath   = os.path.join(BaseStatDir,RunName,TurbName + '_stats.mat')
+#stats_dict = scio.loadmat(DictPath,squeeze_me=True)
+#proc_stats = stats_dict['proc_stats']
+#calc_stats = [s.rstrip() for s in stats_dict['calc_stats']]
+#fnames     = [s.rstrip() for s in stats_dict['fnames']]
+#fields     = [s.rstrip() for s in stats_dict['fields']]
+#n_fields = len(fields)
 
 # statistic and value to fit RSM to
-stat = 'max'
+stat = 'DEL-h'
 parm = 'RootMFlp1'
 #parm, p_i = 'RootMOoP1', [4,4,4,4]
 #parm, p_i = 'TwrBsMxt', [4,4,4,4]
 #parm, p_i = 'TwrBsMyt', [4,4,4,4]
 #parm, p_i = 'RotTorq', [4,4,2,2]
 
-# extract data for fitting polynomial surface
-y = proc_stats[:,calc_stats.index(stat)*n_fields + \
-                 fields.index(parm)]                # output data
-x = np.empty((y.size,4))
-for i_f in range(y.size):
-    file_id =  fnames[i_f].rstrip('.out').split('_')[1]
-    for i_p in range(len(WindParmsList)):
-        x[i_f,i_p] = WindParmsList[i_p][int(file_id[i_p],16)]   # hex to int
-#    x[i_f,1] = Is[int(file_id[1],16)]
-##    x[i_f,2] = Ls[int(file_id[2],16)]
-#    x[i_f,2] = np.log10(Ls[int(file_id[2],16)])
-#    x[i_f,3] = rhos[int(file_id[3],16)]
+# load data
+x, y = jr.LoadFASTStats(RunName,TurbName,stat,parm,
+                  scale=1)
+
+## extract data for fitting polynomial surface
+#y = proc_stats[:,calc_stats.index(stat)*n_fields + \
+#                 fields.index(parm)]                # output data
+#x = np.empty((y.size,4))
+#for i_f in range(y.size):
+#    file_id =  fnames[i_f].rstrip('.out').split('_')[1]
+#    for i_p in range(len(WindParmsList)):
+#        x[i_f,i_p] = WindParmsList[i_p][int(file_id[i_p],16)]   # hex to int
+##    x[i_f,1] = Is[int(file_id[1],16)]
+###    x[i_f,2] = Ls[int(file_id[2],16)]
+##    x[i_f,2] = np.log10(Ls[int(file_id[2],16)])
+##    x[i_f,3] = rhos[int(file_id[3],16)]
     
 
 # ================= optimize polynomial coefficients =====================

@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 #    'GitHub\\dissertation\\FAST_models\\FAST7\\WP0.75A08V00', \
 #    'WP0.75A08V00',1,[0,2000],[-0.5,2.0]
 turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
-    'GitHub\\dissertation\\FAST_models\\FAST7\\WP0.75A08V00_newGBR', \
+    'GitHub\\dissertation\\FAST_models\\FAST7\\WP0.75A08V00', \
     'WP0.75A08V00',1,[0,2200],[-0.5,3.0]
 #turb_dir,TName,fignum,ylim1,ylim3 = 'C:\\Users\\jrinker\\Documents\\' + \
 #    'GitHub\\dissertation\\FAST_models\\FAST7\\WP1.5A08V03', \

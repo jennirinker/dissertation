@@ -3085,7 +3085,7 @@ def SampleWindParameters(NumSamps,dataset,BaseDir,ParmSample,iH,
     DictName   = '{:s}_correlations.mat'.format(dataset)
     DictPath   = os.path.join(BaseDir,DictName)
     CorrDict   = scio.loadmat(DictPath,squeeze_me=True)
-    R          = CorrDict['R']
+    R          = CorrDict['corrs']
     all_fields = [s.rstrip() for s in CorrDict['all_fields']]
     
     # get correlation matrix for that height
@@ -4360,6 +4360,8 @@ def PlotSSTurbineResponse(x,Data,Fields,fig=None):
     """
     import matplotlib.pyplot as plt
     
+    # define "global" parameters for simplicity
+    legFS = 'x-small'
     
     # create figure if none specified
     if fig is None:
@@ -4367,50 +4369,61 @@ def PlotSSTurbineResponse(x,Data,Fields,fig=None):
         
     # axes locations
     xPlot = 0.11
-    yPlot = np.arange(3)[::-1]*0.31 + 0.08
-    wd,ht = 0.80,0.25
+    yPlot = np.arange(3)[::-1]*0.32 + 0.10
+    wd,ht = 0.80,0.18
     
     # Axes 1: GenSpeed,RotPwr,GenPwr,RotThrust,RotTorq
     ax1 = fig.add_axes([xPlot,yPlot[0],wd,ht])
     
-    plt.plot(x,Data[:,Fields.index('GenSpeed')],label='GenSpeed, rpm')
-    plt.plot(x,Data[:,Fields.index('LSShftPwr')],label='RotPwr, kW')
-    plt.plot(x,Data[:,Fields.index('GenPwr')],label='GenPwr, kW')
-    plt.plot(x,Data[:,Fields.index('RotThrust')],label='RotThrust, kN')
-    plt.plot(x,Data[:,Fields.index('RotTorq')],label='RotTorq, kN-m')
+    plt.plot(x,Data[:,Fields.index('GenSpeed')],label='GenSpeed (rpm)')
+#    plt.plot(x,Data[:,Fields.index('LSShftPwr')],label='RotPwr (kW)')
+    plt.plot(x,Data[:,Fields.index('GenPwr')],label='GenPwr (kW)')
+    plt.plot(x,Data[:,Fields.index('RotThrust')],label='RotThrust (kN)')
+    plt.plot(x,Data[:,Fields.index('RotTorq')],label='RotTorq (kN-m)')
     
     ax1.set_xlim([x[0],x[-1]])
     ax1.grid('on')
-    ax1.legend(loc=2,fontsize='small')
-    ax1.set_xticks(np.arange(x[0],x[-1]+1))
+#    ax1.legend(loc=2,fontsize=legFS)
+    ax1.legend(fontsize=legFS,
+               bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+               ncol=2, mode='expand', borderaxespad=0.)
+    ax1.set_xticks(np.arange(x[0],x[-1]+1,2))
     
     
     # Axes 2: RotSpeed,BlPitch,GenTq,TSR
     ax2 = fig.add_axes([xPlot,yPlot[1],wd,ht])
     
-    plt.plot(x,Data[:,Fields.index('RotSpeed')],label='RotSpeed, rpm')
-    plt.plot(x,Data[:,Fields.index('BldPitch1')],label='BlPitch, $^\mathrm{o}$')
-    plt.plot(x,Data[:,Fields.index('GenTq')],label='GenTq, kN-m')
-    plt.plot(x,Data[:,Fields.index('TSR')],label='TSR, -')
+    plt.plot(x,Data[:,Fields.index('RotSpeed')],label='RotSpeed (rpm)')
+    plt.plot(x,Data[:,Fields.index('BldPitch1')],label='BlPitch ($^\mathrm{o}$)')
+    plt.plot(x,Data[:,Fields.index('GenTq')],label='GenTq (kN-m)')
+    plt.plot(x,Data[:,Fields.index('TSR')],label='TSR (-)')
     
     ax2.set_xlim([x[0],x[-1]])
     ax2.grid('on')
-    ax2.legend(loc=2,fontsize='small')
-    ax2.set_xticks(np.arange(x[0],x[-1]+1))
+#    ax2.legend(loc=2,fontsize=legFS)
+    ax2.legend(fontsize=legFS,
+               bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+               ncol=2, mode='expand', borderaxespad=0.)
+    ax2.set_xticks(np.arange(x[0],x[-1]+1,2))
     
     # Axes 3: OopDefl1,IPDefl1,TTDspFA,TTDspSS
     ax3 = fig.add_axes([xPlot,yPlot[2],wd,ht])
     
-    plt.plot(x,Data[:,Fields.index('OoPDefl1')],label='OoPDefl1, m')
-    plt.plot(x,Data[:,Fields.index('IPDefl1')],label='IPDefl1, m')
-    plt.plot(x,Data[:,Fields.index('TTDspFA')],label='TTDspFA, m')
-    plt.plot(x,Data[:,Fields.index('TTDspSS')],label='TTDspSS, m')
+    plt.plot(x,Data[:,Fields.index('OoPDefl1')],label='OoPDefl1 (m)')
+    plt.plot(x,Data[:,Fields.index('IPDefl1')],label='IPDefl1 (m)')
+    plt.plot(x,Data[:,Fields.index('TTDspFA')],label='TTDspFA (m)')
+    plt.plot(x,Data[:,Fields.index('TTDspSS')],label='TTDspSS (m)')
     
     #ax3.set_ylim([0,40])
     ax3.set_xlim([x[0],x[-1]])
     ax3.grid('on')
-    ax3.legend(loc=2,fontsize='small')
-    ax3.set_xticks(np.arange(x[0],x[-1]+1))
+#    ax3.legend(loc=2,fontsize=legFS)
+    ax3.legend(fontsize=legFS,
+               bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+               ncol=2, mode='expand', borderaxespad=0.)
+    ax3.set_xticks(np.arange(x[0],x[-1]+1,2))
+    ax3.set_xlabel('Wind speed (m/s)',
+                   labelpad=10)
     
     return fig,ax1,ax2,ax3
     
